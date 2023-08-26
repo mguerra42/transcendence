@@ -15,10 +15,10 @@ services:
   backend:
     image: node:18-alpine
     restart: always
-    command: npm run dev
-    working_dir: /app
+    command: npm run start:dev
+    working_dir: /backend
     volumes:
-      - ./backend:/app
+      - ./backend:/backend
     depends_on:
       - db
     ports:
@@ -30,13 +30,15 @@ services:
     image: node:18-alpine
     restart: always
     command: npm run dev
-    working_dir: /app
+    working_dir: /frontend
     volumes:
-      - ./frontend:/app
+      - ./frontend:/frontend
     depends_on:
       - db
     ports:
-      - 3000:3000
+      - 3001:3000
+    environment:
+      HOST: 0.0.0.0
     networks:
       - transcendence
 
