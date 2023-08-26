@@ -1,0 +1,49 @@
+version: "3.3"
+
+services:
+
+  db:
+    image: postgres
+    restart: always
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    networks:
+      - transcendence
+
+  backend:
+    image: node:18-alpine
+    restart: always
+    command: npm run dev
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - db
+    ports:
+      - 3000:3000
+    networks:
+      - transcendence
+
+  frontend:
+    image: node:18-alpine
+    restart: always
+    command: npm run dev
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    depends_on:
+      - db
+    ports:
+      - 3000:3000
+    networks:
+      - transcendence
+
+volumes:
+  db-data:
+    driver: local
+
+networks:
+  transcendence:
+    driver: bridge
