@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { appName } from '~/constants'
+
 useHead({
-  title: 'TRANSCENDENCE',
+  title: appName,
 })
 </script>
 

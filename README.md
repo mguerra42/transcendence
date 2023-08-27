@@ -29,7 +29,7 @@ Pour l'authentification, on utilisera le système de JWT (JSON Web Token). C'est
 C'est un framework CSS, ça permet de faire des trucs sympas sans trop se prendre la tête. Et ça nous permettra de bosser en équipe plus facilement sans péter les classes et styles des autres. En gros, il y a des classes prédéfinies pour ajuster chaque propriété CSS, et on peut les combiner pour faire des trucs plus complexes.
 
 ### UnoCSS [https://unocss.dev/](https://unocss.dev/)
-En vérité, on utilisera pas Tailwind CSS, mais UnoCSS. J'ai ajouté tailwind pour que vous compreniez le concept. Il fait la même chose que Tailwind, à savoir fournir des classes prédéfinies pour faire du CSS, mais il ne génére que celles qui sont utilisées dans le code, donc ça permet de ne pas avoir un fichier CSS de 10Mo. Ca permet aussi de créer des thèmes facilement, et de faire des trucs plus complexes que Tailwind.
+En vérité, on utilisera pas Tailwind CSS, mais UnoCSS. J'ai ajouté tailwind pour que vous compreniez le concept. UnoCSS fait la même chose que Tailwind, à savoir fournir des classes prédéfinies pour faire du CSS, mais il ne génére que celles qui sont utilisées dans le code, donc ça permet de ne pas avoir un fichier CSS de 10Mo. Ca permet aussi de créer des thèmes facilement, et de faire des trucs plus complexes que Tailwind.
 
 
 ### Vue 3 [https://vuejs.org/](https://vuejs.org/)
@@ -47,6 +47,6 @@ UnoCSS permet d'intégrer des icônes facilement, en utilisant juste une classe 
 
 Pour utiliser une icone, copiez-le nom de l'icone, et ajoutez la classe `i-` devant. Par exemple, pour utiliser l'icone `mdi:account` : `<div class="i-mdi:account"></div>`.
 
-## Pinia
+### Pinia
 
 Pinia est un store pour Vue.js, c'est un peu comme Vuex, mais en plus simple et plus rapide. Ca permet de stocker des données et de les partager entre les composants/pages.
