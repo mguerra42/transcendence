@@ -64,6 +64,7 @@ interface AppClient {
       data: any
     ) => void // emit socket event
   }
+  test: () => Promise<any>
 }
 
 const client: AppClient = {} as AppClient
@@ -88,6 +89,10 @@ client.auth.session = () => {
   console.log('me')
 }
 
+client.test = async () => {
+  // return await $fetch('http://backend:3000/')
+  throw new Error('test')
+}
 export function useClient() {
   return client
 }
