@@ -1,24 +1,21 @@
 // This file contains the types that are used in the application
 
-import { type } from "os";
-
 //TODO: Do a global type declaration file instead
 export type AuthRequest = {
-    email: string;
-    password: number;
-    username: string;
-}
+  email: string;
+  password: number;
+  username: string;
+};
 
-type Header = {
-}
+type Header = {};
 
 type Body = {
-    username : string;
-    token : string;
-}
+  username: string;
+  token: string;
+};
 
 export type AuthResponse = {
-    status: number;
-    headers: Header;
-    body: Body;
-}
+  status: number;
+  headers: Header;
+  body: Body;
+};
