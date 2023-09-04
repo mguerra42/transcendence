@@ -1,0 +1,104 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+//Player from 42
+model User {
+  id             Int           @id @default(autoincrement())
+  username       String        @unique
+  status         Status //online, playing, offline
+  email          String        @unique
+  password       String
+  victories      Int           @default(0) //number of victories for stats
+  defeats        Int           @default(0) //number of defeats for stats
+  ladderPoint    Int           @default(1000) //level for stats
+  avatarPath     String        @default("/avatars/defaultPath.jpg") //the path to the avatar image
+  friends        Friend[]      @relation("friends")
+  inverseFriends Friend[]      @relation("inverseFriends") // Only for prisma, not used
+  blockedUsers   BlockedUser[] @relation("blocked")
+  wonGames       Game[]        @relation("winner")
+  lostGames      Game[]        @relation("loser")
+  channels       ChannelUser[] //channels the user is in
+}
+
+//Friend list
+model Friend {
+  userOneId Int
+  userTwoId Int
+  userOne   User @relation("friends", fields: [userOneId], references: [id])
+  userTwo   User @relation("inverseFriends", fields: [userTwoId], references: [id])
+
+  @@id([userOneId, userTwoId])
+}
+
+//Blocked list
+model BlockedUser {
+  userId    Int
+  blockedId Int
+  user      User @relation("blocked", fields: [userId], references: [id])
+
+  @@id([userId, blockedId])
+}
+
+//Game of Pong
+model Game {
+  id          Int      @id @default(autoincrement())
+  winnerId    Int
+  loserId     Int
+  winner      User     @relation("winner", fields: [winnerId], references: [id])
+  loser       User     @relation("loser", fields: [loserId], references: [id])
+  winnerScore Int
+  loserScore  Int
+  date        DateTime @default(now())
+}
+
+//Chat channel
+model Channel {
+  id           Int           @id @default(autoincrement())
+  name         String        @unique
+  access       Access //public, private, protected
+  password     String? //if access is defined as protected
+  userList     ChannelUser[] //users in the channel        //lists mutes
+  creationDate DateTime      @default(now())
+}
+
+model ChannelUser {
+  role        Role
+  userId      Int
+  user        User      @relation(fields: [userId], references: [id])
+  channelId   Int
+  channel     Channel   @relation(fields: [channelId], references: [id])
+  bannedUntil DateTime? //if banned
+  mutedUntil  DateTime? //if muted
+
+  @@id([userId, channelId])
+}
+
+//User role in a channel
+enum Role {
+  USER
+  ADMIN
+  OWNER
+}
+
+//User status
+enum Status {
+  OFFLINE
+  ONLINE
+  PLAYING
+}
+
+//Channel accessibility
+enum Access {
+  PUBLIC
+  PRIVATE
+  PROTECTED
+}
