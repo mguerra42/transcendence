@@ -1,10 +1,10 @@
+<template>
+    <div class="bg-gray flex items-center h-full justify-center flex-col">
+      <AuthForm></AuthForm>
+    </div>
+</template>
+
 <script setup lang="ts">
-const {data} = await useFetch('http://backend:3000/hello')
+  import AuthForm from '~/components/Auth/AuthForm.vue';
 </script>
 
-<template>
-<div class="flex items-center h-full justify-center flex-col">
-    <div>Contessssnt</div>
-    <div>Message from backend: {{ data }}</div>
-</div>
-</template>
