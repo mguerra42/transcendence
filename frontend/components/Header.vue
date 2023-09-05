@@ -4,6 +4,10 @@ const socket = useSocket()
 onMounted(async () => {
     await auth.refreshSession()
     await socket.connect()
+
+    socket.on('fromserver', (data) => {
+        console.log('fromserver', {data})
+    })
 })
 </script>
 

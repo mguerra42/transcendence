@@ -1,7 +1,12 @@
-import { SubscribeMessage, WebSocketGateway } from '@nestjs/websockets';
+import {
+  SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer,
+} from '@nestjs/websockets';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { AuthService } from '../auth/auth.service';
+import { Server } from 'socket.io';
 
 @WebSocketGateway({
   cors: {
@@ -11,9 +16,16 @@ import { AuthService } from '../auth/auth.service';
 })
 export class SocketsGateway {
   constructor(private authService: AuthService) {}
+
+  @WebSocketServer()
+  public server: Server;
+
   @SubscribeMessage('test')
   handleMessage(client: any, payload: any): string {
     console.log('ws', payload, client.user);
+    this.server.to(client.id).emit('fromserver', {
+      yourdata: payload,
+    });
     return 'Hello world!';
   }
 
