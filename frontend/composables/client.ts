@@ -3,6 +3,15 @@
 // Vous pouvez ajouter des fonctions ici pour les rendre accessibles partout dans l'app, mais ne supprimez pas les fonctions existantes si il y a encore des références à celles-ci. (Ctrl + F: client.xxx)
 // Cela nous permettra de tous bosser sur le même code sans avoir à se soucier des conflits de merge.
 // Merci d'ajouter des commentaires pour expliquer ce que fait chaque fonction ainsi que le typage des paramètres et du retour.
+import { defineStore } from 'pinia'
+import { useFetch } from '#app'
+
+export const useRequest: typeof useFetch = (path, options = {}) => {
+  const config = useRuntimeConfig()
+  options.credentials = 'include'
+  options.baseURL = config.public.baseURL
+  return useFetch(path, options)
+}
 
 interface AppClient {
 
@@ -13,10 +22,19 @@ interface AppClient {
 
   auth: {
     login: ({
+      email,
+      password,
+    }: {
+      email: string
+      password: string
+    }) => void // login
+    signup: ({
       username,
+      email,
       password,
     }: {
       username: string
+      email: string
       password: string
     }) => void // login
     login42: () => void // login 42
@@ -64,35 +82,92 @@ interface AppClient {
       data: any
     ) => void // emit socket event
   }
-  test: () => Promise<any>
 }
 
-const client: AppClient = {} as AppClient
+export const useClient = defineStore('client', () => {
+  const client: AppClient = {} as AppClient
+  const authStore = useAuth()
 
-/* ¯-_-¯-_-¯-_-¯-_-¯-_-¯-_-¯*\
+  /* ¯-_-¯-_-¯-_-¯-_-¯-_-¯-_-¯*\
 ¯-_-¯\_(ツ)_/¯-_-¯ AUTH
 \*¯-_-¯-_-¯-_-¯-_-¯-_-¯-_-¯ */
 
-// Authentification
-client.auth = {} as AppClient['auth']
+  // Authentification
+  client.auth = {} as AppClient['auth']
 
-client.auth.login = ({
-  username,
-  password,
-}) => {
-  console.log('login', username, password)
-}
-client.auth.logout = () => {
-  console.log('logout')
-}
-client.auth.session = () => {
-  console.log('me')
-}
+  // This function is called to log the user in.
+  // It takes an email and a password as parameters
+  // and returns a token if the login is successful.
+  // Token will also be stored in the cookies, so nothing else is needed after this to keep the session alive.
+  // It returns an error if the login is not successful.
+  // Finally, we call the auth.refreshSession() function to refresh the session. (see auth.ts)
+  client.auth.login = async ({
+    email,
+    password,
+  }) => {
+    console.log('login', email, password)
+    // data.value.access_token, but not needed here, we use cookies.
+    const { data, error } = await useRequest('/auth/login', {
+      method: 'POST',
+      body: {
+        email,
+        password,
+      },
+    })
 
-client.test = async () => {
-  // return await $fetch('http://backend:3000/')
-  throw new Error('test')
-}
-export function useClient() {
+    if (error.value?.statusCode) {
+      authStore.error = error.value?.statusMessage as string
+      return
+    }
+    authStore.showForm = false
+    await authStore.refreshSession()
+  }
+
+  // This function is called to register a new user
+  // It takes an email and a password as parameters
+  // It automatically logs the user in after registration.
+  client.auth.signup = async ({
+    username,
+    email,
+    password,
+  }) => {
+    // data.value.access_token, but not needed here, we use cookies.
+    const { data, error } = await useRequest('/auth/signup', {
+      method: 'POST',
+      body: {
+        username,
+        email,
+        password,
+      },
+    })
+
+    if (error.value?.statusCode) {
+      authStore.error = error.value?.statusMessage as string
+      return
+    }
+    // Auto login after registration
+    await client.auth.login({
+      email,
+      password,
+    })
+  }
+  client.auth.logout = async () => {
+    const { data, error } = await useRequest('/auth/logout', {
+      method: 'POST',
+    })
+  }
+  client.auth.session = async () => {
+    // using $fetch here because nuxt SSR fucks up with cookies
+    const data = await $fetch(`${useRuntimeConfig().public.baseURL}/auth/session`, {
+      method: 'GET',
+      credentials: 'include',
+    }).catch((x) => {
+      console.log(x)
+      return null
+    })
+    console.log({ data })
+    return data
+  }
+
   return client
-}
+})

@@ -1,10 +1,25 @@
 <script setup lang="ts">
+const auth = useAuth()
+
+onMounted(async () => {
+    await auth.refreshSession()
+})
 </script>
 <template>
-    <div class="h-40px b-1">
-        <div class="container mx-autor justify-between h-full flex  items-center px-5">
+    <div class="h-62px b-b-1">
+        <div class="container mx-auto justify-between h-full flex items-center px-5">
             <div>Ft_transcendence</div>
-            <div class="">Login</div>
+            <div v-if="auth.logged === true" class="flex gap-5 items-center">
+                <div class="text-orange-400">
+                    {{ auth.session.email }}
+                </div>
+                <div>
+                    <div  class="b-1 rounded bg-blue-500 px-2 py-1 b-blue-700 cursor-pointer hover:bg-blue-600" @click="auth.logout">Logout</div>
+                </div>
+            </div>
+            <div v-if="auth.logged === false">
+                <div  class="b-1 rounded bg-blue-500 px-2 py-1 b-blue-700 cursor-pointer hover:bg-blue-600" @click="auth.showForm = true">Login</div>
+            </div>
         </div>
     </div>
 </template>

@@ -1,18 +1,45 @@
 import { defineStore } from 'pinia'
 
-export const useAuthStore = defineStore('auth', () => {
+export const useAuth = defineStore('auth', () => {
   const client = useClient()
-  const username = ref('')
-  const password = ref('')
+  const session = ref({
+    id: '',
+    email: '',
+  })
 
-  const login = () => {
-    console.log('login', username, password)
-    // use client.auth.login ;)
+  const showForm = ref(false)
+  const logged = ref<boolean | null>(null)
+  const mode = ref('login')
+  const error = ref('')
+
+  // Get auth user data
+  const refreshSession = async () => {
+    const sessionData = await client.auth.session()
+    if (sessionData?.id) {
+      logged.value = true
+      session.value = sessionData
+    }
+    else {
+      logged.value = false
+      session.value = {
+        id: '',
+        email: '',
+      }
+    }
+  }
+
+  const logout = async () => {
+    await client.auth.logout()
+    await refreshSession()
   }
 
   return {
-    username,
-    password,
-    login,
+    error,
+    session,
+    mode,
+    showForm,
+    logged,
+    refreshSession,
+    logout,
   }
 })

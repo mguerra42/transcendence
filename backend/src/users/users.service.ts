@@ -41,6 +41,20 @@ export class UsersService {
       },
     });
   }
+  findByEmailOrUsername(email: string, username: string) {
+    return this.db.user.findFirst({
+      where: {
+        OR: [
+          {
+            email,
+          },
+          {
+            username,
+          },
+        ],
+      },
+    });
+  }
 
   update(id: number, data: UpdateUserDto) {
     return this.db.user.update({

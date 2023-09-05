@@ -7,5 +7,7 @@
         <div class="b-l">Sidebar Right</div>
     </div>
     <Footer/>
+
+    <AuthModal/>
   </main>
 </template>

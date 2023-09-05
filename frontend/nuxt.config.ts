@@ -1,13 +1,19 @@
 import { appDescription } from './constants/index'
 
 export default defineNuxtConfig({
+
+  runtimeConfig: {
+    public: {
+      baseURL: process.env.BACKEND_URL || 'http://localhost:3001/api/v0',
+    },
+  },
+
   modules: [
     '@vueuse/nuxt',
     '@unocss/nuxt',
     '@pinia/nuxt',
     '@nuxtjs/color-mode',
   ],
-
   css: [
     '@unocss/reset/tailwind.css',
   ],

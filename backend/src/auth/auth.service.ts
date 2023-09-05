@@ -1,10 +1,13 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
-import { UserExistsException } from 'src/auth/auth.exception';
 import { SignUpDto } from './dto/signup.dto';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
-import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -13,25 +16,41 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async login(credentials: LoginDto): Promise<{
-    access_token: string;
-  }> {
-    const user = await this.usersService.findByEmail(credentials.email);
-
-    if (!bcrypt.compareSync(credentials.password, user.password)) {
-      throw new UnauthorizedException();
-    }
-    const payload = { id: user.id, email: user.email };
+  async login(user: any) {
+    const payload = { sub: user.id, email: user.email };
     return {
       access_token: await this.jwtService.signAsync(payload),
     };
   }
   async signup(credentials: SignUpDto) {
-    const exists = await this.usersService.findByEmail(credentials.email);
+    if (!credentials.email || !credentials.username) {
+      throw new HttpException(
+        'Email and Username are required.',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+    const exists = await this.usersService.findByEmailOrUsername(
+      credentials.email,
+      credentials.username,
+    );
     if (exists) {
-      throw new UserExistsException();
+      throw new HttpException(
+        'Email or Username is already taken.',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
     }
     const user = await this.usersService.create(credentials);
+    return user;
+  }
+
+  async validateUser(email: string, password: string) {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) {
+      return null;
+    }
+    if (!bcrypt.compareSync(password, user.password)) {
+      return null;
+    }
     return user;
   }
 }

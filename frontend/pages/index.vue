@@ -1,10 +1,10 @@
 <template>
     <div class="bg-gray flex items-center h-full justify-center flex-col">
-      <AuthForm></AuthForm>
+        Hello
     </div>
 </template>
 
 <script setup lang="ts">
-  import AuthForm from '~/components/Auth/AuthForm.vue';
+  const client = useClient()
 </script>
 
