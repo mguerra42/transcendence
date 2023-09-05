@@ -22,7 +22,8 @@ clean:
 stop: clean
 
 fclean: clean
-	docker volume rm ft_transcendence_db-data
 	docker-compose down --rmi all --remove-orphans
+	# Please delete your db-data, check with docker volume ls
+	#docker volume rm transcendence_db-data
 
 reset: fclean
