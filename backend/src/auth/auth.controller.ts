@@ -1,47 +1,24 @@
-import { AuthRequest, AuthResponse } from '../../types';
-import * as bcrypt from 'bcrypt';
-import { sign, verify } from 'jsonwebtoken';
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Res } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { LoginDto } from './dto/login.dto';
+import { SignUpDto } from './dto/signup.dto';
+import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
-  @Post('/api/v0/signup')
-  async signup(@Body() requestObject: AuthRequest): Promise<AuthResponse> {
-    const hashedPassword = await bcrypt.hash(
-      requestObject.password.toString(),
-      10,
-    );
-    const jwtToken = sign({ email: requestObject.email }, 'secret-key', {
-      expiresIn: '24h',
-    });
+  constructor(private readonly authService: AuthService) {}
 
-    requestObject.password = hashedPassword;
-    const response: AuthResponse = {
-      status: 200,
-      headers: {},
-      body: {
-        username: requestObject.username,
-        token: jwtToken,
-      },
-    };
-    return response;
+  @Post('signup')
+  async signup(@Body() signupDto: SignUpDto) {
+    return await this.authService.signup(signupDto);
   }
-
-  //TODO : Check credentials, generate JWT token, send back appropriate response
-  @Post('/api/v0/login')
-  login(@Body() requestObject: AuthRequest): AuthResponse {
-    const jwtToken = sign({ email: requestObject.email }, 'secret-key', {
-      expiresIn: '24h',
-    });
-
-    const response: AuthResponse = {
-      status: 200,
-      headers: {},
-      body: {
-        username: requestObject.username,
-        token: jwtToken,
-      },
-    };
-    return response;
+  @Post('login')
+  async login(
+    @Body() loginDto: LoginDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const data = await this.authService.login(loginDto);
+    response.cookie('access_token', data.access_token);
+    return data;
   }
 }
