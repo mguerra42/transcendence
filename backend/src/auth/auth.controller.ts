@@ -39,6 +39,7 @@ export class AuthController {
   async session(@Request() req) {
     return req.user;
   }
+
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   async logout(@Res({ passthrough: true }) res: Response) {
