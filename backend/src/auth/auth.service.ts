@@ -53,4 +53,8 @@ export class AuthService {
     }
     return user;
   }
+
+  async validateToken(token: string) {
+    return this.jwtService.verify(token);
+  }
 }

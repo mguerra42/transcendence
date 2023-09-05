@@ -70,18 +70,6 @@ interface AppClient {
   game: {
     create: () => void // create game
   }
-  socket: {
-    connect: () => void // connect to socket server
-    disconnect: () => void // disconnect from socket server
-    on: (
-      event: string,
-      callback: (data: any) => void
-    ) => void // listen to socket event
-    emit: (
-      event: string,
-      data: any
-    ) => void // emit socket event
-  }
 }
 
 export const useClient = defineStore('client', () => {
@@ -162,10 +150,8 @@ export const useClient = defineStore('client', () => {
       method: 'GET',
       credentials: 'include',
     }).catch((x) => {
-      console.log(x)
       return null
     })
-    console.log({ data })
     return data
   }
 
