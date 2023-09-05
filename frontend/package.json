@@ -10,6 +10,9 @@
     "generate": "nuxi generate",
     "start:generate": "npx serve .output/public"
   },
+  "dependencies": {
+    "socket.io-client": "^4.7.2"
+  },
   "devDependencies": {
     "@antfu/eslint-config": "^0.41.0",
     "@iconify-json/carbon": "^1.1.21",
@@ -29,8 +32,5 @@
     "pinia": "^2.1.6",
     "typescript": "^5.2.2",
     "vue-tsc": "^1.8.8"
-  },
-  "dependencies": {
-    "socket.io-client": "^4.7.2"
   }
 }
