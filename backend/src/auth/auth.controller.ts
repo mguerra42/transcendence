@@ -12,6 +12,9 @@ import { SignUpDto } from './dto/signup.dto';
 import { Response } from 'express';
 import { LocalAuthGuard } from './local-auth.guard';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { GoogleStrategy } from './google.strategy';
+import { AuthGuard } from '@nestjs/passport';
+import { async } from 'rxjs';
 
 @Controller('auth')
 export class AuthController {
@@ -32,6 +35,17 @@ export class AuthController {
             maxAge: 1000 * 60 * 60 * 24 * 7,
         });
         res.send(data);
+    }
+
+    @Get('google')
+    @UseGuards(AuthGuard('google'))
+    async googleAuth(@Request() req) {   
+    }
+
+    @Get('google/callback')
+    @UseGuards(AuthGuard('google'))
+    async googleAuthRedirect(@Request() req){
+        return this.authService.googleLogin(req);
     }
 
     @UseGuards(JwtAuthGuard)

@@ -6,9 +6,12 @@ const password = ref('')
 const isValid = computed(() => {
     return email.value !== '' && password.value !== ''
 })
+const loginGoogle = async () => {
+    await client.auth.loginWithGoogle()
+}
 </script>
 <template>
-    <div class="w-80  bg-white p-6 rounded-lg relative">
+    <div class="w-80 bg-white p-6 rounded-lg relative">
         <div @click="auth.showForm = false"
             class="text-2xl p-1 hover:bg-blue-500 cursor-pointer hover:text-white rounded m-1 text-black absolute right-0 top-0">
             <div class="i-mdi:close"></div>
@@ -31,6 +34,9 @@ const isValid = computed(() => {
                 'hover:bg-blue-600 transition duration-300': isValid,
             }">
                 Log In
+            </button>
+            <button type="button" @click="loginGoogle"  class="bg-blue-500 text-white rounded-lg  cursor-pointer hover:scale-105 transition px-4 py-2">
+                Google login
             </button>
             <h1 class="text-gray text-2s flex justify-center">or</h1>
             <a href="#" class="text-blue-500 hover:text-blue-600 flex justify-center" @click="auth.mode = 'signup'">

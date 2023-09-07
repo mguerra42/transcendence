@@ -22,6 +22,18 @@ export class AuthService {
       access_token: await this.jwtService.signAsync(payload),
     };
   }
+
+  googleLogin(req)
+  {
+    if (!req.user){
+      return 'No user from google'
+    }
+    return {
+      message: 'User information from google',
+      user: req.user
+    }
+  }
+
   async signup(credentials: SignUpDto) {
     if (!credentials.email || !credentials.username) {
       throw new HttpException(

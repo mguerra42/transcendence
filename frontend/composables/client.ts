@@ -37,6 +37,7 @@ interface AppClient {
       email: string
       password: string
     }) => void // login
+    loginWithGoogle: () => void // login with google
     login42: () => void // login 42
     logout: () => void // logout
     session: () => void // get user data
@@ -109,6 +110,17 @@ export const useClient = defineStore('client', () => {
     }
     authStore.showForm = false
     await authStore.refreshSession()
+  }
+
+  client.auth.loginWithGoogle = async () => {
+    const { data, error } = await useRequest('/auth/google', {
+      method: 'GET',
+      credentials: 'include',
+    })
+    if (error.value?.statusCode) {
+      authStore.error = error.value?.statusMessage as string
+      return
+    }
   }
 
   // This function is called to register a new user
