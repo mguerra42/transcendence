@@ -7,9 +7,8 @@ import { access } from 'fs';
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     constructor() {
         super({
-            clientID:
-                '535545866334-6m8ojtpijkplvoq3l03prmsrei1l0qci.apps.googleusercontent.com',
-            clientSecret: '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',
+            clientID: process.env.CLIENT_ID,
+            clientSecret: process.env.CLIENT_SECRET,
             callbackURL: 'http://localhost:3001/api/v0/auth/google/callback',
             scope: ['email', 'profile'],
         });
@@ -29,7 +28,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
             picture: photos[0].value,
             accessToken,
         };
-        console.log('user', user);
         done(null, user);
     }
 }

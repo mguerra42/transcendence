@@ -113,10 +113,8 @@ export const useClient = defineStore('client', () => {
     }
 
     client.auth.loginWithGoogle = async () => {
-        console.log('Login with google')
-        location.href = 'https://accounts.google.com/o/oauth2/v2/auth?response_type=code&redirect_uri=http://localhost:3001/api/v0/auth/google/callback&scope=email%20profile&client_id=535545866334-6m8ojtpijkplvoq3l03prmsrei1l0qci.apps.googleusercontent.com'
-
-        const url = 'http://localhost:3001/api/v0/auth/google/callback?code=4%2F0Adeu5BUzrCQ5mWrFvyKPHU5prIl3Uq5faEOxzSQz7z6Uqp6IktNJUovx2oV4jDG2lOOKcA&scope=email+profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+openid&authuser=0&prompt=consent'
+        location.href = 'https://accounts.google.com/o/oauth2/v2/auth?response_type=code&redirect_uri=http://localhost:3001/api/v0/auth/google/callback&scope=email%20profile&client_id=535545866334-87k5bo4t0sbf05v3i8lgf0c0ea8fkcsb.apps.googleusercontent.com'
+        // const url = 'http://localhost:3001/api/v0/auth/google/callback?code=4%2F0Adeu5BUzrCQ5mWrFvyKPHU5prIl3Uq5faEOxzSQz7z6Uqp6IktNJUovx2oV4jDG2lOOKcA&scope=email+profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+openid&authuser=0&prompt=consent'
 
     // const { data, error } = await useRequest('/auth/google', {
     //  method: 'GET',

@@ -27,10 +27,7 @@ export class AuthService {
         if (!req.user) {
             return 'No user from google';
         }
-        return {
-            message: 'User information from google',
-            user: req.user,
-        };
+        return req.user
     }
 
     async signup(credentials: SignUpDto) {
