@@ -9,6 +9,5 @@
     <Footer/>
 
     <AuthModal/>
-    <AuthModalUpdate/>
   </main>
 </template>
