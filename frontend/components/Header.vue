@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const auth = useAuth()
 const socket = useSocket()
+//const client = useClient()
 onMounted(async () => {
     await auth.refreshSession()
     await socket.connect()
@@ -25,6 +26,11 @@ onMounted(async () => {
                 <div>
                     <div  class="b-1 rounded bg-blue-500 px-2 py-1 b-blue-700 cursor-pointer hover:bg-blue-600" @click="auth.logout">Logout</div>
                 </div>
+                <!-- debut anais -->
+                <div>
+                    <div  class="b-1 rounded bg-blue-500 px-2 py-1 b-blue-700 cursor-pointer hover:bg-blue-600" @click="auth.showUserForm = true">Profile</div>
+                </div>
+                <!-- fin anais -->
             </div>
             <div v-if="auth.logged === false">
                 <div  class="b-1 rounded bg-blue-500 px-2 py-1 b-blue-700 cursor-pointer hover:bg-blue-600" @click="auth.showForm = true">Login</div>

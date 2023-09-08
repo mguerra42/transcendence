@@ -12,7 +12,7 @@ import { SignUpDto } from './dto/signup.dto';
 import { Response } from 'express';
 import { LocalAuthGuard } from './local-auth.guard';
 import { JwtAuthGuard } from './jwt-auth.guard';
-
+import { UpdateDto } from './dto/update.dto';
 @Controller('auth')
 export class AuthController {
     constructor(private readonly authService: AuthService) {}
@@ -44,5 +44,11 @@ export class AuthController {
     @Post('logout')
     async logout(@Res({ passthrough: true }) res: Response) {
         res.clearCookie('access_token');
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('update')
+    async update(@Request() req, @Body() updateDto: UpdateDto) {
+        return await this.authService.update(req.user.id, updateDto);
     }
 }

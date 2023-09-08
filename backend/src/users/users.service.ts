@@ -8,77 +8,85 @@ import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class UsersService {
-  constructor(private db: DBService) {}
-  async create(data: CreateUserDto) {
-    const hash = bcrypt.hashSync(data.password, 10);
-    data.password = hash;
-    return this.db.user.create({
-      data,
-    });
-  }
+    constructor(private db: DBService) {}
+    async create(data: CreateUserDto) {
+        const hash = bcrypt.hashSync(data.password, 10);
+        data.password = hash;
+        return this.db.user.create({
+            data,
+        });
+    }
 
-  findAll() {
-    return this.db.user.findMany({
-      //skip,
-      //take,
-      //cursor,
-      //where,
-      //orderBy,
-    });
-  }
+    findAll() {
+        return this.db.user.findMany({
+            //skip,
+            //take,
+            //cursor,
+            //where,
+            //orderBy,
+        });
+    }
 
-  findOne(id: number) {
-    return this.db.user.findUnique({
-      where: {
-        id,
-      },
-    });
-  }
-  findByEmail(email: string) {
-    return this.db.user.findFirst({
-      where: {
-        email,
-      },
-    });
-  }
-  findByEmailOrUsername(email: string, username: string) {
-    return this.db.user.findFirst({
-      where: {
-        OR: [
-          {
-            email,
-          },
-          {
-            username,
-          },
-        ],
-      },
-    });
-  }
+    findOne(id: number) {
+        return this.db.user.findUnique({
+            where: {
+                id,
+            },
+        });
+    }
+    findByEmail(email: string) {
+        return this.db.user.findFirst({
+            where: {
+                email,
+            },
+        });
+    }
+    findByEmailOrUsername(email: string, username: string) {
+        return this.db.user.findFirst({
+            where: {
+                OR: [
+                    {
+                        email,
+                    },
+                    {
+                        username,
+                    },
+                ],
+            },
+        });
+    }
 
-  update(id: number, data: UpdateUserDto) {
-    return this.db.user.update({
-      data,
-      where: {
-        id,
-      },
-    });
-  }
+    findByUsername(username: string) {
+        return this.db.user.findFirst({
+            where: {
+                username,
+            },
+        });
+    }
 
-  remove(id: number) {
-    return this.db.user.delete({
-      where: {
-        id,
-      },
-    });
-  }
+    update(id: number, data: UpdateUserDto) {
+        return this.db.user.update({
+            data,
+            where: {
+                id,
+            },
+        });
+    }
 
-  formatUser(user: User) {
-    return {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      status: user.status,
-    };
-  }
+    remove(id: number) {
+        return this.db.user.delete({
+            where: {
+                id,
+            },
+        });
+    }
+
+    formatUser(user: User) {
+        return {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            status: user.status,
+        };
+    }
 }
