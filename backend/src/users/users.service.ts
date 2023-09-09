@@ -64,7 +64,9 @@ export class UsersService {
         });
     }
 
-    update(id: number, data: UpdateUserDto) {
+    //Changed this to any but we can export the userToUpdateObject interface into this file
+    //TODO : import userToUpdateObject interface here and use it instead of any
+    update(id: number, data: any) {
         return this.db.user.update({
             data,
             where: {
