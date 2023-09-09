@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const client = useClient()
 const auth = useAuth()
 const socket = useSocket()
 onMounted(async () => {

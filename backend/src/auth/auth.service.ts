@@ -14,15 +14,24 @@ export class AuthService {
     constructor(
         private usersService: UsersService,
         private jwtService: JwtService,
-    ) {}
+    ){}
 
     async login(user: any) {
-        const payload = { sub: user.id, email: user.email };
-        return {
-            access_token: await this.jwtService.signAsync(payload),
-        };
+      const payload = { sub: user.id, email: user.email };
+      return {
+          access_token: await this.jwtService.signAsync(payload),
+      };
+    }
+  
+    //TODO : move logic from controller here
+    login42(req) {
+    if (!req.user) {
+        return 'No user from intra 42';
+      }
+      return req.user
     }
 
+    //TODO : move logic from controller here
     googleLogin(req) {
         if (!req.user) {
             return 'No user from google';
