@@ -70,12 +70,12 @@ export class AuthService {
         //Interface acts as a type definition for an object that can dynamically add fields
         //This is to send prisma an object with only fields that have been changed
         interface userToUpdateObject {
-          email?:string;
-          password?:string;
-          username?:string;
-          avatar?:string;
-        };
-        const userToUpdate:userToUpdateObject = {};
+            email?: string;
+            password?: string;
+            username?: string;
+            avatar?: any;
+        }
+        const userToUpdate: userToUpdateObject = {};
 
         //Update object with non-empty fields
         //Previously we had 'if (updateDto.property)' which was always true
@@ -88,9 +88,7 @@ export class AuthService {
                     'Email is already taken.',
                     HttpStatus.UNPROCESSABLE_ENTITY,
                 );
-            }
-            else
-              userToUpdate.email = updateDto.email;
+            } else userToUpdate.email = updateDto.email;
         }
         if (updateDto.username != '') {
             const userExists = await this.usersService.findByUsername(
@@ -101,11 +99,12 @@ export class AuthService {
                     'Username is already taken.',
                     HttpStatus.UNPROCESSABLE_ENTITY,
                 );
-            }
-            else
-              userToUpdate.username = updateDto.username;
+            } else userToUpdate.username = updateDto.username;
         }
-        if (updateDto.newPassword != '' && updateDto.newPassword !== updateDto.confirmPassword) {
+        if (
+            updateDto.newPassword != '' &&
+            updateDto.newPassword !== updateDto.confirmPassword
+        ) {
             throw new HttpException(
                 'Passwords do not match.',
                 HttpStatus.UNPROCESSABLE_ENTITY,
@@ -114,12 +113,11 @@ export class AuthService {
         if (updateDto.newPassword != '') {
             userToUpdate.password = bcrypt.hashSync(updateDto.newPassword, 10);
         }
-        
+
         //If no fields have been changed, return null
         //TODO : Check if functions that use authService.update() will break if null is returned
-        if (Object.keys(userToUpdate).length === 0)
-          return null;
-  
+        if (Object.keys(userToUpdate).length === 0) return null;
+
         //Send prisma object with updated fields only
         const user = await this.usersService.update(id, userToUpdate);
         return user;

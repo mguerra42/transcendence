@@ -10,6 +10,7 @@ const newPasswordConfirmation = ref('')
 const isValid = computed(() => {
     return email.value !== '' && password.value !== ''
 })
+
 </script>
 
 <template>
@@ -26,11 +27,14 @@ const isValid = computed(() => {
         <form @submit.prevent="client.auth.update({
                 username : username,
                 email: email,
-                avatar: avatar,
                 password: password,
                 newPassword: newPassword,
                 newPasswordConfirmation: newPasswordConfirmation,
             })" class="flex flex-col space-y-4" autocomplete="off">
+
+            <input type="file" accept="image/jpeg" ref="fileInput"  @change="client.auth.onFileSelected"  />
+            <!-- <button @click="$refs.fileInput.click()" class="bg-blue-500 text-white rounded-lg  cursor-pointer hover:scale-105 transition px-4 py-2" :class="    'hover:bg-blue-600 transition duration-300': isValid, }"> Pick file </button> -->
+
             <h1 class="text-black ">Username : {{ auth.session.username }} </h1>
             <input type="username" v-model="username" name="username" placeholder="New username" class="rounded-lg px-3 py-2 text-black b-1 " />
             <h1 class="text-black">Email : {{ auth.session.email }}</h1>

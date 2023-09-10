@@ -43,20 +43,20 @@ interface AppClient {
         update: (
             {
                 username,
-                avatar,
                 email,
                 password,
                 newPassword,
                 newPasswordConfirmation,
             }: {
                 username: string
-                avatar: string
                 email: string
                 password: string
                 newPassword: string
                 newPasswordConfirmation: string
             },
         ) => void // update user data
+        onFileSelected: (event: any) => void // upload avatar
+        avatarFile: Ref<File | undefined> // avatar file
     }
     friends: {
         profile: () => void // get user profile
@@ -171,26 +171,30 @@ export const useClient = defineStore('client', () => {
         return data
     }
 
+    client.auth.avatarFile = ref<File>()
+
     client.auth.update = async ({
         username,
-        avatar,
         email,
         password,
         newPassword,
         newPasswordConfirmation,
 
     }) => {
-        // ($fetch si soucis)
+        const formData = new FormData()
+        formData.append('username', username) // la ref de ton input username
+        formData.append('email', email)
+        formData.append('password', password)
+        formData.append('newPassword', newPassword)
+        formData.append('newPasswordConfirmation', newPasswordConfirmation)
+        if (client.auth.avatarFile.value)
+            formData.append('avatar', client.auth.avatarFile.value) // la ref de ton input file
+
+        console.log(client.auth.avatarFile.value)
+
         const { data, error } = await useRequest('/auth/update', {
             method: 'POST',
-            body: {
-                username,
-                avatar,
-                email,
-                password,
-                newPassword,
-                newPasswordConfirmation,
-            },
+            body: formData,
         })
 
         if (error.value?.statusCode) {
@@ -200,6 +204,10 @@ export const useClient = defineStore('client', () => {
 
         authStore.showUserForm = false
         await authStore.refreshSession()
+    }
+
+    client.auth.onFileSelected = async (event: any) => {
+        client.auth.avatarFile.value = event.target.files[0]
     }
 
     return client
