@@ -6,8 +6,10 @@ import {
     Body,
     Res,
     UseGuards,
+    UseInterceptors,
     UploadedFile,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthService } from './auth.service';
 import { SignUpDto } from './dto/signup.dto';
 import { Response } from 'express';
@@ -18,7 +20,7 @@ import { Express } from 'express';
 import * as fs from 'fs';
 @Controller('auth')
 export class AuthController {
-    constructor(private readonly authService: AuthService) { }
+    constructor(private readonly authService: AuthService) {}
 
     @Post('signup')
     async signup(@Body() signupDto: SignUpDto) {
@@ -51,13 +53,13 @@ export class AuthController {
 
     @UseGuards(JwtAuthGuard)
     @Post('update')
+    @UseInterceptors(FileInterceptor('avatar'))
     async update(
-        @Request() req,
         @Body() updateDto: UpdateDto,
         @UploadedFile() avatar: Express.Multer.File,
     ) {
-        console.log(avatar);
-        fs.writeFileSync(`./avatar/${req.user.id}.png`, avatar.buffer);
-        return await this.authService.update(req.user.id, updateDto);
+        console.log(avatar, updateDto);
+        //fs.writeFileSync(`./avatar/${req.user.id}.png`, avatar.buffer);
+        //return await this.authService.update(req.user.id, updateDto);
     }
 }
