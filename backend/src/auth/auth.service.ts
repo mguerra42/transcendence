@@ -73,7 +73,7 @@ export class AuthService {
             email?: string;
             password?: string;
             username?: string;
-            avatar?: any;
+            avatarPath?: string;
         }
         const userToUpdate: userToUpdateObject = {};
 
@@ -112,6 +112,10 @@ export class AuthService {
         }
         if (updateDto.newPassword != '') {
             userToUpdate.password = bcrypt.hashSync(updateDto.newPassword, 10);
+        }
+
+        if (updateDto.avatarPath != '') {
+            userToUpdate.avatarPath = updateDto.avatarPath;
         }
 
         //If no fields have been changed, return null

@@ -55,11 +55,15 @@ export class AuthController {
     @Post('update')
     @UseInterceptors(FileInterceptor('avatar'))
     async update(
+        @Request() req,
         @Body() updateDto: UpdateDto,
         @UploadedFile() avatar: Express.Multer.File,
     ) {
-        console.log(avatar, updateDto);
-        //fs.writeFileSync(`./avatar/${req.user.id}.png`, avatar.buffer);
-        //return await this.authService.update(req.user.id, updateDto);
+        if (avatar) {
+            fs.writeFileSync(`./avatar/${req.user.id}.jpg`, avatar.buffer);
+            updateDto.avatarPath = `./avatar/${req.user.id}.jpg`;
+        }
+        //console.log(avatar, updateDto);
+        return await this.authService.update(req.user.id, updateDto);
     }
 }

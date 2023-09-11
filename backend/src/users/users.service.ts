@@ -6,6 +6,13 @@ import { User, Prisma } from '@prisma/client';
 
 import * as bcrypt from 'bcryptjs';
 
+interface userToUpdateObject {
+    email?: string;
+    password?: string;
+    username?: string;
+    avatarPath?: string;
+}
+
 @Injectable()
 export class UsersService {
     constructor(private db: DBService) {}
@@ -66,7 +73,9 @@ export class UsersService {
 
     //Changed this to any but we can export the userToUpdateObject interface into this file
     //TODO : import userToUpdateObject interface here and use it instead of any
-    update(id: number, data: any) {
+
+    update(id: number, data: userToUpdateObject) {
+        console.log(data);
         return this.db.user.update({
             data,
             where: {

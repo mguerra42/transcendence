@@ -20,9 +20,6 @@ model User {
   victories      Int           @default(0) //number of victories for stats
   defeats        Int           @default(0) //number of defeats for stats
   ladderPoint    Int           @default(1000) //level for stats
-  //Added avatar to match object from auth.service.update
-  avatar         String?
-  //TODO: Remove avatarPath if necessary, I don't know if it will break anything
   avatarPath     String        @default("/avatars/defaultPath.jpg") //the path to the avatar image
   friends        Friend[]      @relation("friends")
   inverseFriends Friend[]      @relation("inverseFriends") // Only for prisma, not used

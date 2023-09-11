@@ -9,23 +9,23 @@ import { LocalStrategy } from './local.strategy';
 
 import { PassportModule } from '@nestjs/passport';
 @Module({
-  imports: [
-    UsersModule,
-    PassportModule,
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => {
-        return {
-          global: true,
-          secret: configService.get<string>('JWT_SECRET'),
-          signOptions: { expiresIn: '7d' },
-        };
-      },
-      inject: [ConfigService],
-    }),
-  ],
-  controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
-  exports: [AuthService],
+    imports: [
+        UsersModule,
+        PassportModule,
+        JwtModule.registerAsync({
+            imports: [ConfigModule],
+            useFactory: async (configService: ConfigService) => {
+                return {
+                    global: true,
+                    secret: configService.get<string>('JWT_SECRET'),
+                    signOptions: { expiresIn: '7d' },
+                };
+            },
+            inject: [ConfigService],
+        }),
+    ],
+    controllers: [AuthController],
+    providers: [AuthService, LocalStrategy, JwtStrategy],
+    exports: [AuthService],
 })
 export class AuthModule {}

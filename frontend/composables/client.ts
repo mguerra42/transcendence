@@ -190,7 +190,7 @@ export const useClient = defineStore('client', () => {
         if (client.auth.avatarFile.value)
             formData.append('avatar', client.auth.avatarFile.value) // la ref de ton input file
 
-        console.log(client.auth.avatarFile.value)
+        //console.log(client.auth.avatarFile.value)
 
         const { data, error } = await useRequest('/auth/update', {
             method: 'POST',
