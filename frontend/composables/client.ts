@@ -21,6 +21,7 @@ interface AppClient {
     // }
 
     auth: {
+        authMethod: string
         login: ({
             email,
             password,
@@ -37,9 +38,6 @@ interface AppClient {
             email: string
             password: string
         }) => void // login
-        login42: () => void // login 42
-        logout: () => void // logout
-        session: () => void // get user data
         update: (
             {
                 username,
@@ -57,6 +55,10 @@ interface AppClient {
         ) => void // update user data
         onFileSelected: (event: any) => void // upload avatar
         avatarFile: Ref<File | undefined> // avatar file
+        loginWithGoogle: () => void // login with google
+        login42: () => void // login 42
+        logout: () => void // logout
+        session: () => void // get user data
     }
     friends: {
         profile: () => void // get user profile
@@ -99,6 +101,9 @@ export const useClient = defineStore('client', () => {
     // Authentification
     client.auth = {} as AppClient['auth']
 
+    // This variable is used to determine which auth method is used at the time of signin
+    client.auth.authMethod = 'default'
+
     // This function is called to log the user in.
     // It takes an email and a password as parameters
     // and returns a token if the login is successful.
@@ -125,6 +130,14 @@ export const useClient = defineStore('client', () => {
         }
         authStore.showForm = false
         await authStore.refreshSession()
+    }
+
+    client.auth.loginWithGoogle = async () => {
+      location.href = 'https://accounts.google.com/o/oauth2/v2/auth?response_type=code&redirect_uri=http://localhost:3001/api/v0/auth/google/callback&scope=email%20profile&client_id=535545866334-87k5bo4t0sbf05v3i8lgf0c0ea8fkcsb.apps.googleusercontent.com'
+    }
+  
+    client.auth.login42 = async () => {
+      location.href = 'https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-a8654d5f52c9f6fd539181d269f4c72d07954f0f6ac7409ca17d77eee7ac7822&redirect_uri=http%3A%2F%2Flocalhost%3A3001%2Fapi%2Fv0%2Fauth%2F42%2Fcallback&response_type=code'
     }
 
     // This function is called to register a new user
@@ -156,10 +169,26 @@ export const useClient = defineStore('client', () => {
         })
     }
     client.auth.logout = async () => {
-        const { data, error } = await useRequest('/auth/logout', {
-            method: 'POST',
-        })
+        if (client.auth.authMethod === 'google')
+        {
+          const { data, error } = await useRequest('/auth/google/logout', {
+              method: 'POST',
+          })
+        }
+        else if (client.auth.authMethod === '42')
+        {
+          const { data, error } = await useRequest('/auth/42/logout', {
+              method: 'POST',
+          })
+        }
+        else
+        {
+          const { data, error } = await useRequest('/auth/logout', {
+              method: 'POST',
+          })
+        }
     }
+
     client.auth.session = async () => {
     // using $fetch here because nuxt SSR fucks up with cookies
         const data = await $fetch(`${useRuntimeConfig().public.baseURL}/auth/session`, {
