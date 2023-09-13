@@ -44,10 +44,10 @@ interface AppClient {
         session: () => void // get user data
         update: () => void // update user data
     }
-    friends: {
+    friend: {
         profile: () => void // get user profile
         list: () => void // get friends list
-        add: () => void // add friend
+        add: (username : string) => void // add friend
         remove: () => void // remove friend
     }
     chat: {
@@ -182,6 +182,17 @@ export const useClient = defineStore('client', () => {
             return null
         })
         return data
+    }
+
+    client.friend.add = async (newFriendName : string) => {
+        console.log('add a friend : ', newFriendName)
+        const { data, error } = await useRequest('/friend/add', {
+            method: 'POST',
+            body: {
+                newFriendName
+            },
+        })
+
     }
 
     return client
