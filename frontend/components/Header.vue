@@ -2,6 +2,7 @@
 const client = useClient()
 const auth = useAuth()
 const socket = useSocket()
+//const client = useClient()
 onMounted(async () => {
     await auth.refreshSession()
     // await socket.connect()
@@ -25,6 +26,9 @@ onMounted(async () => {
                 </div>
                 <div>
                     <div  class="b-1 rounded bg-blue-500 px-2 py-1 b-blue-700 cursor-pointer hover:bg-blue-600" @click="auth.logout">Logout</div>
+                </div>
+                <div>
+                    <div  class="b-1 rounded bg-blue-500 px-2 py-1 b-blue-700 cursor-pointer hover:bg-blue-600" @click="auth.showUserForm = true">Profile</div>
                 </div>
             </div>
             <div v-if="auth.logged === false">
