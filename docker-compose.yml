@@ -27,6 +27,7 @@ services:
       DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_USER}?schema=public"
     volumes:
       - ./backend:/backend
+      - ./avatar:/backend/avatar
     depends_on:
       - db
     ports:
@@ -42,6 +43,7 @@ services:
     working_dir: /frontend
     volumes:
       - ./frontend:/frontend
+      - ./avatar:/frontend/public/avatar
     depends_on:
       - db
     ports:

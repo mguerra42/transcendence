@@ -6,12 +6,18 @@ import {
     Body,
     Res,
     UseGuards,
+    UseInterceptors,
+    UploadedFile,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthService } from './auth.service';
 import { SignUpDto } from './dto/signup.dto';
 import { Response } from 'express';
 import { LocalAuthGuard } from './local-auth.guard';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { UpdateDto } from './dto/update.dto';
+import { Express } from 'express';
+import * as fs from 'fs';
 import { GoogleStrategy } from './google.strategy';
 import { FortyTwoStrategy } from './intra42.strategy';
 import { AuthGuard } from '@nestjs/passport';
@@ -115,6 +121,21 @@ export class AuthController {
         res.clearCookie('access_token');
     }
 
+    @UseGuards(JwtAuthGuard)
+    @Post('update')
+    @UseInterceptors(FileInterceptor('avatar'))
+    async update(
+        @Request() req,
+        @Body() updateDto: UpdateDto,
+        @UploadedFile() avatar: Express.Multer.File,
+    ) {
+        if (avatar) {
+            fs.writeFileSync(`./avatar/${req.user.id}.jpg`, avatar.buffer);
+            updateDto.avatarPath = `./avatar/${req.user.id}.jpg`;
+        }
+        //console.log(avatar, updateDto);
+        return await this.authService.update(req.user.id, updateDto);
+    }
     //TODO : connect to frontend
     @UseGuards(AuthGuard('google'))
     @Post('google/logout')
@@ -129,5 +150,4 @@ export class AuthController {
         res.clearCookie('accessToken');
         return { message: 'Logged out from 42' };
     }
-        
 }

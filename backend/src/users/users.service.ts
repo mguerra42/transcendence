@@ -6,26 +6,33 @@ import { User, Prisma } from '@prisma/client';
 
 import * as bcrypt from 'bcryptjs';
 
+interface userToUpdateObject {
+    email?: string;
+    password?: string;
+    username?: string;
+    avatarPath?: string;
+}
+
 @Injectable()
 export class UsersService {
-  constructor(private db: DBService) {}
-  async create(data: CreateUserDto) {
-    const hash = bcrypt.hashSync(data.password, 10);
-    data.password = hash;
-    return this.db.user.create({
-      data,
-    });
-  }
+    constructor(private db: DBService) {}
+    async create(data: CreateUserDto) {
+        const hash = bcrypt.hashSync(data.password, 10);
+        data.password = hash;
+        return this.db.user.create({
+            data,
+        });
+    }
 
-  findAll() {
-    return this.db.user.findMany({
-      //skip,
-      //take,
-      //cursor,
-      //where,
-      //orderBy,
-    });
-  }
+    findAll() {
+        return this.db.user.findMany({
+            //skip,
+            //take,
+            //cursor,
+            //where,
+            //orderBy,
+        });
+    }
 
   findOne(id: number) {
     return this.db.user.findUnique({
@@ -63,22 +70,35 @@ export class UsersService {
     });
   }
 
-  update(id: number, data: UpdateUserDto) {
-    return this.db.user.update({
-      data,
-      where: {
-        id,
-      },
-    });
-  }
+    findByUsername(username: string) {
+        return this.db.user.findFirst({
+            where: {
+                username,
+            },
+        });
+    }
 
-  remove(id: number) {
-    return this.db.user.delete({
-      where: {
-        id,
-      },
-    });
-  }
+    //Changed this to any but we can export the userToUpdateObject interface into this file
+    //TODO : import userToUpdateObject interface here and use it instead of any
+
+    update(id: number, data: userToUpdateObject) {
+        console.log(data);
+        return this.db.user.update({
+            data,
+            where: {
+                id,
+            },
+        });
+    }
+
+    remove(id: number) {
+        return this.db.user.delete({
+            where: {
+                id,
+            },
+        });
+    }
+
 
   formatUser(user: User) {
     return {
