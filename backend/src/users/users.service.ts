@@ -41,6 +41,13 @@ export class UsersService {
       },
     });
   }
+  findByUsername(username: string) {
+    return this.db.user.findFirst({
+      where: {
+        username,
+      },
+    });
+  }
   findByEmailOrUsername(email: string, username: string) {
     return this.db.user.findFirst({
       where: {
@@ -82,8 +89,8 @@ export class UsersService {
     };
   }
 
-  generateRandomHex(length: number): string {
-    const characters = '0123456789ABCDEF';
+  generateRandomString(length: number): string {
+    const characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWYZ-_.abcdefghijklmnopqrstuvwxyz';
     let result = '';
     for (let i = 0; i < length; i++) {
       const randomIndex = Math.floor(Math.random() * characters.length);

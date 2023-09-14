@@ -141,7 +141,6 @@ export const useClient = defineStore('client', () => {
                 password,
             },
         })
-
         if (error.value?.statusCode) {
             authStore.error = error.value?.statusMessage as string
             return

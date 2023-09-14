@@ -49,16 +49,25 @@ export class AuthController {
     async googleAuthRedirect(@Request() req, @Res({ passthrough: true }) res: Response) {
         const   googleUser = this.authService.googleLogin(req);
         let     registeredUser = await this.usersService.findByEmail(googleUser.email);
-        
+        let     isTakenUsername = await this.usersService.findByUsername(googleUser.firstName + googleUser.lastName);
+
         if (!registeredUser) {
+            let googleUsername = '';
+            if (isTakenUsername)
+            {
+                googleUsername = isTakenUsername.username + '_';
+                while (await this.usersService.findByUsername(googleUsername))
+                    googleUsername += '_'
+            }
+            else
+                googleUsername = googleUser.firstName + googleUser.lastName;
             const signupDto: SignUpDto = {
                 email: googleUser.email,
-                username: googleUser.firstName + googleUser.lastName,
-                password: this.usersService.generateRandomHex(24),
+                username: googleUsername,
+                password: this.usersService.generateRandomString(24),
             };
             registeredUser = await this.authService.signup(signupDto);
         }
-    
         //Login upon successful google Auth
         const loginResponse = await this.authService.login(registeredUser);
         res.cookie('access_token', loginResponse.access_token, {
@@ -73,14 +82,14 @@ export class AuthController {
     @Get('42/callback')
     @UseGuards(AuthGuard('42'))
     async Auth42Redirect(@Request() req, @Res({ passthrough: true }) res: Response) {
-        const   googleUser = this.authService.login42(req);
-        let     registeredUser = await this.usersService.findByEmail(googleUser.email);
+        const   intraUser = this.authService.login42(req);
+        let     registeredUser = await this.usersService.findByEmail(intraUser.email);
         
         if (!registeredUser) {
             const signupDto: SignUpDto = {
-                email: googleUser.email,
-                username: googleUser.username,
-                password: this.usersService.generateRandomHex(24),
+                email: intraUser.email,
+                username: intraUser.username,
+                password: this.usersService.generateRandomString(24),
             };
             registeredUser = await this.authService.signup(signupDto);
         }
