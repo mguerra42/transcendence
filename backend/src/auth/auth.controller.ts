@@ -119,6 +119,7 @@ export class AuthController {
         @Request() req,
         @Body() updateDto: UpdateDto,
         @UploadedFile() avatar: Express.Multer.File,
+        @Res({ passthrough: true }) res: Response,
     ) {
         if (avatar) {
             fs.writeFileSync(`./avatar/${req.user.id}.jpg`, avatar.buffer);
@@ -127,7 +128,17 @@ export class AuthController {
             updateDto.avatarPath = '';
         }
         //console.log(avatar, updateDto);
-        return await this.authService.update(req.user.id, updateDto);
+        const newUser = await this.authService.update(req.user.id, updateDto);
+        //return await this.authService.update(req.user.id, updateDto);
+ 
+        const loginResponse = await this.authService.login(newUser);
+        res.cookie('access_token', loginResponse.access_token, {
+            httpOnly: true,
+            sameSite: 'strict',
+            maxAge: 1000 * 60 * 60 * 24 * 7,
+        });
+
+        return newUser;
     }
     //TODO : connect to frontend
     @UseGuards(AuthGuard('google'))
