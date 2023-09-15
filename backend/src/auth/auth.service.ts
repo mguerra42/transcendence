@@ -95,7 +95,15 @@ export class AuthService {
             username?: string;
             avatarPath?: string;
         }
+        const previousUser = await this.usersService.findOne(id);
         const userToUpdate: userToUpdateObject = {};
+
+        if (!bcrypt.compareSync(updateDto.password, previousUser.password)) {
+            throw new HttpException(
+                'Password is incorrect.',
+                HttpStatus.UNPROCESSABLE_ENTITY,
+            );
+        }
 
         //Update object with non-empty fields
         //Previously we had 'if (updateDto.property)' which was always true
@@ -123,7 +131,7 @@ export class AuthService {
         }
         if (
             updateDto.newPassword != '' &&
-            updateDto.newPassword !== updateDto.confirmPassword
+            updateDto.newPassword !== updateDto.newPasswordConfirmation
         ) {
             throw new HttpException(
                 'Passwords do not match.',

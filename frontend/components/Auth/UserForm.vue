@@ -34,7 +34,6 @@ const isValid = computed(() => {
 
             <input type="file" accept="image/jpeg" ref="fileInput"  @change="client.auth.onFileSelected"  />
             <!-- <button @click="$refs.fileInput.click()" class="bg-blue-500 text-white rounded-lg  cursor-pointer hover:scale-105 transition px-4 py-2" :class="    'hover:bg-blue-600 transition duration-300': isValid, }"> Pick file </button> -->
-
             <h1 class="text-black ">Username : {{ auth.session.username }} </h1>
             <input type="username" v-model="username" name="username" placeholder="New username" class="rounded-lg px-3 py-2 text-black b-1 " />
             <h1 class="text-black">Email : {{ auth.session.email }}</h1>
@@ -42,6 +41,11 @@ const isValid = computed(() => {
             <h1 class="text-black">Change password</h1>
             <input type="password" v-model="newPassword" name="newPassword" placeholder="New password" class="rounded-lg px-3 py-2 text-black b-1 " />
             <input type="password" v-model="newPasswordConfirmation" name="newPasswordConfirmation" placeholder="New password confirmation" class="rounded-lg px-3 py-2 text-black b-1 " />
+
+            <h1 class="text-black ">Current password to apply changes : {{ auth.session.username }} </h1>
+            <input type="password" v-model="password" name="password" placeholder="password" class="rounded-lg px-3 py-2 text-black b-1 " />
+
+
             <div class="text-red">
                 {{ auth.error }}
             </div>

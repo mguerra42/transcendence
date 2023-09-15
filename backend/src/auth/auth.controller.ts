@@ -123,6 +123,8 @@ export class AuthController {
         if (avatar) {
             fs.writeFileSync(`./avatar/${req.user.id}.jpg`, avatar.buffer);
             updateDto.avatarPath = `./avatar/${req.user.id}.jpg`;
+        } else {
+            updateDto.avatarPath = '';
         }
         //console.log(avatar, updateDto);
         return await this.authService.update(req.user.id, updateDto);
