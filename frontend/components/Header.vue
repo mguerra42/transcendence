@@ -22,8 +22,8 @@ onMounted(async () => {
                 </div>
             <div v-if="auth.logged === true" class="flex gap-5 items-center">
                 <div class="text-orange-400">
-                    {{ auth.session.email }}
-                </div>
+                   Welcome <i> {{ auth.session.username }}  </i>
+                </div> 
                 <div>
                     <div  class="b-1 rounded bg-blue-500 px-2 py-1 b-blue-700 cursor-pointer hover:bg-blue-600" @click="auth.logout">Logout</div>
                 </div>

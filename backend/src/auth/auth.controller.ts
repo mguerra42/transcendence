@@ -103,6 +103,10 @@ export class AuthController {
     @UseGuards(JwtAuthGuard)
     @Get('session')
     async session(@Request() req) {
+        const user = await this.usersService.findOne(req.user.id);
+        if (user.username !== null) req.user.username = user.username;
+        req.user.avatarPath = user.avatarPath;
+        console.log(req.user);
         return req.user;
     }
 

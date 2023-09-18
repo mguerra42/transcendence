@@ -75,7 +75,7 @@ export class UsersService {
     //TODO : import userToUpdateObject interface here and use it instead of any
 
     update(id: number, data: userToUpdateObject) {
-        console.log(data);
+        //console.log(data);
         return this.db.user.update({
             data,
             where: {
