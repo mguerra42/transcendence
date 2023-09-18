@@ -184,6 +184,8 @@ export const useClient = defineStore('client', () => {
         return data
     }
 
+    client.friend = {} as AppClient['friend'];
+
     client.friend.add = async (newFriendName : string) => {
         console.log('add a friend : ', newFriendName)
         const { data, error } = await useRequest('/friend/add', {
