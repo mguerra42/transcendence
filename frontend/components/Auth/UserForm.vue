@@ -29,10 +29,10 @@ const isValid = computed(() => {
             class="text-2xl p-1 hover:bg-blue-500 cursor-pointer hover:text-white rounded m-1 text-black absolute right-0 top-0">
             <div class="i-mdi:close"></div>
         </div>
-        <h1 class="text-black text-2xl">
+        <h1 class="text-black text-2xl" mb-4>
             Profile of <i>{{ auth.session.username }} </i>
         </h1>
-        <h1 class="text-gray text-2xl mb-2">You can update your profile here</h1> 
+        <!-- <h1 class="text-gray text-2xl mb-2">You can update your profile here</h1>  -->
         <form @submit.prevent="client.auth.update({
                 username : username,
                 email: email,
