@@ -38,11 +38,27 @@ interface AppClient {
             email: string
             password: string
         }) => void // login
+        update: (
+            {
+                username,
+                email,
+                password,
+                newPassword,
+                newPasswordConfirmation,
+            }: {
+                username: string
+                email: string
+                password: string
+                newPassword: string
+                newPasswordConfirmation: string
+            },
+        ) => void // update user data
+        onFileSelected: (event: any) => void // upload avatar
+        avatarFile: Ref<File | undefined> // avatar file
         loginWithGoogle: () => void // login with google
         login42: () => void // login 42
         logout: () => void // logout
         session: () => void // get user data
-        update: () => void // update user data
     }
     friends: {
         profile: () => void // get user profile
@@ -181,6 +197,45 @@ export const useClient = defineStore('client', () => {
             return null
         })
         return data
+    }
+
+    client.auth.avatarFile = ref<File>()
+
+    client.auth.update = async ({
+        username,
+        email,
+        password,
+        newPassword,
+        newPasswordConfirmation,
+
+    }) => {
+        const formData = new FormData()
+        formData.append('username', username) // la ref de ton input username
+        formData.append('email', email)
+        formData.append('password', password)
+        formData.append('newPassword', newPassword)
+        formData.append('newPasswordConfirmation', newPasswordConfirmation)
+        if (client.auth.avatarFile.value)
+            formData.append('avatar', client.auth.avatarFile.value) // la ref de ton input file
+
+        //console.log(client.auth.avatarFile.value)
+
+        const { data, error } = await useRequest('/auth/update', {
+            method: 'POST',
+            body: formData,
+        })
+
+        if (error.value?.statusCode) {
+            authStore.error = error.value?.statusMessage as string
+            return
+        }
+
+        authStore.showUserForm = false
+        await authStore.refreshSession()
+    }
+
+    client.auth.onFileSelected = async (event: any) => {
+        client.auth.avatarFile.value = event.target.files[0]
     }
 
     return client

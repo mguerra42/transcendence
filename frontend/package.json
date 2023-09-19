@@ -11,6 +11,7 @@
     "start:generate": "npx serve .output/public"
   },
   "dependencies": {
+    "axios": "^1.5.0",
     "socket.io-client": "^4.7.2"
   },
   "devDependencies": {
