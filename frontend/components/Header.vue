@@ -1,15 +1,15 @@
 <script setup lang="ts">
-const client = useClient()
+// const client = useClient()
 const auth = useAuth()
 const socket = useSocket()
-//const client = useClient()
+const client = useClient()
 onMounted(async () => {
     await auth.refreshSession()
-    // await socket.connect()
+    await socket.connect()
 
-    // socket.on('fromserver', (data) => {
-    //     console.log('fromserver', {data})
-    // })
+    socket.on('fromserver', (data) => {
+        console.log('fromserver', {data})
+    })
 })
 </script>
 
@@ -18,7 +18,7 @@ onMounted(async () => {
         <div class="container mx-auto justify-between h-full flex items-center px-5">
             <div>Ft_transcendence</div>
                 <div>
-                    <!-- <div  class="b-1 rounded bg-blue-500 px-2 py-1 b-blue-700 cursor-pointer hover:bg-blue-600" @click="socket.emit('test', {test: '123'})">Test WS</div> -->
+                    <div  class="b-1 rounded bg-blue-500 px-2 py-1 b-blue-700 cursor-pointer hover:bg-blue-600" @click="socket.emit('test', {test: 'zaza'})">Test WS</div>
                 </div>
             <div v-if="auth.logged === true" class="flex gap-5 items-center">
                 <div class="text-orange-400">

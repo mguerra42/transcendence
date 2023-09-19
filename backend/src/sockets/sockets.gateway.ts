@@ -3,6 +3,7 @@ import {
     WebSocketGateway,
     WebSocketServer,
 } from '@nestjs/websockets';
+
 import { AuthService } from '../auth/auth.service';
 import { Server } from 'socket.io';
 
@@ -12,6 +13,7 @@ import { Server } from 'socket.io';
         credentials: true,
     },
 })
+
 export class SocketsGateway {
     constructor(private authService: AuthService) {}
 
@@ -21,6 +23,7 @@ export class SocketsGateway {
     @SubscribeMessage('test')
     handleMessage(client: any, payload: any): string {
         console.log('ws', payload, client.user);
+        payload.text = "hi from server"
         this.server.to(client.id).emit('fromserver', {
             yourdata: payload,
         });
