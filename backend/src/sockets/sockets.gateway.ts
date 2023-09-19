@@ -4,8 +4,10 @@ import {
     WebSocketServer,
 } from '@nestjs/websockets';
 
+import { UsersService } from '../users/users.service';
 import { AuthService } from '../auth/auth.service';
 import { Server } from 'socket.io';
+
 
 @WebSocketGateway({
     cors: {
@@ -15,15 +17,17 @@ import { Server } from 'socket.io';
 })
 
 export class SocketsGateway {
-    constructor(private authService: AuthService) {}
+    constructor(
+        private authService: AuthService,
+        private userService: UsersService
+    ) {}
 
     @WebSocketServer()
     public server: Server;
 
     @SubscribeMessage('test')
     handleMessage(client: any, payload: any): string {
-        console.log('ws', payload, client.user);
-        payload.text = "hi from server"
+        payload.text = "hi " + client.user.id;
         this.server.to(client.id).emit('fromserver', {
             yourdata: payload,
         });
@@ -43,11 +47,11 @@ export class SocketsGateway {
             return;
         }
         const payload = await this.authService.validateToken(access_token[1]);
-
         !payload && client.disconnect(); // If token is invalid, disconnect
-
+        
+        const chatUser = await this.userService.findByEmail(payload.email);
         client.user = {
-            id: payload.sub,
+            id: chatUser.username,
             email: payload.email,
         };
     }
