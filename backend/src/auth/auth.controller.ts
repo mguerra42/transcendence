@@ -112,6 +112,9 @@ export class AuthController {
     @UseGuards(JwtAuthGuard)
     @Get('session')
     async session(@Request() req) {
+        const user = await this.usersService.findOne(req.user.id);
+        req.user.username = user.username;
+        req.user.avatarPath = user.avatarPath;
         return req.user;
     }
 
@@ -128,13 +131,26 @@ export class AuthController {
         @Request() req,
         @Body() updateDto: UpdateDto,
         @UploadedFile() avatar: Express.Multer.File,
+        @Res({ passthrough: true }) res: Response,
     ) {
         if (avatar) {
             fs.writeFileSync(`./avatar/${req.user.id}.jpg`, avatar.buffer);
             updateDto.avatarPath = `./avatar/${req.user.id}.jpg`;
+        } else {
+            updateDto.avatarPath = '';
         }
         //console.log(avatar, updateDto);
-        return await this.authService.update(req.user.id, updateDto);
+        const newUser = await this.authService.update(req.user.id, updateDto);
+        //return await this.authService.update(req.user.id, updateDto);
+ 
+        const loginResponse = await this.authService.login(newUser);
+        res.cookie('access_token', loginResponse.access_token, {
+            httpOnly: true,
+            sameSite: 'strict',
+            maxAge: 1000 * 60 * 60 * 24 * 7,
+        });
+
+        return newUser;
     }
     //TODO : connect to frontend
     @UseGuards(AuthGuard('google'))
