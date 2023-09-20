@@ -27,6 +27,7 @@ model User {
   wonGames       Game[]        @relation("winner")
   lostGames      Game[]        @relation("loser")
   channels       ChannelUser[] //channels the user is in
+  socketId       String        @default("") //socket id for the user
 }
 
 //Friend list

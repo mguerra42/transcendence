@@ -8,27 +8,27 @@ import { UsersService } from '../users/users.service';
 import { AuthService } from '../auth/auth.service';
 import { Server } from 'socket.io';
 
-
 @WebSocketGateway({
     cors: {
         origin: ['http://localhost:3000', 'http://frontend:3000'],
         credentials: true,
     },
 })
-
 export class SocketsGateway {
     constructor(
         private authService: AuthService,
-        private userService: UsersService
+        private userService: UsersService,
     ) {}
 
     @WebSocketServer()
     public server: Server;
 
     @SubscribeMessage('test')
-    handleMessage(client: any, payload: any): string {
-        payload.text = "hi " + client.user.id;
-        this.server.to(client.id).emit('fromserver', {
+    async handleMessage(client: any, payload: any): Promise<string> {
+        console.log("Payload : ", payload);
+        const userB = await this.userService.findByEmail(payload.text);
+        console.log("UserB : ", userB);
+        this.server.to(userB.socketId).emit('fromserver', {
             yourdata: payload,
         });
         return 'Hello world!';
@@ -48,11 +48,21 @@ export class SocketsGateway {
         }
         const payload = await this.authService.validateToken(access_token[1]);
         !payload && client.disconnect(); // If token is invalid, disconnect
-        
-        const chatUser = await this.userService.findByEmail(payload.email);
+
         client.user = {
-            id: chatUser.username,
+            id: payload.id,
             email: payload.email,
         };
+
+        const user = await this.userService.findByEmail(payload.email);
+
+        interface userToUpdateObject {
+            socketId?: string;
+        }
+
+        const userToUpdate: userToUpdateObject = {};
+        userToUpdate.socketId = client.id;
+        await this.userService.update(user.id, userToUpdate);
+
     }
 }
