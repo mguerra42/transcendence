@@ -5,7 +5,7 @@ import { FriendService } from './friend.service';
 export class FriendController {
   constructor(private readonly friendService: FriendService) {}
 
-  @Post('/friend/add')
+  @Post('add')
   async addFriend(@Request() req) {
     console.log('Friendadd : ' + req)
     // Utilisez le service FriendsService pour ajouter l'ami dans la base de données
