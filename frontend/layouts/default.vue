@@ -2,7 +2,11 @@
   <main class="h-full">
     <Header/>
     <div class="h-[calc(100vh-80px)] b-1 flex">
-        <div class="b-r">Sidebar Left</div>
+        <div class="b-r flex flex-col max-h-[70vh] overflow-y-auto">Sidebar Left
+          <div v-if="auth.logged == true">
+            <AuthButtonsChatbox/>
+          </div>
+        </div>
         <div class="flex-1 bg-red"><slot /></div>
         <div class="b-l">Sidebar Right</div>
     </div>
@@ -11,3 +15,7 @@
     <AuthModal/>
   </main>
 </template>
+
+<script setup lang="ts">
+const auth = useAuth()
+</script>

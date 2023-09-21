@@ -20,6 +20,7 @@ onMounted(async () => {
                 <!-- <div> -->
                     <!-- <div  class="b-1 rounded bg-blue-500 px-2 py-1 b-blue-700 cursor-pointer hover:bg-blue-600" @click="socket.emit('test', {test: 'zaza'})">Test WS</div> -->
                 <!-- </div> -->
+            <!-- <AuthButtonsChatbox/> -->
             <div v-if="auth.logged === true" class="flex gap-5 items-center">
                 <div class="text-orange-400">
                    Welcome <i> {{ auth.session.username }}  </i>

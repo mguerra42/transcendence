@@ -25,12 +25,21 @@ export class SocketsGateway {
 
     @SubscribeMessage('chatBox')
     async handleMessage(client: any, payload: any): Promise<string> {
-        //console.log("Payload : ", payload);
-        const userB = await this.userService.findByEmail(payload.text);
-        //console.log("UserB : ", userB);
-        this.server.to(userB.socketId).emit('fromserver', {
-            yourdata: payload,
-        });
+        //console.log('Payload : ', payload);
+        const Receiver = await this.userService.findByUsername(
+            payload.receiver,
+        );
+
+        console.log('receiver status : ', Receiver.status);
+
+        if (!Receiver) {
+            //console.log('User not found');
+            return 'User not found';
+        } else {
+            this.server.to(Receiver.socketId).emit('fromserver', {
+                yourdata: payload,
+            });
+        }
         return 'Hello world!';
     }
 
@@ -60,13 +69,19 @@ export class SocketsGateway {
         const user = await this.userService.findByEmail(payload.email);
 
         interface userToUpdateObject {
+            email?: string;
+            password?: string;
+            username?: string;
+            avatarPath?: string;
             socketId?: string;
+            status?: string;
         }
 
         if (user != null) {
             //console.log('user found in the database : ', user.email);
             const userToUpdate: userToUpdateObject = {};
             userToUpdate.socketId = client.id;
+            userToUpdate.status = 'ONLINE';
             await this.userService.update(user.id, userToUpdate);
         }
 

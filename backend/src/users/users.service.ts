@@ -12,6 +12,7 @@ interface userToUpdateObject {
     username?: string;
     avatarPath?: string;
     socketId?: string;
+    status?: string;
 }
 
 @Injectable()

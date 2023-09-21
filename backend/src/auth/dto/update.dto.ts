@@ -5,4 +5,5 @@ export class UpdateDto {
     newPassword: string;
     newPasswordConfirmation: string;
     avatarPath: string;
+    status: string;
 }
