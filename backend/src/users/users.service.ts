@@ -35,41 +35,41 @@ export class UsersService {
         });
     }
 
-  findOne(id: number) {
-    return this.db.user.findUnique({
-      where: {
-        id,
-      },
-    });
-  }
-  findByEmail(email: string) {
-    return this.db.user.findFirst({
-      where: {
-        email,
-      },
-    });
-  }
-  findByUsername(username: string) {
-    return this.db.user.findFirst({
-      where: {
-        username,
-      },
-    });
-  }
-  findByEmailOrUsername(email: string, username: string) {
-    return this.db.user.findFirst({
-      where: {
-        OR: [
-          {
-            email,
-          },
-          {
-            username,
-          },
-        ],
-      },
-    });
-  }
+    findOne(id: number) {
+        return this.db.user.findUnique({
+            where: {
+                id,
+            },
+        });
+    }
+    findByEmail(email: string) {
+        return this.db.user.findFirst({
+            where: {
+                email,
+            },
+        });
+    }
+    findByUsername(username: string) {
+        return this.db.user.findFirst({
+            where: {
+                username,
+            },
+        });
+    }
+    findByEmailOrUsername(email: string, username: string) {
+        return this.db.user.findFirst({
+            where: {
+                OR: [
+                    {
+                        email,
+                    },
+                    {
+                        username,
+                    },
+                ],
+            },
+        });
+    }
     //Changed this to any but we can export the userToUpdateObject interface into this file
     //TODO : import userToUpdateObject interface here and use it instead of any
 
@@ -91,23 +91,23 @@ export class UsersService {
         });
     }
 
-
-  formatUser(user: User) {
-    return {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      status: user.status,
-    };
-  }
-
-  generateRandomString(length: number): string {
-    const characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWYZ-_.abcdefghijklmnopqrstuvwxyz';
-    let result = '';
-    for (let i = 0; i < length; i++) {
-      const randomIndex = Math.floor(Math.random() * characters.length);
-      result += characters.charAt(randomIndex);
+    formatUser(user: User) {
+        return {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            status: user.status,
+        };
     }
-    return result;
-  }
+
+    generateRandomString(length: number): string {
+        const characters =
+            '0123456789ABCDEFGHIJKLMNOPQRSTUVWYZ-_.abcdefghijklmnopqrstuvwxyz';
+        let result = '';
+        for (let i = 0; i < length; i++) {
+            const randomIndex = Math.floor(Math.random() * characters.length);
+            result += characters.charAt(randomIndex);
+        }
+        return result;
+    }
 }

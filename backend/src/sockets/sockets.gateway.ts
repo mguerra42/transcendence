@@ -25,9 +25,9 @@ export class SocketsGateway {
 
     @SubscribeMessage('test')
     async handleMessage(client: any, payload: any): Promise<string> {
-        console.log("Payload : ", payload);
+        //console.log("Payload : ", payload);
         const userB = await this.userService.findByEmail(payload.text);
-        console.log("UserB : ", userB);
+        //console.log("UserB : ", userB);
         this.server.to(userB.socketId).emit('fromserver', {
             yourdata: payload,
         });
@@ -46,6 +46,8 @@ export class SocketsGateway {
             client.disconnect();
             return;
         }
+
+        //console.log('access_token = ', access_token[1]);
         const payload = await this.authService.validateToken(access_token[1]);
         !payload && client.disconnect(); // If token is invalid, disconnect
 
@@ -54,15 +56,19 @@ export class SocketsGateway {
             email: payload.email,
         };
 
+        //console.log('payload = ', payload);
         const user = await this.userService.findByEmail(payload.email);
 
         interface userToUpdateObject {
             socketId?: string;
         }
 
-        const userToUpdate: userToUpdateObject = {};
-        userToUpdate.socketId = client.id;
-        await this.userService.update(user.id, userToUpdate);
-
+        if (user != null) {
+            //console.log('user found in the database : ', user.email);
+            const userToUpdate: userToUpdateObject = {};
+            userToUpdate.socketId = client.id;
+            await this.userService.update(user.id, userToUpdate);
+        }
+        //else console.log('User not found in database');
     }
 }

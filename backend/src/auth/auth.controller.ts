@@ -16,6 +16,7 @@ import { Response } from 'express';
 import { LocalAuthGuard } from './local-auth.guard';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { UpdateDto } from './dto/update.dto';
+import { updateSessionDto } from './dto/session.dto';
 import { Express } from 'express';
 import * as fs from 'fs';
 import { GoogleStrategy } from './google.strategy';
@@ -28,7 +29,7 @@ import { UsersService } from 'src/users/users.service';
 export class AuthController {
     constructor(
         private readonly authService: AuthService,
-        private readonly usersService: UsersService
+        private readonly usersService: UsersService,
     ) {}
 
     @Post('signup')
@@ -52,21 +53,25 @@ export class AuthController {
     //Google login
     @Get('google/callback')
     @UseGuards(AuthGuard('google'))
-    async googleAuthRedirect(@Request() req, @Res({ passthrough: true }) res: Response) {
-        const   googleUser = this.authService.googleLogin(req);
-        let     registeredUser = await this.usersService.findByEmail(googleUser.email);
-        let     isTakenUsername = await this.usersService.findByUsername(googleUser.firstName + googleUser.lastName);
+    async googleAuthRedirect(
+        @Request() req,
+        @Res({ passthrough: true }) res: Response,
+    ) {
+        const googleUser = this.authService.googleLogin(req);
+        let registeredUser = await this.usersService.findByEmail(
+            googleUser.email,
+        );
+        let isTakenUsername = await this.usersService.findByUsername(
+            googleUser.firstName + googleUser.lastName,
+        );
 
         if (!registeredUser) {
             let googleUsername = '';
-            if (isTakenUsername)
-            {
+            if (isTakenUsername) {
                 googleUsername = isTakenUsername.username + '_';
                 while (await this.usersService.findByUsername(googleUsername))
-                    googleUsername += '_'
-            }
-            else
-                googleUsername = googleUser.firstName + googleUser.lastName;
+                    googleUsername += '_';
+            } else googleUsername = googleUser.firstName + googleUser.lastName;
             const signupDto: SignUpDto = {
                 email: googleUser.email,
                 username: googleUsername,
@@ -87,10 +92,15 @@ export class AuthController {
     //42 Login
     @Get('42/callback')
     @UseGuards(AuthGuard('42'))
-    async Auth42Redirect(@Request() req, @Res({ passthrough: true }) res: Response) {
-        const   intraUser = this.authService.login42(req);
-        let     registeredUser = await this.usersService.findByEmail(intraUser.email);
-        
+    async Auth42Redirect(
+        @Request() req,
+        @Res({ passthrough: true }) res: Response,
+    ) {
+        const intraUser = this.authService.login42(req);
+        let registeredUser = await this.usersService.findByEmail(
+            intraUser.email,
+        );
+
         if (!registeredUser) {
             const signupDto: SignUpDto = {
                 email: intraUser.email,
@@ -99,7 +109,7 @@ export class AuthController {
             };
             registeredUser = await this.authService.signup(signupDto);
         }
-    
+
         //Login upon successful google Auth
         const loginResponse = await this.authService.login(registeredUser);
         res.cookie('access_token', loginResponse.access_token, {
@@ -108,14 +118,15 @@ export class AuthController {
             maxAge: 1000 * 60 * 60 * 24 * 7,
         });
         res.redirect('http://localhost:3000');
-    }    
+    }
+
     @UseGuards(JwtAuthGuard)
     @Get('session')
     async session(@Request() req) {
-        const user = await this.usersService.findOne(req.user.id);
-        req.user.username = user.username;
-        req.user.avatarPath = user.avatarPath;
-        return req.user;
+        const userToUpdate: updateSessionDto = await this.usersService.findOne(
+            req.user.id,
+        );
+        return userToUpdate;
     }
 
     @UseGuards(JwtAuthGuard)
@@ -142,7 +153,7 @@ export class AuthController {
         //console.log(avatar, updateDto);
         const newUser = await this.authService.update(req.user.id, updateDto);
         //return await this.authService.update(req.user.id, updateDto);
- 
+
         const loginResponse = await this.authService.login(newUser);
         res.cookie('access_token', loginResponse.access_token, {
             httpOnly: true,

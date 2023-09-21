@@ -14,23 +14,21 @@ export class AuthService {
     constructor(
         private usersService: UsersService,
         private jwtService: JwtService,
-
     ) {}
 
- 
     async login(user: any) {
-      const payload = { sub: user.id, email: user.email };
-      return {
-          access_token: await this.jwtService.signAsync(payload),
-      };
+        const payload = { sub: user.id, email: user.email };
+        return {
+            access_token: await this.jwtService.signAsync(payload),
+        };
     }
-  
+
     //TODO : move logic from controller here
     login42(req) {
-    if (!req.user) {
-        return 'No user from intra 42';
-      }
-      return req.user
+        if (!req.user) {
+            return 'No user from intra 42';
+        }
+        return req.user;
     }
 
     //TODO : move logic from controller here
@@ -38,7 +36,7 @@ export class AuthService {
         if (!req.user) {
             return 'No user from google';
         }
-        return req.user
+        return req.user;
     }
 
     async signup(credentials: SignUpDto) {
@@ -76,8 +74,7 @@ export class AuthService {
     async validateToken(token: string) {
         return this.jwtService.verify(token);
     }
-    
-    
+
     //BUG FIX :
     //-Fixed wrong condition in if statements to explicity check if field is empty ('')
     //-Fixed already-taken check to explicity check for null
