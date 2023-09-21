@@ -7,9 +7,9 @@
     </div>
     <div v-if="chatVisible" class="max-h-[50vh] overflow-y-auto p-4">
       <!-- Chat messages will go here -->
-      <div class="flex flex-col-reverse"> <!-- Reverse order to make new messages appear at the bottom -->
+      <div class="flex flex-col"> <!-- Reverse order to make new messages appear at the bottom -->
         <div v-for="message in messages" :key="message.id" class="mb-2">
-          <div :class="{ 'ml-auto': message.sender === 'You', 'mr-auto': message.sender === 'Server' }">
+          <div :class="{ 'ml-auto justify-end': message.sender === 'You', 'mr-auto justify-start': message.sender === 'Server' }">
             <p class="bg-gray-200 text-sm text-black rounded-lg inline-block p-2">
               {{ message.text }}
             </p>
@@ -35,7 +35,10 @@
 
 const auth = useAuth();
 const socket = useSocket();
-const messages: Ref<{ id: number; sender: string; text: string }[]> = ref([]); // Provide an initial type
+const messages: Ref<{
+   id: number;
+   sender: string;
+   text: string }[]> = ref([]); // Provide an initial type
 const newMessage = ref('');
 const chatVisible = ref(true);
 
@@ -43,7 +46,7 @@ const sendMessage = () => {
   if (newMessage.value.trim() === '') return;
 
   // Send the message via the socket
-  socket.emit('test', { text: newMessage.value });
+  socket.emit('chatBox', { text: newMessage.value });
 
   // Add the sent message to the chat
   messages.value.push({

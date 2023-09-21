@@ -23,7 +23,7 @@ export class SocketsGateway {
     @WebSocketServer()
     public server: Server;
 
-    @SubscribeMessage('test')
+    @SubscribeMessage('chatBox')
     async handleMessage(client: any, payload: any): Promise<string> {
         //console.log("Payload : ", payload);
         const userB = await this.userService.findByEmail(payload.text);
@@ -69,6 +69,9 @@ export class SocketsGateway {
             userToUpdate.socketId = client.id;
             await this.userService.update(user.id, userToUpdate);
         }
+
+        //TO DO = supprimer le cookie si l'user est null (pas dans la db)
+
         //else console.log('User not found in database');
     }
 }
