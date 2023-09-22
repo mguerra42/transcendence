@@ -133,6 +133,22 @@ export class AuthController {
     @Post('logout')
     async logout(@Res({ passthrough: true }) res: Response) {
         res.clearCookie('access_token');
+        // const user = await this.usersService.findByEmail();
+        // interface userToUpdateObject {
+        //     email?: string;
+        //     password?: string;
+        //     username?: string;
+        //     avatarPath?: string;
+        //     socketId?: string;
+        //     status?: string;
+        // }
+
+        // if (user != null) {
+        //     //console.log('user found in the database : ', user.email);
+        //     const userToUpdate: userToUpdateObject = {};
+        //     userToUpdate.status = 'OFFLINE';
+        //     await this.usersService.update(user.id, userToUpdate);
+        // }
     }
 
     @UseGuards(JwtAuthGuard)

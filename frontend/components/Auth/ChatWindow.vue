@@ -34,6 +34,7 @@
 <script setup lang="ts">
 
 const auth = useAuth();
+const client = useClient();
 const socket = useSocket();
 const messages: Ref<{
    id: number;
@@ -43,10 +44,13 @@ const newMessage = ref('');
 const chatVisible = ref(true);
 
 const sendMessage = () => {
-  if (newMessage.value.trim() === '') return;
-
-  // Send the message via the socket
-  socket.emit('chatBox', { text: newMessage.value });
+  if (newMessage.value.trim() === '') 
+      return;
+  socket.emit('chatBox', {
+    sender: 'You',
+    receiver: 'Server',
+    text: newMessage.value 
+  });
 
   // Add the sent message to the chat
   messages.value.push({
@@ -54,7 +58,6 @@ const sendMessage = () => {
     sender: 'You',
     text: newMessage.value,
   });
-
   // Clear the input field
   newMessage.value = '';
 };
@@ -67,8 +70,7 @@ onMounted(async () => {
   await auth.refreshSession();
   await socket.connect();
 
-  socket.on('fromserver', (data: any) => {
-    // Add the received message to the chat
+  socket.on('chatBoxResponse', (data: any) => {
     messages.value.push({
       id: Date.now(),
       sender: 'Server', // You can customize the sender here

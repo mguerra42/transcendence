@@ -25,21 +25,9 @@ export class SocketsGateway {
 
     @SubscribeMessage('chatBox')
     async handleMessage(client: any, payload: any): Promise<string> {
-        //console.log('Payload : ', payload);
-        const Receiver = await this.userService.findByUsername(
-            payload.receiver,
-        );
-
-        console.log('receiver status : ', Receiver.status);
-
-        if (!Receiver) {
-            //console.log('User not found');
-            return 'User not found';
-        } else {
-            this.server.to(Receiver.socketId).emit('fromserver', {
-                yourdata: payload,
-            });
-        }
+        this.server.to(payload.receiver).emit('chatBoxResponse', {
+            yourdata: payload,
+        });
         return 'Hello world!';
     }
 
@@ -84,9 +72,7 @@ export class SocketsGateway {
             userToUpdate.status = 'ONLINE';
             await this.userService.update(user.id, userToUpdate);
         }
-
         //TO DO = supprimer le cookie si l'user est null (pas dans la db)
-
         //else console.log('User not found in database');
     }
 }

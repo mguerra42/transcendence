@@ -70,6 +70,7 @@ interface AppClient {
     // Channels
         create: () => void // create channel
         update: () => void // update channel
+        getOnlineUsers: () => any // get online users
         setAdmin: (userId: string, status: boolean) => void // set moderator
         // Admin
         kick: (userId: string) => void // kick user
@@ -100,6 +101,7 @@ export const useClient = defineStore('client', () => {
 
     // Authentification
     client.auth = {} as AppClient['auth']
+    client.chat = {} as AppClient['chat']
 
     // This variable is used to determine which auth method is used at the time of signin
     client.auth.authMethod = 'default'
@@ -238,5 +240,16 @@ export const useClient = defineStore('client', () => {
         client.auth.avatarFile.value = event.target.files[0]
     }
 
+    client.chat.getOnlineUsers = async () => {
+        const { data, error } = await useRequest('/socket/getonlineusers', {
+            method: 'GET',
+        })
+
+        if (error.value?.statusCode) {
+            authStore.error = error.value?.statusMessage as string
+            return null
+        }
+        return data.value
+    }
     return client
 })

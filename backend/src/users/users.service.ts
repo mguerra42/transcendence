@@ -35,7 +35,6 @@ export class UsersService {
             //orderBy,
         });
     }
-
     findOne(id: number) {
         return this.db.user.findUnique({
             where: {
@@ -71,9 +70,15 @@ export class UsersService {
             },
         });
     }
+    findAllOnlineUsers(){
+        return this.db.user.findMany({
+            where: {
+                status: 'ONLINE',
+            },
+        });
+    }
     //Changed this to any but we can export the userToUpdateObject interface into this file
     //TODO : import userToUpdateObject interface here and use it instead of any
-
     update(id: number, data: userToUpdateObject) {
         //console.log(data);
         return this.db.user.update({
@@ -83,7 +88,6 @@ export class UsersService {
             },
         });
     }
-
     remove(id: number) {
         return this.db.user.delete({
             where: {
@@ -91,7 +95,6 @@ export class UsersService {
             },
         });
     }
-
     formatUser(user: User) {
         return {
             id: user.id,
