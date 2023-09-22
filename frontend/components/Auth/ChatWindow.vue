@@ -71,6 +71,10 @@ onMounted(async () => {
   await socket.connect();
 
   socket.on('chatBoxResponse', (data: any) => {
+    console.log("received a response from server : ")
+    console.log(data.yourdata.text)
+    console.log("from : ")
+    console.log(data.yourdata.sender)
     messages.value.push({
       id: Date.now(),
       sender: 'Server', // You can customize the sender here

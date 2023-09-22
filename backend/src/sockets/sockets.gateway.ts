@@ -25,6 +25,11 @@ export class SocketsGateway {
 
     @SubscribeMessage('chatBox')
     async handleMessage(client: any, payload: any): Promise<string> {
+        const user = await this.userService.findByUsername(payload.receiverUsername);
+        console.log("from db")
+        console.log(user.socketId)
+        console.log("from payload")
+        console.log(payload.receiver)
         this.server.to(payload.receiver).emit('chatBoxResponse', {
             yourdata: payload,
         });
@@ -64,15 +69,17 @@ export class SocketsGateway {
             socketId?: string;
             status?: string;
         }
-
+        
         if (user != null) {
-            //console.log('user found in the database : ', user.email);
+            console.log('user found in the database : ', user.email, user.socketId);
             const userToUpdate: userToUpdateObject = {};
             userToUpdate.socketId = client.id;
             userToUpdate.status = 'ONLINE';
             await this.userService.update(user.id, userToUpdate);
+            console.log("new socket id : " + client.id)
         }
+        else
+            console.log('User not found in database');
         //TO DO = supprimer le cookie si l'user est null (pas dans la db)
-        //else console.log('User not found in database');
     }
 }
