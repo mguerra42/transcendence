@@ -25,14 +25,15 @@ export class SocketsGateway {
 
     @SubscribeMessage('chatBox')
     async handleMessage(client: any, payload: any): Promise<string> {
-        const user = await this.userService.findByUsername(payload.receiverUsername);
-        console.log("from db")
-        console.log(user.socketId)
-        console.log("from payload")
-        console.log(payload.receiver)
-        this.server.to(payload.receiver).emit('chatBoxResponse', {
-            yourdata: payload,
-        });
+        //console.log('SOCKET GATEWAY payload = ', payload);
+        const user = await this.userService.findByUsername(payload.receiver);
+        if (user != null) {
+            this.server.to(user.socketId).emit('chatBoxResponse', {
+                yourdata: payload.text,
+                sender: payload.sender,
+            });
+        } else console.log('User not found in database');
+
         return 'Hello world!';
     }
 
@@ -69,17 +70,17 @@ export class SocketsGateway {
             socketId?: string;
             status?: string;
         }
-        
+
         if (user != null) {
-            console.log('user found in the database : ', user.email, user.socketId);
+            //console.log('user found in the database : ', user.email, user.socketId);
             const userToUpdate: userToUpdateObject = {};
             userToUpdate.socketId = client.id;
             userToUpdate.status = 'ONLINE';
             await this.userService.update(user.id, userToUpdate);
-            console.log("new socket id : " + client.id)
+            //console.log('new socket id : ' + client.id);
         }
-        else
-            console.log('User not found in database');
+        //else
+        //console.log('User not found in database');
         //TO DO = supprimer le cookie si l'user est null (pas dans la db)
     }
 }

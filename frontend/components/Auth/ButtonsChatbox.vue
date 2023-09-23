@@ -7,22 +7,23 @@ const onlineUsersArray = await client.chat.getOnlineUsers();
 const numberOfUsers = onlineUsersArray.length;
 
 const chatWithUser = async (userToMessage : any) => {
-    const onlineUsers = await client.chat.getOnlineUsers();
-    
-    for (const user of onlineUsers)
-    {
-        if (user.username === userToMessage.username)
-        {
-            const payload = {
-                sender : auth.session.username,
-                receiver: user.socketId,
-                receiverUsername: user.username,
-                text: 'Test : message received from ' + auth.session.username
-            }
-            socket.emit('chatBox', payload);
-            return ;
-        }
-    }
+    //const onlineUsers = await client.chat.getOnlineUsers();
+    // 
+    // for (const user of onlineUsers)
+    // {
+        // if (user.username === userToMessage.username)
+        // {
+            // const payload = {
+                // sender : auth.session.username,
+                // receiver: user.socketId,
+                // receiverUsername: user.username,
+                // text: 'Test : message received from ' + auth.session.username
+            // }
+            // socket.emit('chatBox', payload);
+            // return ;
+        // }
+    // }
+    client.chat.receiver = userToMessage.username;
 };
 
   

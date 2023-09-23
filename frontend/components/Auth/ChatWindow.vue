@@ -47,8 +47,8 @@ const sendMessage = () => {
   if (newMessage.value.trim() === '') 
       return;
   socket.emit('chatBox', {
-    sender: 'You',
-    receiver: 'Server',
+    sender: auth.session.username,
+    receiver: client.chat.receiver,
     text: newMessage.value 
   });
 
@@ -71,14 +71,14 @@ onMounted(async () => {
   await socket.connect();
 
   socket.on('chatBoxResponse', (data: any) => {
-    console.log("received a response from server : ")
-    console.log(data.yourdata.text)
-    console.log("from : ")
-    console.log(data.yourdata.sender)
+    // console.log("received a response : ")
+    // console.log(data.yourdata)
+    // console.log("from : ")
+    // console.log(data.sender)
     messages.value.push({
       id: Date.now(),
-      sender: 'Server', // You can customize the sender here
-      text: data.yourdata.text,
+      sender: data.sender, // You can customize the sender here
+      text: data.yourdata,
     });
   });
 });
