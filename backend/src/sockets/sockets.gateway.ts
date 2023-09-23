@@ -26,8 +26,9 @@ export class SocketsGateway {
     @SubscribeMessage('chatBox')
     async handleMessage(client: any, payload: any): Promise<string> {
         //console.log('SOCKET GATEWAY payload = ', payload);
+        //console.log("socket from " , payload.sender, " to ", payload.receiver, " : ", payload.text );
         const user = await this.userService.findByUsername(payload.receiver);
-        if (user != null) {
+        if (user !== null && payload.receiver !== undefined) {
             this.server.to(user.socketId).emit('chatBoxResponse', {
                 yourdata: payload.text,
                 sender: payload.sender,

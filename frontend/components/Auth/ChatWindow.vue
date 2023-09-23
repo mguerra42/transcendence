@@ -20,12 +20,21 @@
 
     <!-- Input field for sending messages -->
     <div v-if="chatVisible" class="p-2">
-      <input
-        v-model="newMessage"
-        @keyup.enter="sendMessage"
-        placeholder="Type your message..."
-        class="w-full p-2 text-sm text-black rounded-lg border border-gray-300 focus:outline-none focus:border-blue-500"
-      />
+      <!-- receiver defined -->
+      <div v-if="receiverDefined()">
+        <input
+          v-model="newMessage"
+          @keyup.enter="sendMessage"
+          placeholder="Type your message..."
+          class="w-full p-2 text-sm text-black rounded-lg border border-gray-300 focus:outline-none focus:border-blue-500"
+        />
+      </div>
+      <!-- receiver undefined -->
+      <div v-else>
+        <div class="w-full p-2 text-sm text-black   focus:outline-none focus:border-blue-500"
+        />
+      </div>
+
     </div>
   </div>
 </template>
@@ -42,10 +51,16 @@ const messages: Ref<{
    text: string }[]> = ref([]); // Provide an initial type
 const newMessage = ref('');
 const chatVisible = ref(true);
+const receiverDefined = () => {
+  if (client.chat.receiver === undefined)
+    return false;
+  else return true;
+};
 
 const sendMessage = () => {
   if (newMessage.value.trim() === '') 
       return;
+  //console.log('receiver : ' + client.chat.receiver)
   socket.emit('chatBox', {
     sender: auth.session.username,
     receiver: client.chat.receiver,
