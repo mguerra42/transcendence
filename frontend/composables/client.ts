@@ -85,6 +85,7 @@ interface AppClient {
         sendTo: () => void // send DM to user
         block: () => void // block user
         inviteGame: () => void // invite user to game
+        receiver: string
 
         receiver: string
     }
