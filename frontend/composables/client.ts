@@ -71,6 +71,8 @@ interface AppClient {
         create: () => void // create channel
         update: () => void // update channel
         getOnlineUsers: () => any // get online users
+        getAllUsers: () => any // get all users
+        getOfflineUsers: () => any // get offline users
         setAdmin: (userId: string, status: boolean) => void // set moderator
         // Admin
         kick: (userId: string) => void // kick user
@@ -251,5 +253,30 @@ export const useClient = defineStore('client', () => {
         }
         return data.value
     }
+
+    client.chat.getAllUsers = async () => {
+        const { data, error } = await useRequest('/socket/getallusers', {
+            method: 'GET',
+        })
+
+        if (error.value?.statusCode) {
+            authStore.error = error.value?.statusMessage as string
+            return null
+        }
+        return data.value
+    }
+
+    client.chat.getOfflineUsers = async () => {
+        const { data, error } = await useRequest('/socket/getofflineusers', {
+            method: 'GET',
+        })
+
+        if (error.value?.statusCode) {
+            authStore.error = error.value?.statusMessage as string
+            return null
+        }
+        return data.value
+    }
+
     return client
 })

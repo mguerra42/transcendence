@@ -83,6 +83,8 @@
   const chatVisible = ref(true);
   const chatMessages = ref();
   const onlineUsersArray: Ref<any[]> = ref([]);
+  const offlineUsersArray: Ref<any[]> = ref([]);
+  const usersArray: Ref<any[]> = ref([]);
   const messages: Ref<{ sender: string; text: string }[]> = ref([]);
 
   const receiverDefined = () => {
@@ -101,6 +103,8 @@
   };
   const refreshUsers = async () => {
     onlineUsersArray.value = await client.chat.getOnlineUsers();
+    usersArray.value = await client.chat.getAllUsers();
+    offlineUsersArray.value = await client.chat.getOfflineUsers();
   };
   const chatWithUser = async (userToMessage : any) => {
     if (client.chat.receiver != userToMessage.username)
