@@ -128,6 +128,22 @@
   };
   const toggleChat = () => {
     chatVisible.value = !chatVisible.value;
+    if (chatVisible.value === false)
+      handleAFK(true);
+    else
+      handleAFK(false);
+  };
+  const handleAFK = (status:boolean) => {
+    if (status === true)
+      socket.emit('afk', {
+        sender: auth.session.username,
+        text: 'OFFLINE',
+      });
+    else
+      socket.emit('afk', {
+        sender: auth.session.username,
+        text: 'ONLINE',
+      });
   };
 
   onUpdated(() => {
@@ -140,6 +156,7 @@
 
     refreshUsers();
     scrollToBottom();
+    socket.on('afkResponse', refreshUsers);
     socket.on('chatBoxResponse', (data: any) => {
       messages.value.push({
         sender: data.sender,

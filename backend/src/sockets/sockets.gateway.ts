@@ -38,6 +38,31 @@ export class SocketsGateway {
         return 'Hello world!';
     }
 
+    @SubscribeMessage('afk')
+    async handleDisconnection(client: any, payload: any): Promise<string> {
+        const user = await this.userService.findByUsername(payload.sender);
+        if (user !== null && payload.receiver !== undefined) {
+            this.server.to(user.socketId).emit('afkResponse', {
+                sender: payload.sender,
+            });
+        } else console.log('User not found in database');
+
+        interface userToUpdateObject {
+            email?: string;
+            password?: string;
+            username?: string;
+            avatarPath?: string;
+            socketId?: string;
+            status?: string;
+        }
+        if (user != null) {
+            const userToUpdate: userToUpdateObject = {};
+            userToUpdate.status = payload.text;
+            await this.userService.update(user.id, userToUpdate);
+        }
+        return 'Hello world!';
+    }
+
     async handleConnection(client) {
         // Split all cookies and key/value pairs
         const cookies = client.handshake.headers.cookie
