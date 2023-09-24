@@ -16,13 +16,14 @@
         <button @click="toggleChat" class="px-2 py-2 text-left text-zinc-200 hover:text-zinc-400">
           Close
         </button>
-        <button @click="refreshUsers" class="text-sm mb-3 mt-2 text-left text-zinc-200 hover:text-zinc-400 font-semi-bold px-2 py-2">
-          Connected Users
+        <button @click="refreshUsers" class="text-sm mb-2 mt-2 text-left text-zinc-200 hover:text-zinc-400 font-semi-bold px-2 py-2">
+          Messages privés
         </button>
-        <div v-for="user in onlineUsersArray" class="mb-2">
+        <div v-for="user in usersArray" class="mb-1">
           <div v-if="user.username !== auth.session.username" :class="{'bg-zinc-700 text-zinc-200 cursor-pointer rounded-lg': client.chat.receiver === user.username,
                         'bg-zinc-800 cursor-pointer hover:bg-zinc-700 rounded-lg flex': client.chat.receiver !== user.username}" >
-            <button @click="chatWithUser(user)" class="px-2 py-2 w-full text-sm text-left text-zinc-300 cursor-pointer">
+            <button @click="chatWithUser(user)" :class="{ 'px-2 py-2 w-full text-sm text-left text-zinc-300 cursor-pointer':user.status === 'ONLINE', 
+                                                          'px-2 py-2 w-full text-sm text-left text-zinc-500 cursor-pointer':user.status === 'OFFLINE'}">
               {{ user.username }}
             </button>
           </div>
