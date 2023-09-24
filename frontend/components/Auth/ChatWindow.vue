@@ -5,7 +5,7 @@
           Open Chats
     </button>
   </div>
-
+  
   <!-- Chat window -->
   <!-- Size and positioning -->
   <div v-if="chatVisible" class="fixed bottom-3 left-3 lg:w-1/3 md:w-1/3 sm:w-2/5 ">
@@ -103,9 +103,9 @@
     scrollToBottom();
   };
   const refreshUsers = async () => {
-    onlineUsersArray.value = await client.chat.getOnlineUsers();
+    // onlineUsersArray.value = await client.chat.getOnlineUsers();
     usersArray.value = await client.chat.getAllUsers();
-    offlineUsersArray.value = await client.chat.getOfflineUsers();
+    // offlineUsersArray.value = await client.chat.getOfflineUsers();
   };
   const chatWithUser = async (userToMessage : any) => {
     if (client.chat.receiver != userToMessage.username)
