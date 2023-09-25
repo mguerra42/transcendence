@@ -41,8 +41,8 @@ export class SocketsGateway {
     @SubscribeMessage('afk')
     async handleDisconnection(client: any, payload: any): Promise<string> {
         const user = await this.userService.findByUsername(payload.sender);
-        if (user !== null && payload.receiver !== undefined) {
-            this.server.to(user.socketId).emit('afkResponse', {
+        if (user !== null) {
+            this.server.emit('afkResponse', {
                 sender: payload.sender,
             });
         } else console.log('User not found in database');
