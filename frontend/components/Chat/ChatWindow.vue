@@ -16,6 +16,7 @@
         <button @click="toggleChat" class="px-2 py-2 text-left text-zinc-200 hover:text-zinc-400">
           Close
         </button>
+        <!-- MP -->
         <button @click="refreshUsers" class="text-sm mb-2 mt-2 text-left text-zinc-200 hover:text-zinc-400 font-semi-bold px-2 py-2">
           Messages privés
         </button>
@@ -30,6 +31,18 @@
                                                             'px-2 py-2 w-full ml-1 text-sm text-left text-zinc-500 cursor-pointer':user.status === 'OFFLINE'}">
                 {{ user.username }}
               </button>
+          </div>
+        </div>
+        <!-- Channel -->
+        <button class="text-sm mb-2 mt-2 text-left text-zinc-200 hover:text-zinc-400 font-semi-bold px-2 py-2">
+          Channels
+        </button>
+        <div v-for="channelList in channelArray" class="mb-1">
+          <div class="{'bg-zinc-700 text-zinc-200 cursor-pointer rounded-lg': client.chat.receiver === user.username,
+                        'bg-zinc-800 cursor-pointer hover:bg-zinc-700 rounded-lg flex': client.chat.receiver !== user.username}" >
+            <button @click="chatWithChannel(channelList)" class="px-2 py-2 w-full text-sm text-left text-zinc-300 cursor-pointer':user.status">
+              {{ channelList.name }}
+            </button>
           </div>
         </div>
       </div>
@@ -94,12 +107,14 @@
   const auth = useAuth();
   const client = useClient();
   const socket = useSocket();
+  const channel = useChannel();
   const newMessage = ref('');
   const chatVisible = ref(true);
   const chatMessages = ref();
   const onlineUsersArray: Ref<any[]> = ref([]);
   const offlineUsersArray: Ref<any[]> = ref([]);
   const usersArray: Ref<any[]> = ref([]);
+  const channelArray: Ref<any[]> = ref([]);
   const currentUser = ref({avatar: '', username: '', wins: 0, losses: 0, elo: 0});
   const messages: Ref<{ sender: string; text: string }[]> = ref([]);
 
@@ -119,6 +134,9 @@
   };
   const refreshUsers = async () => {
     usersArray.value = await client.chat.getAllUsers();
+    //channelArray.value = await client.chat.getAllChannels();
+    channelArray.value = await channel.getAllChannels();
+    // offlineUsersArray.value = await client.chat.getOfflineUsers();
   };
   const chatWithUser = async (userToMessage : any) => {
     if (currentUser.value.username != userToMessage.username)
@@ -128,6 +146,11 @@
     currentUser.value.wins = userToMessage.victories;
     currentUser.value.losses = userToMessage.defeats;
     currentUser.value.elo = userToMessage.ladderPoint;
+  };
+  const chatWithChannel = async (channelToMessage : any) => {
+    if (client.chat.receiver != channelToMessage.name)
+      clearChat();
+    client.chat.receiver = channelToMessage.name;
   };
   const sendMessage = () => {
     if (newMessage.value.trim() === '') 
