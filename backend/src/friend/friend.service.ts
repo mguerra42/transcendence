@@ -37,6 +37,7 @@ export class FriendService {
     await this.updateUserFriends(userTwoId, userOneId);
   }
 
+  //PARTIAL BUGFIX 
   private async updateUserFriends(userId: number, friendId: number): Promise<void> {
     // Obtenez l'utilisateur actuel
     const user = await this.prisma.user.findUnique({
@@ -48,24 +49,36 @@ export class FriendService {
       },
     });
 
-    // Vérifiez si l'ami n'est pas déjà dans la liste
-    const isFriendAlreadyAdded = user.friends.some((friend) => friend.id === friendId);
+    // Recup l'objet de l'utilisateur dont on va update la friendlist
+    const friend = await this.usersService.findByEmail(user.email);
 
-    if (!isFriendAlreadyAdded) {
-      // Ajoutez l'ami à la liste
-      await this.prisma.user.update({
-        where: {
-          id: userId,
-        },
-        data: {
-          friends: {
-            connect: {
-              id: friendId,
-            },
-          },
-        },
-      });
+    // Vérifiez si l'ami n'est pas déjà dans la liste
+    const isFriendAlreadyAdded = user.friends.some((friend:any) => friend.id === friendId);
+
+    //recuperer sa friend list
+    const friendlist = user.friends;
+    
+    //update sa friendlist
+    //FIX PARTIEL : je maitrise pas la relation friends donc je laisse ca pour plus tard
+    friendlist.push();
+
+    //On cree une interface pour update l'objet user sans causer une erreur de type
+    //FIX PARTIEL : A matcher avec la definition de l'objet userToUpdateDto dans le model
+    interface userToUpdateObject {
+      email?: string;
+      password?: string;
+      username?: string;
+      avatarPath?: string;
+      friends?: string;
+      status?: string;
     }
+
+      //On crée l'objet userToUpdate qui va contenir les infos a update
+      const userToUpdate: userToUpdateObject = {};
+      //FIX PARTIEL : a decommenter apres avoir fix la relation friends
+      // userToUpdate.friends = friendlist;
+      //On fait l'update
+      await this.usersService.update(user.id, userToUpdate);
   }
 }
 
