@@ -23,11 +23,11 @@
           <div v-if="user.username !== auth.session.username" :class="{'bg-zinc-700 text-zinc-200 cursor-pointer rounded-lg flex': currentUser.username === user.username,
                         'bg-zinc-800 cursor-pointer hover:bg-zinc-700 rounded-lg flex': currentUser.username !== user.username}" >
               <div class="flex flex-col justify-center">
-                <img v-if="user.status==='ONLINE'" src="green_dot.svg" class="ml-2 w-2 h-2 mr-auto rounded-full" />
-                <img v-else="user.status==='OFFLINE'" src="Location_dot_grey.svg" class="ml-2 w-1 h-1 mr-auto rounded-full" />
+                <img v-if="user.status==='ONLINE'" src="Location_dot_green.svg" class="ml-2 w-2 h-2 mr-auto rounded-full" />
+                <img v-else="user.status==='OFFLINE'" src="Location_dot_grey.svg" class="ml-2 w-2 h-2 mr-auto rounded-full" />
               </div>
-              <button @click="chatWithUser(user)" :class="{ 'px-2 py-2 w-full text-sm text-left text-zinc-300 cursor-pointer':user.status === 'ONLINE', 
-                                                            'px-2 py-2 w-full text-sm text-left text-zinc-500 cursor-pointer':user.status === 'OFFLINE'}">
+              <button @click="chatWithUser(user)" :class="{ 'px-2 py-2 w-full ml-1 text-sm text-left text-zinc-300 cursor-pointer':user.status === 'ONLINE', 
+                                                            'px-2 py-2 w-full ml-1 text-sm text-left text-zinc-500 cursor-pointer':user.status === 'OFFLINE'}">
                 {{ user.username }}
               </button>
           </div>
@@ -37,9 +37,15 @@
       <!-- Conversation Window div -->
       <div class="flex flex-col w-2/3 p-2 m-2">
         <!-- Messages -->
-        <div v-if="receiverDefined()" class="p-2 h-[1/5] w-full bg-zinc-600 hover:bg-zinc-800 rounded-lg flex mr-auto mb-2">
-          <img :src="currentUser.avatar" class="w-6 h-6 rounded-full" />
-          <h1 class="ml-2 font-bold" >{{ currentUser.username }}</h1>
+        <div v-if="receiverDefined()" class="p-2 h-[1/5] w-full bg-zinc-600 hover:bg-zinc-800 rounded-lg flex mr-auto mb-2 cursor-pointer">
+          <div class="flex flex-col justify-center">
+            <img :src="currentUser.avatar" class="w-10 h-10 rounded-full" />
+          </div>
+          <div class="flex flex-col justify-center">
+            <p class="ml-3 text-md" >{{ currentUser.username }}</p>
+            <p class="ml-3 text-xs text-zinc-400" >W/L : {{ currentUser.wins }}-{{ currentUser.losses }}</p>
+            <p class="ml-3 text-xs text-zinc-400" >Elo : {{ currentUser.elo }}</p>
+          </div>
         </div>
         <div id="chatMessages" ref="chatMessages" class="overflow-y-auto max-w-full scrollbar-w-2 h-[3/5] px-1 rounded-lg">
           <div class="flex flex-col">
@@ -94,7 +100,7 @@
   const onlineUsersArray: Ref<any[]> = ref([]);
   const offlineUsersArray: Ref<any[]> = ref([]);
   const usersArray: Ref<any[]> = ref([]);
-  const currentUser = ref({avatar: '', username: ''});
+  const currentUser = ref({avatar: '', username: '', wins: 0, losses: 0, elo: 0});
   const messages: Ref<{ sender: string; text: string }[]> = ref([]);
 
   const receiverDefined = () => {
@@ -120,6 +126,9 @@
     console.log(userToMessage);
     currentUser.value.avatar = userToMessage.avatarPath;
     currentUser.value.username = userToMessage.username;
+    currentUser.value.wins = userToMessage.victories;
+    currentUser.value.losses = userToMessage.defeats;
+    currentUser.value.elo = userToMessage.ladderPoint;
   };
   const sendMessage = () => {
     if (newMessage.value.trim() === '') 
