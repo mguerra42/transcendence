@@ -38,6 +38,27 @@ export class SocketsGateway {
         return 'Hello world!';
     }
 
+    @SubscribeMessage('channelMessage')
+    async handleChannelMessage(client: any, payload: any): Promise<string> {
+        //console.log('SOCKET GATEWAY payload = ', payload);
+        //console.log("socket from " , payload.sender, " to ", payload.receiver, " : ", payload.text );
+        client.join(payload.receiver); // Join the "chat" channel
+        // const channel = await this.userService.findChannelByName(
+        // payload.receiver,
+        //);
+        //if (channel !== null && payload.receiver !== undefined) {
+        this.server
+            .to(payload.receiver)
+            .emit('userJoined', `User ${client.id} has joined the chat.`);
+        this.server.to(payload.receiver).emit('channelMessageResponse', {
+            yourdata: payload.text,
+            sender: payload.sender,
+        });
+        //} else console.log('Channel not found in database');
+
+        return 'Hello world!';
+    }
+
     @SubscribeMessage('afk')
     async handleDisconnection(client: any, payload: any): Promise<string> {
         const user = await this.userService.findByUsername(payload.sender);
@@ -61,6 +82,11 @@ export class SocketsGateway {
             await this.userService.update(user.id, userToUpdate);
         }
         return 'Hello world!';
+    }
+
+    //async handleChannelCreation() {
+    async createChannelForTest() {
+        //creer la channel en dur et la mettre dans la db
     }
 
     async handleConnection(client) {

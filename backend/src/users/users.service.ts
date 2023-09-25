@@ -94,6 +94,13 @@ export class UsersService {
         return this.db.channel.findMany();
     }
 
+    findChannelByName(name: string) {
+        return this.db.channel.findFirst({
+            where: {
+                name,
+            },
+        });
+    }
 
     //Changed this to any but we can export the userToUpdateObject interface into this file
     //TODO : import userToUpdateObject interface here and use it instead of any
