@@ -34,7 +34,7 @@ export class SocketController {
         //);
         //const channelsList = await this.channelService.findAllChannels();
         const channelsList = await this.userService.findAllChannels();
-        console.log('channel List = ', channelsList);
+        //console.log('channel List = ', channelsList);
         return channelsList;
     }
 }
