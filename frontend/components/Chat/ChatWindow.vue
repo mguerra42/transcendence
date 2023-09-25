@@ -123,7 +123,6 @@
   const chatWithUser = async (userToMessage : any) => {
     if (currentUser.value.username != userToMessage.username)
       clearChat();
-    console.log(userToMessage);
     currentUser.value.avatar = userToMessage.avatarPath;
     currentUser.value.username = userToMessage.username;
     currentUser.value.wins = userToMessage.victories;
