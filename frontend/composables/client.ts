@@ -88,6 +88,7 @@ interface AppClient {
         block: () => void // block user
         inviteGame: () => void // invite user to game
 
+        avatar: string
         receiver: string
 
         getAllChannels: () => any // get offline users
