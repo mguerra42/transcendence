@@ -22,9 +22,14 @@ export class FriendService {
       data: {
         userOneId: currentUserId,
         userTwoId: friend.id,
+        userOne: {
+          connect: { id: currentUserId },
+        },
+        userTwo: {
+          connect: { id: friend.id },
+        },
       },
     });
   }
-
 }
 
