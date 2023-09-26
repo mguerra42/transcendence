@@ -296,6 +296,10 @@
         text: data.yourdata,
       });
     });
+    socket.on('joinChannelResponse', (data: any) => {
+      currentChannel.value.userCount = data.userCount;
+      console.log("response from joinChannel received")
+    });
     socket.on('channelMessageResponse', (data: any) => {
         const currentTime = new Date();
         const timeOptions = { hour: '2-digit', minute: '2-digit' };

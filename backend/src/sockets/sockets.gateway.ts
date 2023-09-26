@@ -50,7 +50,10 @@ export class SocketsGateway {
         const role = 'USER';
 
         const usersInChannel = channelToJoin.userList;
+        let onlineUsersInChannel = 0;
         for (let i = 0; i < usersInChannel.length; i++) {
+            // if (usersInChannel[i] === 'ONLINE')
+            //      onlineUsersInChannel++;
             if (usersInChannel[i].userId === userToSubscribe.id) {
                 client.join(payload.receiver);
                 this.server.to(payload.receiver).emit('joinChannelResponse', {
@@ -59,10 +62,6 @@ export class SocketsGateway {
                 console.log('user already in the channel ', usersInChannel.length, payload.receiver);
                 return 'user already in the channel';
             }
-            // if (usersInChannel[user].username === payload.sender) {
-            //     console.log('user already in the channel');
-            //     return 'user already in the channel';
-            // }
         }
 
         const channelUser = await this.userService.addChannelUser(channelId, userId, role);
