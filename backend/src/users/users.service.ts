@@ -117,8 +117,19 @@ export class UsersService {
             channel: { connect: { id: channelId } }, // Connect the channel by ID
           },
         });
-      }
-        
+    }
+
+    getUserInChannelUser(id: number) {
+        return this.db.channelUser.findFirst({
+            where: {
+                userId: id,
+            },
+            select: {
+                user: true,
+            },
+        });
+    }
+
     getUsersInChannel(channelName: string) {
         return this.db.channel.findMany({
             where: {

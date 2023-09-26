@@ -47,17 +47,21 @@ export class SocketsGateway {
 
         const channelId = channelToJoin.id;
         const userId = userToSubscribe.id;
+        const userStatus = userToSubscribe.status;
         const role = 'USER';
 
         const usersInChannel = channelToJoin.userList;
         let onlineUsersInChannel = 0;
         for (let i = 0; i < usersInChannel.length; i++) {
-            // if (usersInChannel[i] === 'ONLINE')
-            //      onlineUsersInChannel++;
+            const userId = usersInChannel[i].userId;
+            const res = await this.userService.getUserInChannelUser(userId);
+            if (res.user.status === 'ONLINE')
+                onlineUsersInChannel++;
             if (usersInChannel[i].userId === userToSubscribe.id) {
                 client.join(payload.receiver);
                 this.server.to(payload.receiver).emit('joinChannelResponse', {
                     userCount: usersInChannel.length,
+                    onlineUsers: onlineUsersInChannel,
                 });
                 console.log('user already in the channel ', usersInChannel.length, payload.receiver);
                 return 'user already in the channel';

@@ -89,7 +89,7 @@
           <div class="flex flex-col justify-center">
             <p class="ml-3 text-lg text-zinc-200 font-bold" >#{{ currentChannel.name }}</p>
             <p class="ml-3 text-xs text-zinc-400" >Subscribed : {{ currentChannel.userCount }} users</p>
-            <p class="ml-3 text-xs text-zinc-400" >Online : 4 users</p>
+            <p class="ml-3 text-xs text-zinc-400" >Online : {{ currentChannel.onlineUsers }} users</p>
           </div>
         </div>
         <div id="chatMessages" ref="chatMessages" class="overflow-y-auto max-w-full scrollbar-w-2 h-[3/5] px-1 rounded-lg">
@@ -167,7 +167,7 @@
   const usersArray: Ref<any[]> = ref([]);
   const channelArray: Ref<any[]> = ref([]);
   const currentUser = ref({id: -1, avatar: '', username: '', wins: 0, losses: 0, elo: 0, status: ''});
-  const currentChannel = ref({id: -1, name: '', userCount: 0});
+  const currentChannel = ref({id: -1, name: '', userCount: 0, onlineUsers: 0});
   const messages: Ref<{ sender: string; text: string }[]> = ref([]);
 
   const isChatWindowOpen = () => {
@@ -214,6 +214,7 @@
     currentChannel.value.id = channelToMessage.id;
     currentChannel.value.name = channelToMessage.name;
     currentChannel.value.userCount = 0;
+    currentChannel.value.onlineUsers = 0;
     currentUser.value.id = -1;
     socket.emit('joinChannel', {
       sender: auth.session.username,
@@ -298,6 +299,7 @@
     });
     socket.on('joinChannelResponse', (data: any) => {
       currentChannel.value.userCount = data.userCount;
+      currentChannel.value.onlineUsers = data.onlineUsers;
       console.log("response from joinChannel received")
     });
     socket.on('channelMessageResponse', (data: any) => {
