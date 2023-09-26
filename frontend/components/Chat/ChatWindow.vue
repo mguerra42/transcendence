@@ -301,6 +301,8 @@
         const timeOptions = { hour: '2-digit', minute: '2-digit' };
         const formattedTime = currentTime.toLocaleTimeString(undefined, timeOptions);
 
+        console.log("haha : ")
+        console.log(data)
         messages.value.push({
           sender: data.sender,
           avatar: data.avatar,

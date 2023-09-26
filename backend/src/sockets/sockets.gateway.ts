@@ -7,6 +7,7 @@ import {
 import { UsersService } from '../users/users.service';
 import { AuthService } from '../auth/auth.service';
 import { Server } from 'socket.io';
+import { channel } from 'diagnostics_channel';
 
 @WebSocketGateway({
     cors: {
@@ -40,9 +41,36 @@ export class SocketsGateway {
 
     @SubscribeMessage('joinChannel')
     async handleJoinChannel(client: any, payload: any): Promise<string> {
-        client.join(payload.receiver); // Join the "chat" channel
-
         
+        const channelToJoin = await this.userService.findChannelByName(payload.receiver);
+        const userToSubscribe = await this.userService.findByUsername(payload.sender);
+
+        const channelId = channelToJoin.id;
+        const userId = userToSubscribe.id;
+        const role = 'USER';
+
+        const usersInChannel = channelToJoin.userList;
+        for (let i = 0; i < usersInChannel.length; i++) {
+            if (usersInChannel[i].userId === userToSubscribe.id) {
+                client.join(payload.receiver);
+                this.server.to(payload.receiver).emit('joinChannelResponse', {
+                    userCount: usersInChannel.length,
+                });
+                console.log('user already in the channel ', usersInChannel.length, payload.receiver);
+                return 'user already in the channel';
+            }
+            // if (usersInChannel[user].username === payload.sender) {
+            //     console.log('user already in the channel');
+            //     return 'user already in the channel';
+            // }
+        }
+
+        const channelUser = await this.userService.addChannelUser(channelId, userId, role);
+        client.join(payload.receiver);
+
+        this.server.to(payload.receiver).emit('joinChannelResponse', {
+            userCount: channelToJoin.userList.length,
+        });        
         return 'Hello world!';
     }
 
@@ -54,6 +82,7 @@ export class SocketsGateway {
             avatar: payload.avatar,
             timestamp: ''
         });
+        console.log(payload)
         return 'Hello world!';
     }
 
