@@ -20,17 +20,20 @@
         <button @click="refreshUsers" class="text-sm mb-2 mt-2 text-left text-zinc-200 hover:text-zinc-400 font-semi-bold px-2 py-2">
           Messages privés
         </button>
-        <div v-for="user in usersArray" class="mb-1">
-          <div v-if="user.username !== auth.session.username" :class="{'bg-zinc-700 text-zinc-200 cursor-pointer rounded-lg flex': currentUser.id === user.id,
-                        'bg-zinc-800 cursor-pointer hover:bg-zinc-700 rounded-lg flex': currentUser.id !== user.id}" >
-              <div class="flex flex-col justify-center">
-                <img v-if="user.status==='ONLINE'" src="Location_dot_green.svg" class="ml-2 w-2 h-2 mr-auto rounded-full" />
-                <img v-else="user.status==='OFFLINE'" src="Location_dot_grey.svg" class="ml-2 w-2 h-2 mr-auto rounded-full" />
+        <div v-for="user in usersArray" class="mb-1 flex">
+          <div v-if="user.username !== auth.session.username" :class="{ 'bg-zinc-700 text-zinc-200 cursor-pointer rounded flex': currentUser.id === user.id,
+                                                                        'bg-zinc-800 cursor-pointer hover:bg-zinc-700 rounded flex': currentUser.id !== user.id}" >
+              <div class="flex flex-col justify-center relative w-8 ">
+                <img :src="user.avatarPath" class="ml-1 w-6 h-6 mr-auto rounded-full" />
+                <img v-if="user.status==='ONLINE'" src="Location_dot_green.svg" class="absolute bottom-1 right-0 w-3 h-3 border-3 border-zinc-800 rounded-full" />
+                <img v-else="user.status==='OFFLINE'" src="Location_dot_grey.svg" class="absolute bottom-1 right-0 w-3 h-3 border-3 border-zinc-800 rounded-full" />
               </div>
-              <button @click="chatWithUser(user)" :class="{ 'px-2 py-2 w-full ml-1 text-sm text-left text-zinc-300 cursor-pointer':user.status === 'ONLINE', 
-                                                            'px-2 py-2 w-full ml-1 text-sm text-left text-zinc-500 cursor-pointer':user.status === 'OFFLINE'}">
-                {{ user.username }}
-              </button>
+              <div class="flex-col justify-center">
+                <div @click="chatWithUser(user)" :class="{'px-2 py-2 w-full ml-1 text-sm text-left text-zinc-300 cursor-pointer':user.status === 'ONLINE', 
+                                                          'px-2 py-2 w-full ml-1 text-sm text-left text-zinc-500 cursor-pointer':user.status === 'OFFLINE'}">
+                  {{ user.username }}
+                </div>
+              </div>
           </div>
         </div>
         <!-- Channel -->
@@ -41,7 +44,7 @@
           <div class="{'bg-zinc-700 text-zinc-200 cursor-pointer rounded-lg': client.chat.receiver === user.username,
                         'bg-zinc-800 cursor-pointer hover:bg-zinc-700 rounded-lg flex': client.chat.receiver !== user.username}" >
             <button @click="chatWithChannel(channelList)" class="px-2 py-2 w-full text-sm text-left text-zinc-300 cursor-pointer':user.status">
-              {{ channelList.name }}
+              #{{ channelList.name }}
             </button>
           </div>
         </div>
@@ -50,9 +53,9 @@
       <!-- Conversation Window div -->
       <div class="flex flex-col w-2/3 p-2 m-2">
         <!-- Messages -->
-        <div v-if="isChatWindowOpen()" class="p-2 h-[1/5] w-full bg-zinc-600 hover:bg-zinc-800 rounded-lg flex mr-auto mb-2 cursor-pointer">
+        <div v-if="isChatWindowOpen()" class="p-2 h-[1/5] w-full bg-zinc-600 hover:bg-zinc-500 rounded-lg flex mr-auto mb-2 cursor-pointer">
           <div class="flex flex-col justify-center">
-            <img :src="currentUser.avatar" class="w-10 h-10 rounded-full" />
+            <img :src="currentUser.avatar" class="w-12 h-12 rounded-full" />
           </div>
           <div class="flex flex-col justify-center">
             <p class="ml-3 text-md text-zinc-200" >{{ currentUser.username }}</p>
@@ -79,14 +82,14 @@
         </div>
 
         <!-- Channel -->
-        <div v-if="isChannelWindowOpen()" class="p-2 h-[1/5] w-full bg-zinc-600 hover:bg-zinc-800 rounded-lg flex mr-auto mb-2 cursor-pointer">
+        <div v-if="isChannelWindowOpen()" class="p-2 h-[1/5] w-full bg-zinc-600 hover:bg-zinc-500 rounded-lg flex mr-auto mb-2 cursor-pointer">
           <div class="flex flex-col justify-center">
             <!-- <img :src="currentUser.avatar" class="w-10 h-10 rounded-full" /> -->
           </div>
           <div class="flex flex-col justify-center">
             <p class="ml-3 text-lg text-zinc-200 font-bold" >#{{ currentChannel.name }}</p>
-            <!-- <p class="ml-3 text-xs text-zinc-400" >W/L : {{ currentUser.wins }}-{{ currentUser.losses }}</p>
-            <p class="ml-3 text-xs text-zinc-400" >Elo : {{ currentUser.elo }}</p> -->
+            <p class="ml-3 text-xs text-zinc-400" >Subscribed : {{ currentChannel.userCount }} users</p>
+            <p class="ml-3 text-xs text-zinc-400" >Online : 4 users</p>
           </div>
         </div>
         <div id="chatMessages" ref="chatMessages" class="overflow-y-auto max-w-full scrollbar-w-2 h-[3/5] px-1 rounded-lg">
@@ -97,11 +100,21 @@
             <!-- <p v-else class="text-sm text-center text-zinc-500 w-full rounded-lg p-2"> -->
               <!-- No open conversation. -->
             <!-- </p> -->
-            <div v-if="isChannelWindowOpen()" v-for="message in messages" class="mb-2">
-              <div :class="{ 'text-left': message.sender === auth.session.username, 'text-right': message.sender !== auth.session.username }">
-                <p class="text-sm text-zinc-300 w-full break-all rounded-lg hover:bg-zinc-600 inline-block p-2">
-                  {{ message.text }}
-                </p>
+            <div v-if="isChannelWindowOpen()" v-for="message in messages" class="mb-1">
+              <div class="text-left">
+                <div class="flex flex-col justify-center w-full hover:bg-zinc-600 rounded inline-block p-1">
+                  <div class="flex">
+                    <div class="flex flex-col justify-center cursor-pointer">
+                       <p class="text-xs text-zinc-400"> {{ message.sender }} </p>
+                    </div>
+                    <div class="flex flex-col justify-center" >
+                       <p class="text-xs ml-1 text-zinc-400"> - {{ message.time }} </p>
+                    </div>
+                  </div>
+                  <p class="text-sm text-zinc-300 break-all">
+                    {{ message.text }}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -153,8 +166,8 @@
   const offlineUsersArray: Ref<any[]> = ref([]);
   const usersArray: Ref<any[]> = ref([]);
   const channelArray: Ref<any[]> = ref([]);
-  const currentUser = ref({id: -1, avatar: '', username: '', wins: 0, losses: 0, elo: 0});
-  const currentChannel = ref({id: -1, name: '', users: []});
+  const currentUser = ref({id: -1, avatar: '', username: '', wins: 0, losses: 0, elo: 0, status: ''});
+  const currentChannel = ref({id: -1, name: '', userCount: 0});
   const messages: Ref<{ sender: string; text: string }[]> = ref([]);
 
   const isChatWindowOpen = () => {
@@ -191,15 +204,21 @@
     currentUser.value.wins = userToMessage.victories;
     currentUser.value.losses = userToMessage.defeats;
     currentUser.value.elo = userToMessage.ladderPoint;
+    currentUser.value.status = userToMessage.status;
     currentChannel.value.id = -1;
   };
   const chatWithChannel = async (channelToMessage : any) => {
     if (client.chat.receiver != channelToMessage.name)
       clearChat();
+    console.log(channelToMessage)
     currentChannel.value.id = channelToMessage.id;
     currentChannel.value.name = channelToMessage.name;
-    currentChannel.value.users = channelToMessage.users;
+    currentChannel.value.userCount = 0;
     currentUser.value.id = -1;
+    socket.emit('joinChannel', {
+      sender: auth.session.username,
+      receiver: currentChannel.value.name,
+    });
     //client.chat.receiver = channelToMessage.name;
   };
   const sendMessage = () => {
@@ -222,18 +241,16 @@
     }, 0);
   };
 
+  //add user object to message
   const sendMessageInChannel = () => {
     if (newMessage.value.trim() === '') 
         return;
+      console.log(auth.session.avatarPath)
       socket.emit('channelMessage', {
       sender: auth.session.username,
+      avatar: auth.session.avatarPath,
       receiver: currentChannel.value.name,
       text: newMessage.value 
-    });
-
-    messages.value.push({
-      sender: auth.session.username,
-      text: newMessage.value,
     });
     newMessage.value = '';
 
@@ -278,19 +295,24 @@
         sender: data.sender,
         text: data.yourdata,
       });
-    
-      socket.on('channelMessageResponse', (data: any) => {
+    });
+    socket.on('channelMessageResponse', (data: any) => {
+        const currentTime = new Date();
+        const timeOptions = { hour: '2-digit', minute: '2-digit' };
+        const formattedTime = currentTime.toLocaleTimeString(undefined, timeOptions);
+
         messages.value.push({
           sender: data.sender,
+          avatar: data.avatar,
+          time: formattedTime,
           text: data.yourdata,
         });
-      });
-
-      //trick to scroll to bottom always after vue has updated the DOM
-      setTimeout(() => {
-      scrollToBottom();
-      }, 0);
     });
+
+    //trick to scroll to bottom always after vue has updated the DOM
+    setTimeout(() => {
+    scrollToBottom();
+    }, 0);
   });
 </script>
 
