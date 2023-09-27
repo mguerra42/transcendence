@@ -225,7 +225,7 @@
   const sendMessage = () => {
     if (newMessage.value.trim() === '') 
         return;
-    socket.emit('chatBox', {
+    socket.emit('sendPrivateMessage', {
       sender: auth.session.username,
       receiver: currentUser.value.username,
       text: newMessage.value 
@@ -247,7 +247,7 @@
     if (newMessage.value.trim() === '') 
         return;
       console.log(auth.session.avatarPath)
-      socket.emit('channelMessage', {
+      socket.emit('sendMessageToChannel', {
       sender: auth.session.username,
       avatar: auth.session.avatarPath,
       receiver: currentChannel.value.name,
@@ -291,18 +291,18 @@
     socket.on('afkResponse', () => {
       refreshUsers();
     });
-    socket.on('chatBoxResponse', (data: any) => {
+    socket.on('receivePrivateMessage', (data: any) => {
       messages.value.push({
         sender: data.sender,
-        text: data.yourdata,
+        text: data.content,
       });
     });
     socket.on('joinChannelResponse', (data: any) => {
       currentChannel.value.userCount = data.userCount;
-      currentChannel.value.onlineUsers = data.onlineUsers;
+      currentChannel.value.onlineUsers = data.onlineUsersInChannel;
       console.log("response from joinChannel received")
     });
-    socket.on('channelMessageResponse', (data: any) => {
+    socket.on('receiveMessageFromChannel', (data: any) => {
         const currentTime = new Date();
         const timeOptions = { hour: '2-digit', minute: '2-digit' };
         const formattedTime = currentTime.toLocaleTimeString(undefined, timeOptions);
