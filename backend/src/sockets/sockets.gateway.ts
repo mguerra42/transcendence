@@ -132,25 +132,27 @@ export class SocketsGateway {
             const access_token = cookies?.find((c) => c[0] === 'access_token');
             if (!access_token) {
                 client.disconnect();
-                return;
+                throw new Error('Access token not found');
             }
             const payload = await this.authService.validateToken(
                 access_token[1],
             );
             if (!payload) {
                 client.disconnect();
-                //? return;
+                throw new Error('Invalid access token');
             }
             client.user = {
                 id: payload.id,
                 email: payload.email,
             };
             const user = await this.userService.findByEmail(payload.email);
-            if (user != null) {
+            if (user !== null) {
                 const userToUpdate: UpdateUserDto = {};
                 userToUpdate.socketId = client.id;
                 userToUpdate.status = 'ONLINE';
                 await this.userService.update(user.id, userToUpdate);
+            } else {
+                throw new Error('User not found in database');
             }
         } catch (e) {
             throw new WsException((e as Error).message);
