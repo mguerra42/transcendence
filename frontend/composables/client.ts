@@ -90,8 +90,6 @@ interface AppClient {
         getAllChannels: () => any // get offline users
         clearChat: () => void
         scrollToBottom: () => void
-        // toggleChat: () => void
-        // handleAFK: (status: boolean) => void
         usersArray: globalThis.Ref<any[]>
         channelArray: globalThis.Ref<any[]>
         chatVisible: boolean
@@ -99,6 +97,7 @@ interface AppClient {
         chatState: { select: string; receiver: any }
         newMessage: string
         messages: Ref<{ sender: string; text: string; time?: string; avatar?: string }[]>
+        showUserProfile: boolean
     }
     game: {
         create: () => void // create game
