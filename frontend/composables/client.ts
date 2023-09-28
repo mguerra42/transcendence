@@ -87,11 +87,18 @@ interface AppClient {
         sendTo: () => void // send DM to user
         block: () => void // block user
         inviteGame: () => void // invite user to game
-
-        avatar: string
-        receiver: string
-
         getAllChannels: () => any // get offline users
+        clearChat: () => void
+        scrollToBottom: () => void
+        // toggleChat: () => void
+        // handleAFK: (status: boolean) => void
+        usersArray: globalThis.Ref<any[]>
+        channelArray: globalThis.Ref<any[]>
+        chatVisible: boolean
+        chatMessages: globalThis.Ref<any>
+        chatState: { select: string; receiver: any }
+        newMessage: string
+        messages: Ref<{ sender: string; text: string; time?: string; avatar?: string }[]>
     }
     game: {
         create: () => void // create game
@@ -278,6 +285,17 @@ export const useClient = defineStore('client', () => {
             return null
         }
         return data.value
+    }
+
+    client.chat.clearChat = () => {
+        client.chat.messages = ref([])
+        client.chat.scrollToBottom()
+    }
+
+    client.chat.scrollToBottom = () => {
+        if (client.chat.chatMessages.value === undefined)
+            return
+        client.chat.chatMessages.value.scrollTop = client.chat.chatMessages.value.scrollHeight
     }
 
     return client
