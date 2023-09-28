@@ -1,15 +1,22 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+// import { Prisma } from '@prisma/client';
+interface User {
+  id: number;
+  username: string | null;
+}
 const friend = useFriend()
 const client = useClient()
 
 const newFriendName = ref('')
-const items = ref([])
-const selectedItem = ref(null)
+// const items = ref([])
+// const selectedItem = ref(null)
+const items = ref<User[]>([]); // Spécifiez le type des éléments ici
+const selectedItem = ref<User | null>(null); // Spécifiez le type de selectedItem
 
 const fetchFriendList = async () => {
   try {
-    const response = await fetch(`${useRuntimeConfig().public.baseURL}/api/friends`, {
+    const response = await fetch(`${useRuntimeConfig().public.baseURL}/friend/list`, {
       method: 'GET',
       credentials: 'include',
     });

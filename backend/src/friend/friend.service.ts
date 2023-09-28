@@ -32,22 +32,30 @@ export class FriendService {
     // await this.updateUserFriends(userOneId, userTwoId);
     // await this.updateUserFriends(userTwoId, userOneId);
   }
-  async getFriendList(userId: number): Promise<User[]> {
+
+  async getFriendList(userId: number): Promise<{ id: number; username: string }[]> {
     try {
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
-        include: { friends: true },
+        include: { friends: { include: { userTwo: true } } },
       });
+  
       if (!user) {
         throw new Error('Utilisateur non trouvé');
       }
-      return user.friends;
+  
+      // Utilisez map pour extraire les amis userTwo avec uniquement id et username
+      const friendsUserTwo = user.friends.map(friend => ({
+        id: friend.userTwo.id,
+        username: friend.userTwo.username || '', // Utilisez une valeur par défaut si username est nullable
+      }));
+  
+      return friendsUserTwo;
     } catch (error) {
       // Gérer les erreurs (par exemple, l'utilisateur n'a pas été trouvé)
       throw error;
     }
   }
-
   // //PARTIAL BUGFIX 
   // private async updateUserFriends(userId: number, friendId: number): Promise<void> {
   //   // Obtenez l'utilisateur actuel
