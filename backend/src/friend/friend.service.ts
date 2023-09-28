@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { DBService } from 'src/db/db.service';
 import { Prisma } from '@prisma/client';
-
+import { User } from '@prisma/client';
 
 @Injectable()
 export class FriendService {
@@ -31,6 +31,21 @@ export class FriendService {
     // // Mettez à jour la liste d'amis des deux utilisateurs
     // await this.updateUserFriends(userOneId, userTwoId);
     // await this.updateUserFriends(userTwoId, userOneId);
+  }
+  async getFriendList(userId: number): Promise<User[]> {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        include: { friends: true },
+      });
+      if (!user) {
+        throw new Error('Utilisateur non trouvé');
+      }
+      return user.friends;
+    } catch (error) {
+      // Gérer les erreurs (par exemple, l'utilisateur n'a pas été trouvé)
+      throw error;
+    }
   }
 
   // //PARTIAL BUGFIX 

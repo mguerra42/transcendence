@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { useRuntimeConfig } from '@nuxt/runtime';
 
 export const useFriend = defineStore('friend', () => {
     

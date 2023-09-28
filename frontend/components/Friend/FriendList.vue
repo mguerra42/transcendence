@@ -7,6 +7,28 @@ const newFriendName = ref('')
 const items = ref([])
 const selectedItem = ref(null)
 
+const fetchFriendList = async () => {
+  try {
+    const response = await fetch(`${useRuntimeConfig().public.baseURL}/api/friends`, {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error('La requête a échoué');
+    }
+
+    const data = await response.json();
+    items.value = data.friends; // Mettez à jour items avec la liste d'amis
+  } catch (error) {
+    console.error('Erreur lors de la récupération de la liste d\'amis :', error);
+  }
+};
+
+onMounted(() => {
+  fetchFriendList();
+});
+
 </script>
 
 <template>
@@ -24,7 +46,7 @@ const selectedItem = ref(null)
         </div>
       <select v-model="selectedItem" class="block">
         <option disabled value="">Sélectionnez un élément</option>
-        <option v-for="item in items" :key="item.id" :value="item.id">{{ item.name }}</option>
+        <option v-for="item in items" :key="item.id" :value="item.id">{{ item.username }}</option>
       </select>
     </div>
   </template>
