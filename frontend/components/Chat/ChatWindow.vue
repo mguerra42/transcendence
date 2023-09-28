@@ -7,9 +7,7 @@
   </div>
   
   <!-- Chat window -->
-  <!-- Size and positioning -->
   <div v-if="client.chat.chatVisible" class="fixed bottom-3 left-3 lg:w-1/3 md:w-1/3 sm:w-2/5 ">
-    <!-- Main container div -->
     <div class="max-h-[70vh] flex bg-zinc-700 rounded-lg">
       <ChatUserChannelList/>
       <ChatConversationWindow/>
