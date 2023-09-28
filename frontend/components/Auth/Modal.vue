@@ -16,7 +16,7 @@ const socket = useSocket();
   </div>
   
   <div v-if="auth.logged === true" >
-    <ChatWindow/>
+    <ChatContainer/>
   </div>
 
 </template>

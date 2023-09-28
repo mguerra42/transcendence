@@ -7,13 +7,12 @@ const auth = useAuth();
 <template>
   <div class="flex flex-col w-2/3 p-2 m-2">
         <!-- Messages -->
-        <ChatConversationDM/>
+        <ChatMessageWindowDM/>
 
         <!-- Channel -->
-        <ChatConversationChannel/>
+        <ChatMessageWindowChannel/>
       
-
         <!-- Input -->
-        <ChatConversationInputs/>
+        <ChatMessageWindowInputField/>
       </div>
 </template>
