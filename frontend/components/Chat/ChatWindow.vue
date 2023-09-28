@@ -162,7 +162,7 @@
   const socket = useSocket();
   const channel = useChannel();
   const newMessage = ref('');
-  const chatVisible = ref(true);
+  const chatVisible = ref(false);
   const chatMessages = ref();
   const usersArray: Ref<any[]> = ref([]);
   const channelArray: Ref<any[]> = ref([]);
