@@ -96,7 +96,7 @@ interface AppClient {
         chatMessages: globalThis.Ref<any>
         chatState: { select: string; receiver: any }
         newMessage: string
-        messages: Ref<{ sender: string; text: string; time?: string; avatar?: string }[]>
+        messages: Ref<{ sender: string; text: string; time?: string; avatar?: string; user?: any}[]>
         showUserProfile: boolean
     }
     game: {

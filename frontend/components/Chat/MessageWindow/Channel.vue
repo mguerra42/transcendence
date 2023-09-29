@@ -1,6 +1,14 @@
 <script setup lang="ts">
 const client = useClient();
 const auth = useAuth();
+client.chat.showUserProfile = false;
+
+const displayUserProfile = (user:any) => {
+  
+    client.chat.showUserProfile = !client.chat.showUserProfile;
+    client.chat.chatState.receiver.avatarPath = user.avatarPath;
+    client.chat.chatState.receiver.username = user.username;
+}
 </script>
 
 <template>
@@ -21,7 +29,7 @@ const auth = useAuth();
                 <div class="flex flex-col justify-center w-full hover:bg-zinc-600 rounded inline-block p-1">
                   <div class="flex">
                     <div class="flex flex-col justify-center cursor-pointer">
-                       <p class="text-xs text-zinc-400"> {{ message.sender }} </p>
+                       <p @click="displayUserProfile(message.user)" class="text-xs text-zinc-400"> {{ message.sender }} </p>
                     </div>
                     <div class="flex flex-col justify-center" >
                        <p class="text-xs ml-1 text-zinc-400"> - {{ message.time }} </p>

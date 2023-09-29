@@ -49,11 +49,13 @@ export class SocketsGateway {
 
     @SubscribeMessage('sendMessageToChannel')
     async handleChannelMessage(client: any, payload: any) {
+        const userProfile = await this.userService.findByUsername(payload.sender);
         try {
             this.server.to(payload.receiver).emit('receiveMessageFromChannel', {
                 yourdata: payload.text,
                 sender: payload.sender,
                 avatar: payload.avatar,
+                profile: userProfile,
                 timestamp: '',
             });
         } catch (e) {

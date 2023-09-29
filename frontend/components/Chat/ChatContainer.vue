@@ -91,6 +91,7 @@
           avatar: data.avatar,
           time: formattedTime,
           text: data.yourdata,
+          user: data.profile,
         });
     });
 
