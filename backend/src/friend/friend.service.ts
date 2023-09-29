@@ -32,6 +32,44 @@ export class FriendService {
     // await this.updateUserFriends(userOneId, userTwoId);
     // await this.updateUserFriends(userTwoId, userOneId);
   }
+  
+  async getMutualFriends(userId: number): Promise<User[]> {
+    try {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            include: {
+                friends: {
+                    include: {
+                        userTwo: true
+                    }
+                },
+                inverseFriends: {
+                    include: {
+                        userOne: true
+                    }
+                }
+            }
+        });
+
+        if (!user) {
+            throw new Error('Utilisateur non trouvé');
+        }
+
+        // Filtrer les amis qui sont à la fois dans friends et inverseFriends
+        const mutualFriends = user.friends.filter(friend => {
+            const foundInverseFriend = user.inverseFriends.find(inverseFriend => inverseFriend.userOne.id === friend.userTwo.id);
+            return foundInverseFriend !== undefined;
+        });
+
+        // Utilisez map pour extraire les amis mutuels complets
+        const mutualFriendsList = mutualFriends.map(friend => friend.userTwo);
+
+        return mutualFriendsList;
+    } catch (error) {
+        // Gérer les erreurs (par exemple, l'utilisateur n'a pas été trouvé)
+        throw error;
+    }
+}
 
   async getFriendList(userId: number): Promise<{ id: number; username: string }[]> {
     try {
@@ -45,10 +83,7 @@ export class FriendService {
       }
   
       // Utilisez map pour extraire les amis userTwo avec uniquement id et username
-      const friendsUserTwo = user.friends.map(friend => ({
-        id: friend.userTwo.id,
-        username: friend.userTwo.username || '', // Utilisez une valeur par défaut si username est nullable
-      }));
+      const friendsUserTwo = user.friends.map(friend => friend.userTwo);
   
       return friendsUserTwo;
     } catch (error) {

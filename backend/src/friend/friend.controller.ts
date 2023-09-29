@@ -22,7 +22,7 @@ export class FriendController {
   @UseGuards(JwtAuthGuard)
   async getFriendList(@Request() req) {
     const currentUserId = req.user.id; // Récupérez l'ID de l'utilisateur à partir de req.user.id
-    const friendList = await this.friendService.getFriendList(currentUserId); // Remplacez getFriendList par la méthode réelle de votre service
+    const friendList = await this.friendService.getMutualFriends(currentUserId); // Remplacez getFriendList par la méthode réelle de votre service
   
     return { friends: friendList }; // Renvoyez la liste d'amis sous la clé "friends"
   }
