@@ -1,36 +1,28 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-// import { Prisma } from '@prisma/client';
 const friend = useFriend()
 const client = useClient()
-
 const newFriendName = ref('')
-// const items = ref([])
-// const selectedItem = ref(null)
-const items = ref<any[]>([]); // Spécifiez le type des éléments ici
-const selectedItem = ref<any | null>(null); // Spécifiez le type de selectedItem
+const selectedItem = ref<any | null>(null);
+let currentCategory : Ref<any[]|undefined> = ref([]);
 
-const fetchFriendList = async () => {
-  try {
-    const response = await fetch(`${useRuntimeConfig().public.baseURL}/friend/list`, {
-      method: 'GET',
-      credentials: 'include',
-    });
-
-    if (!response.ok) {
-      throw new Error('La requête a échoué');
-    }
-
-    const data = await response.json();
-    items.value = data.friends; // Mettez à jour items avec la liste d'amis
-  } catch (error) {
-    console.error('Erreur lors de la récupération de la liste d\'amis :', error);
+const fetchFriendlist = async (category:string) => {
+  if (category === 'amis') {
+    currentCategory.value = await friend.toggleCategory(category)
+    console.log("fetchfriendlist:")
+    console.log(currentCategory.value)
+  } else if (category === 'enAttente') {
+    currentCategory.value = await friend.toggleCategory(category)
+  } else if (category === 'demandes') {
+    currentCategory.value = await friend.toggleCategory(category)
   }
-};
-
+  };
 onMounted(() => {
-  fetchFriendList();
+  friend.fetchMutualFriendList();
+  friend.toggleCategory('amis');
 });
+
+
 
 </script>
 
@@ -48,15 +40,27 @@ onMounted(() => {
     </button>
     </div>
     <div class="bg-gray-200 p-4 rounded-lg">
-      <div class="mb-4">
-      <label for="selectItem" class="block text-gray-700 font-bold mb-2">Amis</label>
-        <div class="grid grid-cols-1 gap-2">
-          <div v-for="item in items" :key="item.id" class="bg-white p-2 rounded shadow">
-          {{ item.username }}
-          </div>
+      <div class="mb-4 flex">
+        <div class="flex items-center">
+          <span class="text-gray-700 font-bold cursor-pointer hover:text-blue-500 transition duration-300" @click="fetchFriendlist('amis')">Amis</span>
+        </div>
+
+        <div class="flex items-center ml-4">
+          <span class="text-gray-700 font-bold cursor-pointer hover:text-blue-500 transition duration-300" @click="friend.toggleCategory('enAttente')">En attente</span>
+        </div>
+
+        <div class="flex items-center ml-4">
+          <span class="text-gray-700 font-bold cursor-pointer hover:text-blue-500 transition duration-300" @click="friend.toggleCategory('demandes')">Demandes</span>
         </div>
       </div>
+
+
+    <div class="grid grid-cols-1 gap-2">
+      <div v-for="item in currentCategory" class="bg-white p-2 rounded shadow hover:bg-gray-100">
+        <div>{{ item.username }}</div>
+      </div>
     </div>
+  </div>
   </div>
   </template>
   
