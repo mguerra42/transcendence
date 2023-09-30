@@ -44,6 +44,8 @@
 
   const toggleChat = () => {
     client.chat.chatVisible = !client.chat.chatVisible;
+    client.game.addToGameLobby(auth.session);
+
     if (client.chat.chatVisible === false)
       handleAFK(true);
     else

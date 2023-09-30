@@ -1,5 +1,5 @@
 <template>
-    <button @click="startGame()" class="bg-zinc-700 px-3 py-1 m-1 text-zinc-200 rounded-lg"> Show Pong </button>
+    <button @click="startGame()" class="bg-zinc-700 px-3 py-1 m-1 text-zinc-200 rounded-lg"> Play </button>
     <div class="">
         <canvas v-show="showPong" tabindex="0" @keydown.down="player1MoveDown" @keydown.up="player1MoveUp" class="bg-zinc-300 focus-outline-none rounded-lg cursor-crosshair" id="canvas"></canvas>
     </div>
@@ -7,6 +7,8 @@
 
 <script setup lang="ts">
     const showPong = ref(false)
+    const animationFrameId = ref();
+    const client = useClient();
     const auth = useAuth();
     const socket = useSocket();
     const canvas = ref();
@@ -38,11 +40,26 @@
     })
 
     const startGame = () => {
-        showPong.value = !showPong.value;
-        gameLoop();
+        // const player = auth.session;
+        // client.game.addToGameLobby(auth.session);
+        if (showPong.value === false)
+        {
+            showPong.value = true;
+            gameLoop();
+        }
+        else
+        {
+            cancelAnimationFrame(animationFrameId.value);
+            resetGame();
+            showPong.value = false;
+        }
     }
 
-    const player1MoveDown = (event) => {
+    const resetGame = () => {
+        //reinitialize values here
+    }
+
+    const player1MoveDown = (event:any) => {
         if (event.key === 'ArrowDown' && Player1.value.y < 500) { // Use 'ArrowDown' instead of 'Down'
             Player1.value.y += 15;
             socket.emit('playerMovement', {
@@ -53,7 +70,7 @@
         }
     }
 
-    const player1MoveUp = (event) => {
+    const player1MoveUp = (event:any) => {
         if (event.key === 'ArrowUp' && Player1.value.y > 20) { // Use 'ArrowDown' instead of 'Down'
             Player1.value.y -= 15;
             socket.emit('playerMovement', {
@@ -64,13 +81,13 @@
         }
     }
 
-    const player2MoveDown = (event) => {
+    const player2MoveDown = () => {
         if(Player2.value.y < 500)
             Player2.value.y += 20;
         refreshCanvas();
     }
 
-    const player2MoveUp = (event) => {
+    const player2MoveUp = () => {
         if(Player2.value.y > 20)
             Player2.value.y -= 20;
         refreshCanvas();
@@ -152,7 +169,7 @@
         context.value.fillRect(Ball.value.x, Ball.value.y, Ball.value.width, Ball.value.height);
 
         // Call the game loop recursively
-        requestAnimationFrame(gameLoop);
+        animationFrameId.value = requestAnimationFrame(gameLoop);
     }
 
     onMounted(() => {

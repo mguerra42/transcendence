@@ -99,7 +99,10 @@ interface AppClient {
         messages: Ref<{ sender: string; text: string; time?: string; avatar?: string; user?: any}[]>
         showUserProfile: boolean
     }
+
     game: {
+        gameLobby: Ref<any[]>
+        addToGameLobby: (user:any) => void
         create: () => void // create game
     }
 }
@@ -115,6 +118,7 @@ export const useClient = defineStore('client', () => {
     // Authentification
     client.auth = {} as AppClient['auth']
     client.chat = {} as AppClient['chat']
+    client.game = {} as AppClient['game']
 
     // This variable is used to determine which auth method is used at the time of signin
     client.auth.authMethod = 'default'
@@ -297,5 +301,20 @@ export const useClient = defineStore('client', () => {
         client.chat.chatMessages.value.scrollTop = client.chat.chatMessages.value.scrollHeight
     }
 
+    const gameLobby : Ref<any[]> = ref([]);
+
+    // ... your other code ...
+
+    // Add gameLobby to the client.game object
+    client.game = {
+        gameLobby: gameLobby,
+        addToGameLobby: (player: any) => {
+            console.log(player);
+            gameLobby.value.push(player); // Access gameLobby through its ref
+        },
+        create: () => {
+            // Add logic here
+        },
+    };
     return client
 })

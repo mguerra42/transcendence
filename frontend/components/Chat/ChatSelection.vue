@@ -62,19 +62,19 @@ const chatWithUser = async (userToMessage : any) => {
         <button @click="refreshUsers" class="text-sm mb-2 mt-2 text-left text-zinc-200 hover:text-zinc-400 font-semi-bold px-2 py-2">
           Messages privés
         </button>
-        <div v-for="user in client.chat.usersArray" class="mb-1 flex">
-          <div v-if="user.username !== auth.session.username" :class="{ 'bg-zinc-700 text-zinc-200 cursor-pointer rounded flex': (client.chat.chatState.receiver.id === user.id && client.chat.chatState.select === 'DM'),
-                                                                        'bg-zinc-800 cursor-pointer hover:bg-zinc-700 rounded flex': (client.chat.chatState.receiver.id !== user.id || client.chat.chatState.select !== 'DM') }" >
+        <div v-for="user in client.chat.usersArray" @click="chatWithUser(user)" class="mb-1 flex w-full hover:bg-zinc-700 cursor-pointer rounded">
+          <div v-if="user.username !== auth.session.username" :class="{ 'bg-zinc-700 w-full rounded flex': (client.chat.chatState.receiver.id === user.id && client.chat.chatState.select === 'DM'),
+                                                                        'flex': (client.chat.chatState.receiver.id !== user.id || client.chat.chatState.select !== 'DM') }" >
               <div class="flex flex-col justify-center relative w-8 ">
-                <img :src="user.avatarPath" class="ml-1 w-6 h-6 mr-auto rounded-full" />
-                <img v-if="user.status==='ONLINE'" src="Location_dot_green.svg" class="absolute bottom-1 right-0 w-3 h-3 border-3 border-zinc-800 rounded-full" />
-                <img v-else="user.status==='OFFLINE'" src="Location_dot_grey.svg" class="absolute bottom-1 right-0 w-3 h-3 border-3 border-zinc-800 rounded-full" />
+                  <img :src="user.avatarPath" class="ml-1 w-6 h-6 mr-auto rounded-full" />
+                  <img v-if="user.status==='ONLINE'" src="Location_dot_green.svg" class="absolute bottom-1 right-0 w-3 h-3 border-3 border-zinc-800 rounded-full" />
+                  <img v-else="user.status==='OFFLINE'" src="Location_dot_grey.svg" class="absolute bottom-1 right-0 w-3 h-3 border-3 border-zinc-800 rounded-full" />
               </div>
               <div class="flex-col justify-center">
-                <div @click="chatWithUser(user)" :class="{'px-2 py-2 w-full ml-1 text-sm text-left text-zinc-300 cursor-pointer':user.status === 'ONLINE', 
-                                                          'px-2 py-2 w-full ml-1 text-sm text-left text-zinc-500 cursor-pointer':user.status === 'OFFLINE'}">
-                  {{ user.username }}
-                </div>
+                  <div :class="{'px-2 py-2 ml-1 text-sm text-left text-zinc-300':user.status === 'ONLINE', 
+                                'px-2 py-2 ml-1 text-sm text-left text-zinc-500':user.status === 'OFFLINE'}">
+                    {{ user.username }}
+                  </div>
               </div>
           </div>
         </div>

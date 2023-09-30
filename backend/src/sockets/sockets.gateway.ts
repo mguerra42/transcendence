@@ -106,6 +106,15 @@ export class SocketsGateway {
         }
     }
 
+    @SubscribeMessage('playerMovement')
+    handlePlayerMovement(client:any, payload:any)
+    {
+        this.server.emit('playerMovementResponse', {
+            player: payload.player,
+            move: payload.move,
+        });
+    }
+
     @SubscribeMessage('afk')
     async handleDisconnection(client: any, payload: any) {
         try {
@@ -126,7 +135,7 @@ export class SocketsGateway {
     }
 
     async handleConnection(client) {
-        try {
+        // try {
             // Split all cookies and key/value pairs
             const cookies = client.handshake.headers.cookie
                 ?.split(';')
@@ -134,14 +143,15 @@ export class SocketsGateway {
             const access_token = cookies?.find((c) => c[0] === 'access_token');
             if (!access_token) {
                 client.disconnect();
-                throw new Error('Access token not found');
+                return ;
+                // throw new Error('Access token not found');
             }
             const payload = await this.authService.validateToken(
                 access_token[1],
             );
             if (!payload) {
                 client.disconnect();
-                throw new Error('Invalid access token');
+                // throw new Error('Invalid access token');
             }
             client.user = {
                 id: payload.id,
@@ -154,10 +164,10 @@ export class SocketsGateway {
                 userToUpdate.status = 'ONLINE';
                 await this.userService.update(user.id, userToUpdate);
             } else {
-                throw new Error('User not found in database');
+                // throw new Error('User not found in database');
             }
-        } catch (e) {
-            throw new WsException((e as Error).message);
-        }
+        // } catch (e) {
+        //     throw new WsException((e as Error).message);
+        // }
     }
 }
