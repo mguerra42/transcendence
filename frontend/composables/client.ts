@@ -308,7 +308,9 @@ export const useClient = defineStore('client', () => {
     // Add gameLobby to the client.game object
     client.game = {
         gameLobby: gameLobby,
-        addToGameLobby: (player: any) => {
+
+        addToGameLobby: async (player: any) => {
+            await new Promise(timeout => setTimeout(timeout, 5000));
             console.log(player);
             gameLobby.value.push(player); // Access gameLobby through its ref
         },

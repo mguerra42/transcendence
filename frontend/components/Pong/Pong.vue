@@ -1,20 +1,116 @@
 <template>
-    <button @click="startGame()" class="bg-zinc-700 px-3 py-1 m-1 text-zinc-200 rounded-lg"> Play </button>
+    <button @click="startGame()" v-if="showPlayButton" class="bg-zinc-700 px-3 py-1 m-1 text-zinc-200 rounded-lg"> Play </button>
     <div class="">
         <canvas v-show="showPong" tabindex="0" @keydown.down="player1MoveDown" @keydown.up="player1MoveUp" class="bg-zinc-300 focus-outline-none rounded-lg cursor-crosshair" id="canvas"></canvas>
+    </div>
+
+    <div class="">
+        <div v-if="showLoader" class="w-60">
+            <div class="bg-zinc-700 rounded p-4">
+                <div class="flex justify-center mx-auto">
+                    <div class="animate-bounce h-[16px] w-[16px] bg-zinc-200 rounded-full" v-if="showLoader"></div>
+                </div>
+                <div class="bg-zinc-200 h-1 w-10 m-2 mx-auto rounded"></div>
+                <p class="text-xs text-zinc-400 text-center" >Waiting for an opponent...</p>
+                <p class="text-xs text-zinc-400 text-center">00:0{{ timeElapsed }}</p>
+            </div>
+        </div>
+        <div v-if="matchFound" @click="acceptMatch" class="bg-zinc-600 m-2 px-2 py-1 rounded-lg cursor-pointer">
+            <p class="text-zinc-200 m-2 text-center">
+                Match found !
+            </p>
+            <p class="text-sm text-zinc-200 mt-2 text-center">
+                Click to accept
+            </p>
+            <p class="text-sm text-zinc-200 mb-2 text-center">
+                {{ timeElapsed }}
+            </p>
+        </div>
     </div>
 </template>
 
 <script setup lang="ts">
-    const showPong = ref(false)
+    const showPlayButton = ref(true);
+    const showPong = ref(false);
     const animationFrameId = ref();
     const client = useClient();
     const auth = useAuth();
     const socket = useSocket();
     const canvas = ref();
     const context = ref();
+    const showLoader = ref(false);
+    const timeElapsed = ref(0);
+    const matchFound = ref(false)
+    const matchAccepted = ref(false)
+
     await socket.connect();
     
+    const acceptMatch = () => {
+        matchAccepted.value = true;
+        timeElapsed.value = 0;
+    }
+
+    const startGame = async () => {
+        const player = auth.session;
+        if (showPong.value === false) {
+            showPlayButton.value = false;
+
+            showLoader.value = true;
+            const timeElapsedInterval = setInterval(() => {
+            timeElapsed.value++;
+            }, 1000);
+
+            await client.game.addToGameLobby(player);
+
+            clearInterval(timeElapsedInterval);
+            timeElapsed.value = 0;
+            
+            matchFound.value = true;
+            timeElapsed.value = 5;
+            const timeElapsedInterval2 = setInterval(() => {
+                timeElapsed.value--;
+            }, 1000);
+
+            showLoader.value = false;
+            await Promise.race([
+                new Promise<void>(timeout => setTimeout(timeout, 5000)),
+                new Promise<void>(resolve => {
+                    const checkMatchAccepted = () => {
+                        if (matchAccepted.value)
+                            resolve();
+                        else
+                            setTimeout(checkMatchAccepted, 100); // Check every 100 milliseconds
+                    };
+                    
+                    checkMatchAccepted();
+                }),   
+            ]);
+
+            clearInterval(timeElapsedInterval2);
+            if (matchAccepted.value === true)
+            {
+                showPong.value = true;
+                matchFound.value = false;
+                matchAccepted.value = false;
+                timeElapsed.value = 0;
+                showPlayButton.value = true;
+                gameLoop();
+            }
+            else
+            {
+                showPlayButton.value = true;
+                matchFound.value = false;
+                matchAccepted.value = false;
+            }
+        } else {
+            matchFound.value = false;
+            matchAccepted.value = false;
+            cancelAnimationFrame(animationFrameId.value);
+            resetGame();
+            showPong.value = false;
+            showPlayButton.value = true;
+        }
+    }
 
     let Player1 = ref({
         width: 15,
@@ -39,21 +135,6 @@
         velocityY: 5  // Vertical velocity (positive moves down, negative moves up)
     })
 
-    const startGame = () => {
-        // const player = auth.session;
-        // client.game.addToGameLobby(auth.session);
-        if (showPong.value === false)
-        {
-            showPong.value = true;
-            gameLoop();
-        }
-        else
-        {
-            cancelAnimationFrame(animationFrameId.value);
-            resetGame();
-            showPong.value = false;
-        }
-    }
 
     const resetGame = () => {
         //reinitialize values here
