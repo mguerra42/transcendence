@@ -15,10 +15,13 @@ const fetchFriendlist = async (category:string) => {
     currentCategory.value = await friend.toggleCategory(category)
   } else if (category === 'demandes') {
     currentCategory.value = await friend.toggleCategory(category)
+    console.log("fetchinversefriendlist:")
+    console.log(currentCategory.value)
   }
   };
 onMounted(() => {
   friend.fetchMutualFriendList();
+  friend.fetchInverseFriendList();
   friend.toggleCategory('amis');
 });
 
@@ -27,7 +30,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="friend.showFriend" class="fixed bg-gray-500 rounded-md left-50 bottom-100 p-4">
+  <div v-if="friend.showFriend" class="fixed bg-gray-500 rounded-md left-50 bottom-60 p-4">
     <div class="flex">
     <input
     v-model="newFriendName"
@@ -46,11 +49,11 @@ onMounted(() => {
         </div>
 
         <div class="flex items-center ml-4">
-          <span class="text-gray-700 font-bold cursor-pointer hover:text-blue-500 transition duration-300" @click="friend.toggleCategory('enAttente')">En attente</span>
+          <span class="text-gray-700 font-bold cursor-pointer hover:text-blue-500 transition duration-300" @click="fetchFriendlist('enAttente')">En attente</span>
         </div>
 
         <div class="flex items-center ml-4">
-          <span class="text-gray-700 font-bold cursor-pointer hover:text-blue-500 transition duration-300" @click="friend.toggleCategory('demandes')">Demandes</span>
+          <span class="text-gray-700 font-bold cursor-pointer hover:text-blue-500 transition duration-300" @click="fetchFriendlist('demandes')">Demandes</span>
         </div>
       </div>
 

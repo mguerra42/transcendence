@@ -47,6 +47,8 @@ interface AppClient {
     friend: {
         profile: () => void // get user profile
         list: () => void // get friends list
+        inverselist: () => void
+        pendinglist: () => void
         add: (username : string) => void // add friend
         remove: () => void // remove friend
     }

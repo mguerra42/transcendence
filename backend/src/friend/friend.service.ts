@@ -71,7 +71,28 @@ export class FriendService {
     }
 }
 
-  async getFriendList(userId: number): Promise<{ id: number; username: string }[]> {
+  // async getFriendList(userId: number): Promise<{ id: number; username: string }[]> {
+  //   try {
+  //     const user = await this.prisma.user.findUnique({
+  //       where: { id: userId },
+  //       include: { friends: { include: { userTwo: true } } },
+  //     });
+  
+  //     if (!user) {
+  //       throw new Error('Utilisateur non trouvé');
+  //     }
+  
+  //     // Utilisez map pour extraire les amis userTwo avec uniquement id et username
+  //     const friendsUserTwo = user.friends.map(friend => friend.userTwo);
+  
+  //     return friendsUserTwo;
+  //   } catch (error) {
+  //     // Gérer les erreurs (par exemple, l'utilisateur n'a pas été trouvé)
+  //     throw error;
+  //   }
+  // }
+
+  async getInverseFriendList(userId: number): Promise<{ id: number; username: string }[]> {
     try {
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
@@ -82,15 +103,57 @@ export class FriendService {
         throw new Error('Utilisateur non trouvé');
       }
   
-      // Utilisez map pour extraire les amis userTwo avec uniquement id et username
-      const friendsUserTwo = user.friends.map(friend => friend.userTwo);
+      // Use map to extract userTwo from friends
+      const friendsUserTwo = user.friends.map((friend) => friend.userTwo);
   
-      return friendsUserTwo;
+      // Get all users except the current user and the user's friends
+      const allUsers = await this.prisma.user.findMany({
+        where: {
+          NOT: [
+            { id: userId }, // Exclude the current user
+            { id: { in: friendsUserTwo.map((friend) => friend.id) } }, // Exclude friends
+          ],
+        },
+        select: {
+          id: true,
+          username: true,
+        },
+      });
+  
+      return allUsers;
     } catch (error) {
-      // Gérer les erreurs (par exemple, l'utilisateur n'a pas été trouvé)
+      // Handle errors (e.g., user not found)
       throw error;
     }
   }
+
+  // async getPendingFriendList(userId: number): Promise<{ id: number; username: string }[]> {
+  //   try {
+  //       const user = await this.prisma.user.findUnique({
+  //           where: { id: userId },
+  //           include: { friends: { include: { userTwo: true } } },
+  //       });
+
+  //       if (!user) {
+  //           throw new Error('Utilisateur non trouvé');
+  //       }
+
+  //       // Utilize map to extract the friends' userTwo with only id and username
+  //       const friendsUserTwo = user.friends.map(friend => friend.userTwo);
+
+  //       // Filter out friends who have an inverseFriends relationship with the current user
+  //       const filteredFriends = friendsUserTwo.filter(friend => {
+  //           const hasInverseFriend = friend.inverseFriends.some(inverseFriend => inverseFriend.id === userId);
+  //           return !hasInverseFriend;
+  //       });
+
+  //       return filteredFriends.map(friend => ({ id: friend.id, username: friend.username }));
+  //   } catch (error) {
+  //       // Handle errors (e.g., user not found)
+  //       throw error;
+  //   }
+  // }
+ 
   // //PARTIAL BUGFIX 
   // private async updateUserFriends(userId: number, friendId: number): Promise<void> {
   //   // Obtenez l'utilisateur actuel
