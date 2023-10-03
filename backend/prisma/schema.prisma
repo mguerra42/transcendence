@@ -13,20 +13,21 @@ datasource db {
 //Player from 42
 model User {
   id             Int           @id @default(autoincrement())
-  username       String?        @unique
-  status         Status         @default(OFFLINE)//online, playing, offline
+  username       String?       @unique
+  status         String?       @default("OFFLINE")//online, playing, offline
   email          String        @unique
   password       String
   victories      Int           @default(0) //number of victories for stats
   defeats        Int           @default(0) //number of defeats for stats
   ladderPoint    Int           @default(1000) //level for stats
-  avatarPath     String        @default("/avatars/defaultPath.jpg") //the path to the avatar image
+  avatarPath     String        @default("./avatar/defaultPath.jpg") //the path to the avatar image
   friends        Friend[]      @relation("friends")
   inverseFriends Friend[]      @relation("inverseFriends") // Only for prisma, not used
   blockedUsers   BlockedUser[] @relation("blocked")
   wonGames       Game[]        @relation("winner")
   lostGames      Game[]        @relation("loser")
   channels       ChannelUser[] //channels the user is in
+  socketId       String        @default("") //socket id for the user
 }
 
 //Friend list
@@ -90,11 +91,11 @@ enum Role {
 }
 
 //User status
-enum Status {
-  OFFLINE
-  ONLINE
-  PLAYING
-}
+// enum StatusDto {
+//   OFFLINE
+//   ONLINE
+//   PLAYING
+// }
 
 //Channel accessibility
 enum Access {

@@ -11,6 +11,8 @@ interface userToUpdateObject {
     password?: string;
     username?: string;
     avatarPath?: string;
+    socketId?: string;
+    status?: string;
 }
 
 @Injectable()
@@ -33,7 +35,6 @@ export class UsersService {
             //orderBy,
         });
     }
-
     findOne(id: number) {
         return this.db.user.findUnique({
             where: {
@@ -45,6 +46,13 @@ export class UsersService {
         return this.db.user.findFirst({
             where: {
                 email,
+            },
+        });
+    }
+    findByUsername(username: string) {
+        return this.db.user.findFirst({
+            where: {
+                username,
             },
         });
     }
@@ -62,20 +70,35 @@ export class UsersService {
             },
         });
     }
-
-    findByUsername(username: string) {
-        return this.db.user.findFirst({
+    findAllOnlineUsers(){
+        return this.db.user.findMany({
             where: {
-                username,
+                status: 'ONLINE',
             },
         });
     }
 
+    findAllUsers(){
+        return this.db.user.findMany();
+    }
+
+    findAllOfflineUsers(){
+        return this.db.user.findMany({
+            where: {
+                status: 'OFFLINE',
+            },
+        });
+    }
+
+    findAllChannels(){
+        return this.db.channel.findMany();
+    }
+
+
     //Changed this to any but we can export the userToUpdateObject interface into this file
     //TODO : import userToUpdateObject interface here and use it instead of any
-
     update(id: number, data: userToUpdateObject) {
-        console.log(data);
+        //console.log(data);
         return this.db.user.update({
             data,
             where: {
@@ -83,7 +106,6 @@ export class UsersService {
             },
         });
     }
-
     remove(id: number) {
         return this.db.user.delete({
             where: {
@@ -91,24 +113,23 @@ export class UsersService {
             },
         });
     }
-
-
-  formatUser(user: User) {
-    return {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      status: user.status,
-    };
-  }
-
-  generateRandomHex(length: number): string {
-    const characters = '0123456789ABCDEF';
-    let result = '';
-    for (let i = 0; i < length; i++) {
-      const randomIndex = Math.floor(Math.random() * characters.length);
-      result += characters.charAt(randomIndex);
+    formatUser(user: User) {
+        return {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            status: user.status,
+        };
     }
-    return result;
-  }
+
+    generateRandomString(length: number): string {
+        const characters =
+            '0123456789ABCDEFGHIJKLMNOPQRSTUVWYZ-_.abcdefghijklmnopqrstuvwxyz';
+        let result = '';
+        for (let i = 0; i < length; i++) {
+            const randomIndex = Math.floor(Math.random() * characters.length);
+            result += characters.charAt(randomIndex);
+        }
+        return result;
+    }
 }

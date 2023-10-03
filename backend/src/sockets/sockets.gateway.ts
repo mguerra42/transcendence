@@ -3,6 +3,8 @@ import {
     WebSocketGateway,
     WebSocketServer,
 } from '@nestjs/websockets';
+
+import { UsersService } from '../users/users.service';
 import { AuthService } from '../auth/auth.service';
 import { Server } from 'socket.io';
 
@@ -13,17 +15,51 @@ import { Server } from 'socket.io';
     },
 })
 export class SocketsGateway {
-    constructor(private authService: AuthService) {}
+    constructor(
+        private authService: AuthService,
+        private userService: UsersService,
+    ) {}
 
     @WebSocketServer()
     public server: Server;
 
-    @SubscribeMessage('test')
-    handleMessage(client: any, payload: any): string {
-        console.log('ws', payload, client.user);
-        this.server.to(client.id).emit('fromserver', {
-            yourdata: payload,
-        });
+    @SubscribeMessage('chatBox')
+    async handleMessage(client: any, payload: any): Promise<string> {
+        //console.log('SOCKET GATEWAY payload = ', payload);
+        //console.log("socket from " , payload.sender, " to ", payload.receiver, " : ", payload.text );
+        const user = await this.userService.findByUsername(payload.receiver);
+        if (user !== null && payload.receiver !== undefined) {
+            this.server.to(user.socketId).emit('chatBoxResponse', {
+                yourdata: payload.text,
+                sender: payload.sender,
+            });
+        } else console.log('User not found in database');
+
+        return 'Hello world!';
+    }
+
+    @SubscribeMessage('afk')
+    async handleDisconnection(client: any, payload: any): Promise<string> {
+        const user = await this.userService.findByUsername(payload.sender);
+        if (user !== null) {
+            this.server.emit('afkResponse', {
+                sender: payload.sender,
+            });
+        } else console.log('User not found in database');
+
+        interface userToUpdateObject {
+            email?: string;
+            password?: string;
+            username?: string;
+            avatarPath?: string;
+            socketId?: string;
+            status?: string;
+        }
+        if (user != null) {
+            const userToUpdate: userToUpdateObject = {};
+            userToUpdate.status = payload.text;
+            await this.userService.update(user.id, userToUpdate);
+        }
         return 'Hello world!';
     }
 
@@ -39,13 +75,38 @@ export class SocketsGateway {
             client.disconnect();
             return;
         }
-        const payload = await this.authService.validateToken(access_token[1]);
 
+        //console.log('access_token = ', access_token[1]);
+        const payload = await this.authService.validateToken(access_token[1]);
         !payload && client.disconnect(); // If token is invalid, disconnect
 
         client.user = {
-            id: payload.sub,
+            id: payload.id,
             email: payload.email,
         };
+
+        //console.log('payload = ', payload);
+        const user = await this.userService.findByEmail(payload.email);
+
+        interface userToUpdateObject {
+            email?: string;
+            password?: string;
+            username?: string;
+            avatarPath?: string;
+            socketId?: string;
+            status?: string;
+        }
+
+        if (user != null) {
+            //console.log('user found in the database : ', user.email, user.socketId);
+            const userToUpdate: userToUpdateObject = {};
+            userToUpdate.socketId = client.id;
+            userToUpdate.status = 'ONLINE';
+            await this.userService.update(user.id, userToUpdate);
+            //console.log('new socket id : ' + client.id);
+        }
+        //else
+        //console.log('User not found in database');
+        //TO DO = supprimer le cookie si l'user est null (pas dans la db)
     }
 }
