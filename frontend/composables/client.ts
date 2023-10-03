@@ -314,15 +314,20 @@ export const useClient = defineStore('client', () => {
             
             const userProfile:any = data.value;
             if (userProfile.profile === undefined)
-                return null
-            else
             {
                 const { data, error } = await useRequest('/matchmaking/addPlayerToQueue', {
                     method: 'POST',
                     body: {username: playerUsername}
                 })
-                return userProfile;
-                // await this.userService.addUserToQueue(playerUsername)
+                console.log(data.value)
+                return data.value
+            }
+            else
+            {
+                console.log('user exists already')
+                console.log(userProfile.profile)
+                return null
+                    // await this.userService.addUserToQueue(playerUsername)
             }
             // let userArray:any = data.value;
             // for (let i =0 ; i < userArray.length; i++)

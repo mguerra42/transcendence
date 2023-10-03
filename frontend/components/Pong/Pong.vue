@@ -78,7 +78,11 @@
         timeElapsed.value++;
         }, 1000);
 
-        const res:any = await client.game.addToGameLobby('newguy');
+        const res:any = await client.game.addToGameLobby(auth.session.username);
+        if (res === null || res === undefined)
+            console.log('couldnt add to gamelobby')
+        else
+            console.log('added to game lobby')
         console.log(res)
         //returns a tab of users res[0].profile.username etc
         clearInterval(timeElapsedInterval);
