@@ -50,7 +50,7 @@ interface AppClient {
         inverselist: () => void
         pendinglist: () => void
         add: (username : string) => void // add friend
-        remove: () => void // remove friend
+        remove: (friendName : string) => void // remove friend
     }
     chat: {
     // Channels
@@ -194,6 +194,17 @@ export const useClient = defineStore('client', () => {
             method: 'POST',
             body: {
                 newFriendName
+            },
+        })
+
+    }
+
+    client.friend.remove = async (friendName : string) => {
+        console.log('remove a friend : ', friendName)
+        const { data, error } = await useRequest('/friend/remove', {
+            method: 'POST',
+            body: {
+                friendName
             },
         })
 

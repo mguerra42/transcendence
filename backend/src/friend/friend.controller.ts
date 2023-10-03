@@ -31,7 +31,7 @@ export class FriendController {
   @UseGuards(JwtAuthGuard)
   async inverseList(@Request() req) {
     const currentUserId = req.user.id; // Récupérez l'ID de l'utilisateur à partir de req.user.id
-    const friendList = await this.friendService.getFriendRequestsReceived(currentUserId); // Remplacez getFriendList par la méthode réelle de votre service
+    const friendList = await this.friendService.getFriendRequestsReceived(currentUserId);
   
     return { friends: friendList }; // Renvoyez la liste d'amis sous la clé "friends"
   }
@@ -40,7 +40,16 @@ export class FriendController {
   @UseGuards(JwtAuthGuard)
   async pendingList(@Request() req) {
     const currentUserId = req.user.id; // Récupérez l'ID de l'utilisateur à partir de req.user.id
-    const friendList = await this.friendService.getPendingFriendRequests(currentUserId); // Remplacez getFriendList par la méthode réelle de votre service
+    const friendList = await this.friendService.getPendingFriendRequests(currentUserId);
+  
+    return { friends: friendList }; // Renvoyez la liste d'amis sous la clé "friends"
+  }
+
+  @Post('remove')
+  @UseGuards(JwtAuthGuard)
+  async removeFriend(@Request() req, @Body() friendUsername) {
+    const currentUserId = req.user.id; // Récupérez l'ID de l'utilisateur à partir de req.user.id
+    const friendList = await this.friendService.removeFriendship(currentUserId, friendUsername.friendName);
   
     return { friends: friendList }; // Renvoyez la liste d'amis sous la clé "friends"
   }
