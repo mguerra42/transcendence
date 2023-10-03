@@ -7,8 +7,9 @@
         <div class="flex-1 bg-red"><slot />
         </div>
         <div class="b-l">Sidebar Right</div>
-    </div>
-    <Footer/>
+      </div>
+      <Footer/>
+      <FriendList/>
     <AuthModal/>
   </main>
 </template>

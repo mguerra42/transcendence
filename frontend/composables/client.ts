@@ -61,11 +61,13 @@ interface AppClient {
         logout: () => void // logout
         session: () => void // get user data
     }
-    friends: {
+    friend: {
         profile: () => void // get user profile
         list: () => void // get friends list
-        add: () => void // add friend
-        remove: () => void // remove friend
+        inverselist: () => void
+        pendinglist: () => void
+        add: (username : string) => void // add friend
+        remove: (friendName : string) => void // remove friend
     }
     chat: {
     // Channels
@@ -110,8 +112,8 @@ interface AppClient {
 export const useClient = defineStore('client', () => {
     const client: AppClient = {} as AppClient
     const authStore = useAuth()
+    const friendStore = useFriend()
     const socket = useSocket()
-
     /* ¯-_-¯-_-¯-_-¯-_-¯-_-¯-_-¯*\
 ¯-_-¯\_(ツ)_/¯-_-¯ AUTH
 \*¯-_-¯-_-¯-_-¯-_-¯-_-¯-_-¯ */
@@ -302,6 +304,27 @@ export const useClient = defineStore('client', () => {
         client.chat.chatMessages.value.scrollTop = client.chat.chatMessages.value.scrollHeight
     }
 
+    client.friend = {} as AppClient['friend'];
+
+    client.friend.add = async (newFriendName : string) => {
+        console.log('add a friend : ', newFriendName)
+        const { data, error } = await useRequest('/friend/add', {
+            method: 'POST',
+            body: {
+                newFriendName
+            },
+        })
+    }
+
+    client.friend.remove = async (friendName : string) => {
+        console.log('remove a friend : ', friendName)
+        const { data, error } = await useRequest('/friend/remove', {
+            method: 'POST',
+            body: {
+                friendName
+            },
+        })
+    }
 
     client.game = {
         addToGameLobby: async (playerUsername: string) => {

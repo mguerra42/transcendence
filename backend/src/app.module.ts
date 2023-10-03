@@ -6,6 +6,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { SocketsModule } from './sockets/sockets.module';
+import { FriendModule } from './friend/friend.module';
 import { MatchmakingController } from './matchmaking/matchmaking.controller';
 import { MatchmakingModule } from './matchmaking/matchmaking.module';
 
@@ -20,6 +21,7 @@ import { MatchmakingModule } from './matchmaking/matchmaking.module';
     UsersModule,
     AuthModule,
     SocketsModule,
+    FriendModule,
     MatchmakingModule,
   ],
 })
