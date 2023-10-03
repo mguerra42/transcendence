@@ -7,6 +7,7 @@ import {
 import { UsersService } from '../users/users.service';
 import { AuthService } from '../auth/auth.service';
 import { Server } from 'socket.io';
+import { channel } from 'diagnostics_channel';
 
 @WebSocketGateway({
     cors: {
@@ -35,6 +36,56 @@ export class SocketsGateway {
             });
         } else console.log('User not found in database');
 
+        return 'Hello world!';
+    }
+
+    @SubscribeMessage('joinChannel')
+    async handleJoinChannel(client: any, payload: any): Promise<string> {
+        
+        const channelToJoin = await this.userService.findChannelByName(payload.receiver);
+        const userToSubscribe = await this.userService.findByUsername(payload.sender);
+
+        const channelId = channelToJoin.id;
+        const userId = userToSubscribe.id;
+        const userStatus = userToSubscribe.status;
+        const role = 'USER';
+
+        const usersInChannel = channelToJoin.userList;
+        let onlineUsersInChannel = 0;
+        for (let i = 0; i < usersInChannel.length; i++) {
+            const userId = usersInChannel[i].userId;
+            const res = await this.userService.getUserInChannelUser(userId);
+            if (res.user.status === 'ONLINE')
+                onlineUsersInChannel++;
+            if (usersInChannel[i].userId === userToSubscribe.id) {
+                client.join(payload.receiver);
+                this.server.to(payload.receiver).emit('joinChannelResponse', {
+                    userCount: usersInChannel.length,
+                    onlineUsers: onlineUsersInChannel,
+                });
+                console.log('user already in the channel ', usersInChannel.length, payload.receiver);
+                return 'user already in the channel';
+            }
+        }
+
+        const channelUser = await this.userService.addChannelUser(channelId, userId, role);
+        client.join(payload.receiver);
+
+        this.server.to(payload.receiver).emit('joinChannelResponse', {
+            userCount: channelToJoin.userList.length,
+        });        
+        return 'Hello world!';
+    }
+
+    @SubscribeMessage('channelMessage')
+    async handleChannelMessage(client: any, payload: any): Promise<string> {
+        this.server.to(payload.receiver).emit('channelMessageResponse', {
+            yourdata: payload.text,
+            sender: payload.sender,
+            avatar: payload.avatar,
+            timestamp: ''
+        });
+        console.log(payload)
         return 'Hello world!';
     }
 

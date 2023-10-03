@@ -3,6 +3,7 @@ import { useFetch } from '#app'
 import { io } from 'socket.io-client'
 import { useAuth } from './auth'
 
+//remove later
 interface AppChannel {
 
     getAllChannels: () => any // get all channels
@@ -25,7 +26,7 @@ export const useChannel = defineStore('channel', () => {
             return null
         }
 
-        console.log('in channel.getAllChannels, data = ', data)
+        console.log('in channel.getAllChannels, data = ', data.value)
         return data.value
     }
 

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { DBService } from 'src/db/db.service';
-import { User, Prisma } from '@prisma/client';
+import { User, Prisma, Role } from '@prisma/client';
 
 import * as bcrypt from 'bcryptjs';
 
@@ -14,6 +14,7 @@ interface userToUpdateObject {
     socketId?: string;
     status?: string;
 }
+
 
 @Injectable()
 export class UsersService {
@@ -94,6 +95,51 @@ export class UsersService {
         return this.db.channel.findMany();
     }
 
+    findChannelByName(name: string) {
+        return this.db.channel.findFirst({
+            where: {
+                name,
+            },
+            select: {
+                id: true,
+                name: true,
+                creationDate: true,
+                userList: true,
+            },
+        });
+    }
+    
+    addChannelUser(channelId: number, userId: number, role: Role) {
+        return this.db.channelUser.create({
+          data: {
+            role,
+            user: { connect: { id: userId } }, // Connect the user by ID
+            channel: { connect: { id: channelId } }, // Connect the channel by ID
+          },
+        });
+    }
+
+    getUserInChannelUser(id: number) {
+        return this.db.channelUser.findFirst({
+            where: {
+                userId: id,
+            },
+            select: {
+                user: true,
+            },
+        });
+    }
+
+    getUsersInChannel(channelName: string) {
+        return this.db.channel.findMany({
+            where: {
+                name: channelName,
+            },
+            select: {
+                userList: true,
+            },
+        });
+    }
 
     //Changed this to any but we can export the userToUpdateObject interface into this file
     //TODO : import userToUpdateObject interface here and use it instead of any
