@@ -92,40 +92,82 @@ export class FriendService {
   //   }
   // }
 
-  async getInverseFriendList(userId: number): Promise<{ id: number; username: string }[]> {
+  async getPendingFriendRequests(userId: number): Promise<User[]> {
     try {
-      const user = await this.prisma.user.findUnique({
-        where: { id: userId },
-        include: { friends: { include: { userTwo: true } } },
-      });
-  
-      if (!user) {
-        throw new Error('Utilisateur non trouvé');
-      }
-  
-      // Use map to extract userTwo from friends
-      const friendsUserTwo = user.friends.map((friend) => friend.userTwo);
-  
-      // Get all users except the current user and the user's friends
-      const allUsers = await this.prisma.user.findMany({
-        where: {
-          NOT: [
-            { id: userId }, // Exclude the current user
-            { id: { in: friendsUserTwo.map((friend) => friend.id) } }, // Exclude friends
-          ],
-        },
-        select: {
-          id: true,
-          username: true,
-        },
-      });
-  
-      return allUsers;
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            include: {
+                friends: {
+                    include: {
+                        userTwo: true
+                    }
+                },
+                inverseFriends: {
+                    include: {
+                        userOne: true
+                    }
+                }
+            }
+        });
+
+        if (!user) {
+            throw new Error('Utilisateur non trouvé');
+        }
+
+        // Filtrer les amis qui sont dans inverseFriends mais pas dans friends
+        const pendingRequests = user.inverseFriends.filter(inverseFriend => {
+            const foundFriend = user.friends.find(friend => friend.userTwo.id === inverseFriend.userOne.id);
+            return foundFriend === undefined;
+        });
+
+        // Utilisez map pour extraire les demandes d'amis en attente complètes
+        const pendingRequestsList = pendingRequests.map(inverseFriend => inverseFriend.userOne);
+
+        return pendingRequestsList;
     } catch (error) {
-      // Handle errors (e.g., user not found)
-      throw error;
+        // Gérer les erreurs (par exemple, l'utilisateur n'a pas été trouvé)
+        throw error;
     }
+}
+
+async getFriendRequestsReceived(userId: number): Promise<User[]> {
+  try {
+      const user = await this.prisma.user.findUnique({
+          where: { id: userId },
+          include: {
+              friends: {
+                  include: {
+                      userTwo: true
+                  }
+              },
+              inverseFriends: {
+                  include: {
+                      userOne: true
+                  }
+              }
+          }
+      });
+
+      if (!user) {
+          throw new Error('Utilisateur non trouvé');
+      }
+
+      // Filtrer les amis qui sont dans friends mais pas dans inverseFriends
+      const friendRequestsReceived = user.friends.filter(friend => {
+          const foundInverseFriend = user.inverseFriends.find(inverseFriend => inverseFriend.userOne.id === friend.userTwo.id);
+          return foundInverseFriend === undefined;
+      });
+
+      // Utilisez map pour extraire les demandes d'amis reçues complètes
+      const friendRequestsReceivedList = friendRequestsReceived.map(friend => friend.userTwo);
+
+      return friendRequestsReceivedList;
+  } catch (error) {
+      // Gérer les erreurs (par exemple, l'utilisateur n'a pas été trouvé)
+      throw error;
   }
+}
+
 
   // async getPendingFriendList(userId: number): Promise<{ id: number; username: string }[]> {
   //   try {

@@ -18,7 +18,7 @@ export class FriendController {
     return { message: 'Ami ajouté avec succès'};
   }
 
-  @Get('list')
+  @Get('amis')
   @UseGuards(JwtAuthGuard)
   async getFriendList(@Request() req) {
     const currentUserId = req.user.id; // Récupérez l'ID de l'utilisateur à partir de req.user.id
@@ -27,21 +27,21 @@ export class FriendController {
     return { friends: friendList }; // Renvoyez la liste d'amis sous la clé "friends"
   }
 
-  @Get('inverselist')
+  @Get('enAttente')
   @UseGuards(JwtAuthGuard)
   async inverseList(@Request() req) {
     const currentUserId = req.user.id; // Récupérez l'ID de l'utilisateur à partir de req.user.id
-    const friendList = await this.friendService.getInverseFriendList(currentUserId); // Remplacez getFriendList par la méthode réelle de votre service
+    const friendList = await this.friendService.getFriendRequestsReceived(currentUserId); // Remplacez getFriendList par la méthode réelle de votre service
   
     return { friends: friendList }; // Renvoyez la liste d'amis sous la clé "friends"
   }
 
-  // @Get('pendinglist')
-  // @UseGuards(JwtAuthGuard)
-  // async pendingList(@Request() req) {
-  //   const currentUserId = req.user.id; // Récupérez l'ID de l'utilisateur à partir de req.user.id
-  //   const friendList = await this.friendService.getPendingFriendList(currentUserId); // Remplacez getFriendList par la méthode réelle de votre service
+  @Get('demandes')
+  @UseGuards(JwtAuthGuard)
+  async pendingList(@Request() req) {
+    const currentUserId = req.user.id; // Récupérez l'ID de l'utilisateur à partir de req.user.id
+    const friendList = await this.friendService.getPendingFriendRequests(currentUserId); // Remplacez getFriendList par la méthode réelle de votre service
   
-  //   return { friends: friendList }; // Renvoyez la liste d'amis sous la clé "friends"
-  // }
+    return { friends: friendList }; // Renvoyez la liste d'amis sous la clé "friends"
+  }
 }

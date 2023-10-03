@@ -10,7 +10,7 @@ export const useFriend = defineStore('friend', () => {
 
     const fetchMutualFriendList = async () => {
       try {
-        const response = await fetch(`${useRuntimeConfig().public.baseURL}/friend/list`, {
+        const response = await fetch(`${useRuntimeConfig().public.baseURL}/friend/amis`, {
           method: 'GET',
           credentials: 'include',
         });
@@ -27,9 +27,29 @@ export const useFriend = defineStore('friend', () => {
       }
     };
 
+    
+    const fetchPendingFriendList = async () => {
+      try {
+        const response = await fetch(`${useRuntimeConfig().public.baseURL}/friend/enAttente`, {
+          method: 'GET',
+          credentials: 'include',
+        });
+        
+        if (!response.ok) {
+          throw new Error('La requête /friend/pendinglist a échoué');
+        }
+        
+        const data = await response.json();
+        console.log('Données d\'amis en attente reçues :', data.friends); 
+        pendingfriends.value = data.friends;
+      } catch (error) {
+        console.error('Erreur lors de la récupération de la liste de demandes d\'amis :', error);
+      }
+    };
+
     const fetchInverseFriendList = async () => {
       try {
-        const response = await fetch(`${useRuntimeConfig().public.baseURL}/friend/inverselist`, {
+        const response = await fetch(`${useRuntimeConfig().public.baseURL}/friend/demandes`, {
           method: 'GET',
           credentials: 'include',
         });
@@ -40,25 +60,6 @@ export const useFriend = defineStore('friend', () => {
     
         const data = await response.json();
         console.log('Données de demandes d\'amis reçues :', data.friends); 
-        inversefriends.value = data.friends;
-      } catch (error) {
-        console.error('Erreur lors de la récupération de la liste de demandes d\'amis :', error);
-      }
-    };
-
-    const fetchPendingFriendList = async () => {
-      try {
-        const response = await fetch(`${useRuntimeConfig().public.baseURL}/friend/pendinglist`, {
-          method: 'GET',
-          credentials: 'include',
-        });
-    
-        if (!response.ok) {
-          throw new Error('La requête /friend/pendinglist a échoué');
-        }
-    
-        const data = await response.json();
-        console.log('Données d\'amis en attente reçues :', data.friends); 
         inversefriends.value = data.friends;
       } catch (error) {
         console.error('Erreur lors de la récupération de la liste de demandes d\'amis :', error);
