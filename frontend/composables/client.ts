@@ -79,7 +79,7 @@ interface AppClient {
 export const useClient = defineStore('client', () => {
     const client: AppClient = {} as AppClient
     const authStore = useAuth()
-
+    const friendStore = useFriend()
     /* ¯-_-¯-_-¯-_-¯-_-¯-_-¯-_-¯*\
 ¯-_-¯\_(ツ)_/¯-_-¯ AUTH
 \*¯-_-¯-_-¯-_-¯-_-¯-_-¯-_-¯ */
@@ -196,7 +196,6 @@ export const useClient = defineStore('client', () => {
                 newFriendName
             },
         })
-
     }
 
     client.friend.remove = async (friendName : string) => {
@@ -207,7 +206,6 @@ export const useClient = defineStore('client', () => {
                 friendName
             },
         })
-
     }
 
     return client

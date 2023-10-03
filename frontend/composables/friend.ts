@@ -1,3 +1,4 @@
+import friendListVue from '../components/Friend/FriendList.vue';
 import { defineStore } from 'pinia'
 // import { useRuntimeConfig } from '@nuxt/use-runtime-config';
 
@@ -65,6 +66,7 @@ export const useFriend = defineStore('friend', () => {
         console.error('Erreur lors de la récupération de la liste de demandes d\'amis :', error);
       }
     };
+
     const toggleCategory= async (category:string) => {
       if (category === 'amis') {
         await fetchMutualFriendList();
@@ -77,6 +79,12 @@ export const useFriend = defineStore('friend', () => {
         return inversefriends.value;
       }
     };
+
+
+    const refreshCategory = async () => {
+      console.log('refreshcategory :')
+      await friendListVue.fetchFriendlist(friendListVue.categoryTab)
+    };
   
     return { 
       showFriend,
@@ -84,6 +92,7 @@ export const useFriend = defineStore('friend', () => {
       toggleCategory,
       fetchMutualFriendList,
       fetchInverseFriendList,
-      fetchPendingFriendList
+      fetchPendingFriendList,
+      refreshCategory
     }
   })
