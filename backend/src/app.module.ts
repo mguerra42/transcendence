@@ -7,8 +7,11 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { SocketsModule } from './sockets/sockets.module';
 import { FriendModule } from './friend/friend.module';
+import { MatchmakingController } from './matchmaking/matchmaking.controller';
+import { MatchmakingModule } from './matchmaking/matchmaking.module';
+
 @Module({
-  controllers: [AppController],
+  controllers: [AppController, MatchmakingController],
   providers: [AppService],
   imports: [
     ConfigModule.forRoot({
@@ -19,6 +22,7 @@ import { FriendModule } from './friend/friend.module';
     AuthModule,
     SocketsModule,
     FriendModule,
+    MatchmakingModule,
   ],
 })
 export class AppModule {}

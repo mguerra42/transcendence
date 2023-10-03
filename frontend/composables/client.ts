@@ -5,6 +5,7 @@
 // Merci d'ajouter des commentaires pour expliquer ce que fait chaque fonction ainsi que le typage des paramètres et du retour.
 import { defineStore } from 'pinia'
 import { useFetch } from '#app'
+import { RefSymbol } from '@vue/reactivity'
 
 export const useRequest: typeof useFetch = (path, options = {}) => {
     const config = useRuntimeConfig()
@@ -38,11 +39,27 @@ interface AppClient {
             email: string
             password: string
         }) => void // login
+        update: (
+            {
+                username,
+                email,
+                password,
+                newPassword,
+                newPasswordConfirmation,
+            }: {
+                username: string
+                email: string
+                password: string
+                newPassword: string
+                newPasswordConfirmation: string
+            },
+        ) => void // update user data
+        onFileSelected: (event: any) => void // upload avatar
+        avatarFile: Ref<File | undefined> // avatar file
         loginWithGoogle: () => void // login with google
         login42: () => void // login 42
         logout: () => void // logout
         session: () => void // get user data
-        update: () => void // update user data
     }
     friend: {
         profile: () => void // get user profile
@@ -56,6 +73,9 @@ interface AppClient {
     // Channels
         create: () => void // create channel
         update: () => void // update channel
+        getOnlineUsers: () => any // get online users
+        getAllUsers: () => any // get all users
+        getOfflineUsers: () => any // get offline users
         setAdmin: (userId: string, status: boolean) => void // set moderator
         // Admin
         kick: (userId: string) => void // kick user
@@ -70,8 +90,21 @@ interface AppClient {
         sendTo: () => void // send DM to user
         block: () => void // block user
         inviteGame: () => void // invite user to game
+        getAllChannels: () => any // get offline users
+        clearChat: () => void
+        scrollToBottom: () => void
+        usersArray: globalThis.Ref<any[]>
+        channelArray: globalThis.Ref<any[]>
+        chatVisible: boolean
+        chatMessages: globalThis.Ref<any>
+        chatState: { select: string; receiver: any }
+        newMessage: string
+        messages: Ref<{ sender: string; text: string; time?: string; avatar?: string; user?: any}[]>
+        showUserProfile: boolean
     }
+
     game: {
+        addToGameLobby: (user:any) => void
         create: () => void // create game
     }
 }
@@ -80,12 +113,15 @@ export const useClient = defineStore('client', () => {
     const client: AppClient = {} as AppClient
     const authStore = useAuth()
     const friendStore = useFriend()
+    const socket = useSocket()
     /* ¯-_-¯-_-¯-_-¯-_-¯-_-¯-_-¯*\
 ¯-_-¯\_(ツ)_/¯-_-¯ AUTH
 \*¯-_-¯-_-¯-_-¯-_-¯-_-¯-_-¯ */
 
     // Authentification
     client.auth = {} as AppClient['auth']
+    client.chat = {} as AppClient['chat']
+    client.game = {} as AppClient['game']
 
     // This variable is used to determine which auth method is used at the time of signin
     client.auth.authMethod = 'default'
@@ -119,11 +155,11 @@ export const useClient = defineStore('client', () => {
     }
 
     client.auth.loginWithGoogle = async () => {
-      location.href = 'https://accounts.google.com/o/oauth2/v2/auth?response_type=code&redirect_uri=http://localhost:3001/api/v0/auth/google/callback&scope=email%20profile&client_id=535545866334-87k5bo4t0sbf05v3i8lgf0c0ea8fkcsb.apps.googleusercontent.com'
+        location.href = 'https://accounts.google.com/o/oauth2/v2/auth?response_type=code&redirect_uri=http://localhost:3001/api/v0/auth/google/callback&scope=email%20profile&client_id=535545866334-87k5bo4t0sbf05v3i8lgf0c0ea8fkcsb.apps.googleusercontent.com'
     }
-  
+
     client.auth.login42 = async () => {
-      location.href = 'https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-a8654d5f52c9f6fd539181d269f4c72d07954f0f6ac7409ca17d77eee7ac7822&redirect_uri=http%3A%2F%2Flocalhost%3A3001%2Fapi%2Fv0%2Fauth%2F42%2Fcallback&response_type=code'
+        location.href = 'https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-a8654d5f52c9f6fd539181d269f4c72d07954f0f6ac7409ca17d77eee7ac7822&redirect_uri=http%3A%2F%2Flocalhost%3A3001%2Fapi%2Fv0%2Fauth%2F42%2Fcallback&response_type=code'
     }
 
     // This function is called to register a new user
@@ -143,7 +179,6 @@ export const useClient = defineStore('client', () => {
                 password,
             },
         })
-
         if (error.value?.statusCode) {
             authStore.error = error.value?.statusMessage as string
             return
@@ -155,23 +190,20 @@ export const useClient = defineStore('client', () => {
         })
     }
     client.auth.logout = async () => {
-        if (client.auth.authMethod === 'google')
-        {
-          const { data, error } = await useRequest('/auth/google/logout', {
-              method: 'POST',
-          })
+        if (client.auth.authMethod === 'google') {
+            const { data, error } = await useRequest('/auth/google/logout', {
+                method: 'POST',
+            })
         }
-        else if (client.auth.authMethod === '42')
-        {
-          const { data, error } = await useRequest('/auth/42/logout', {
-              method: 'POST',
-          })
+        else if (client.auth.authMethod === '42') {
+            const { data, error } = await useRequest('/auth/42/logout', {
+                method: 'POST',
+            })
         }
-        else
-        {
-          const { data, error } = await useRequest('/auth/logout', {
-              method: 'POST',
-          })
+        else {
+            const { data, error } = await useRequest('/auth/logout', {
+                method: 'POST',
+            })
         }
     }
 
@@ -184,6 +216,92 @@ export const useClient = defineStore('client', () => {
             return null
         })
         return data
+    }
+
+    client.auth.avatarFile = ref<File>()
+
+    client.auth.update = async ({
+        username,
+        email,
+        password,
+        newPassword,
+        newPasswordConfirmation,
+
+    }) => {
+        const formData = new FormData()
+        formData.append('username', username) // la ref de ton input username
+        formData.append('email', email)
+        formData.append('password', password)
+        formData.append('newPassword', newPassword)
+        formData.append('newPasswordConfirmation', newPasswordConfirmation)
+        if (client.auth.avatarFile.value)
+            formData.append('avatar', client.auth.avatarFile.value) // la ref de ton input file
+
+        // console.log(client.auth.avatarFile.value)
+
+        const { data, error } = await useRequest('/auth/update', {
+            method: 'POST',
+            body: formData,
+        })
+
+        if (error.value?.statusCode) {
+            authStore.error = error.value?.statusMessage as string
+            return
+        }
+
+        authStore.showUserForm = false
+        await authStore.refreshSession()
+    }
+
+    client.auth.onFileSelected = async (event: any) => {
+        client.auth.avatarFile.value = event.target.files[0]
+    }
+
+    client.chat.getOnlineUsers = async () => {
+        const { data, error } = await useRequest('/socket/getonlineusers', {
+            method: 'GET',
+        })
+
+        if (error.value?.statusCode) {
+            authStore.error = error.value?.statusMessage as string
+            return null
+        }
+        return data.value
+    }
+
+    client.chat.getAllUsers = async () => {
+        const { data, error } = await useRequest('/socket/getallusers', {
+            method: 'GET',
+        })
+
+        if (error.value?.statusCode) {
+            authStore.error = error.value?.statusMessage as string
+            return null
+        }
+        return data.value
+    }
+
+    client.chat.getOfflineUsers = async () => {
+        const { data, error } = await useRequest('/socket/getofflineusers', {
+            method: 'GET',
+        })
+
+        if (error.value?.statusCode) {
+            authStore.error = error.value?.statusMessage as string
+            return null
+        }
+        return data.value
+    }
+
+    client.chat.clearChat = () => {
+        client.chat.messages = ref([])
+        client.chat.scrollToBottom()
+    }
+
+    client.chat.scrollToBottom = () => {
+        if (client.chat.chatMessages.value === undefined)
+            return
+        client.chat.chatMessages.value.scrollTop = client.chat.chatMessages.value.scrollHeight
     }
 
     client.friend = {} as AppClient['friend'];
@@ -208,5 +326,51 @@ export const useClient = defineStore('client', () => {
         })
     }
 
+    client.game = {
+        addToGameLobby: async (playerUsername: string) => {
+            //Initial load time
+            // await new Promise(timeout => setTimeout(timeout, 2000));
+            //Additional DB load time
+            const { data, error } = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${playerUsername}`, {
+                method: 'GET',
+            })
+            
+            const userProfile:any = data.value;
+            if (userProfile.profile === undefined)
+            {
+                const { data, error } = await useRequest('/matchmaking/addPlayerToQueue', {
+                    method: 'POST',
+                    body: {username: playerUsername}
+                })
+                console.log(data.value)
+                return data.value
+            }
+            else
+            {
+                console.log('user exists already')
+                console.log(userProfile.profile)
+                return null
+                    // await this.userService.addUserToQueue(playerUsername)
+            }
+            // let userArray:any = data.value;
+            // for (let i =0 ; i < userArray.length; i++)
+            // {
+            //     console.log(userArray[i].profile.username)
+            // }
+            // const res = await this.userService.getUsersFromQueue();
+            // let found = 0;
+            
+            // for (let i =0; i < res.length; i++)
+            // {
+            //     console.log(res[i].profile.username)
+            //     if (res[i].profile.username === payload.sender)
+            //         found = 1;
+            // }
+            // if (found === 0)
+            //     await this.userService.addUserToQueue(payload.sender)
+        },
+        create: () => {
+        },
+    };
     return client
 })
