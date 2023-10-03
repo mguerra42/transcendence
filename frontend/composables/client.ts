@@ -5,6 +5,7 @@
 // Merci d'ajouter des commentaires pour expliquer ce que fait chaque fonction ainsi que le typage des paramètres et du retour.
 import { defineStore } from 'pinia'
 import { useFetch } from '#app'
+import { RefSymbol } from '@vue/reactivity'
 
 export const useRequest: typeof useFetch = (path, options = {}) => {
     const config = useRuntimeConfig()
@@ -101,7 +102,6 @@ interface AppClient {
     }
 
     game: {
-        gameLobby: Ref<any[]>
         addToGameLobby: (user:any) => void
         create: () => void // create game
     }
@@ -110,6 +110,7 @@ interface AppClient {
 export const useClient = defineStore('client', () => {
     const client: AppClient = {} as AppClient
     const authStore = useAuth()
+    const socket = useSocket()
 
     /* ¯-_-¯-_-¯-_-¯-_-¯-_-¯-_-¯*\
 ¯-_-¯\_(ツ)_/¯-_-¯ AUTH
@@ -301,21 +302,46 @@ export const useClient = defineStore('client', () => {
         client.chat.chatMessages.value.scrollTop = client.chat.chatMessages.value.scrollHeight
     }
 
-    const gameLobby : Ref<any[]> = ref([]);
 
-    // ... your other code ...
-
-    // Add gameLobby to the client.game object
     client.game = {
-        gameLobby: gameLobby,
-
-        addToGameLobby: async (player: any) => {
-            await new Promise(timeout => setTimeout(timeout, 5000));
-            console.log(player);
-            gameLobby.value.push(player); // Access gameLobby through its ref
+        addToGameLobby: async (playerUsername: string) => {
+            //Initial load time
+            // await new Promise(timeout => setTimeout(timeout, 2000));
+            //Additional DB load time
+            const { data, error } = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${playerUsername}`, {
+                method: 'GET',
+            })
+            
+            const userProfile:any = data.value;
+            if (userProfile.profile === undefined)
+                return null
+            else
+            {
+                const { data, error } = await useRequest('/matchmaking/addPlayerToQueue', {
+                    method: 'POST',
+                    body: {username: playerUsername}
+                })
+                return userProfile;
+                // await this.userService.addUserToQueue(playerUsername)
+            }
+            // let userArray:any = data.value;
+            // for (let i =0 ; i < userArray.length; i++)
+            // {
+            //     console.log(userArray[i].profile.username)
+            // }
+            // const res = await this.userService.getUsersFromQueue();
+            // let found = 0;
+            
+            // for (let i =0; i < res.length; i++)
+            // {
+            //     console.log(res[i].profile.username)
+            //     if (res[i].profile.username === payload.sender)
+            //         found = 1;
+            // }
+            // if (found === 0)
+            //     await this.userService.addUserToQueue(payload.sender)
         },
         create: () => {
-            // Add logic here
         },
     };
     return client

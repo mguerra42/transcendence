@@ -6,8 +6,11 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { SocketsModule } from './sockets/sockets.module';
+import { MatchmakingController } from './matchmaking/matchmaking.controller';
+import { MatchmakingModule } from './matchmaking/matchmaking.module';
+
 @Module({
-  controllers: [AppController],
+  controllers: [AppController, MatchmakingController],
   providers: [AppService],
   imports: [
     ConfigModule.forRoot({
@@ -17,6 +20,7 @@ import { SocketsModule } from './sockets/sockets.module';
     UsersModule,
     AuthModule,
     SocketsModule,
+    MatchmakingModule,
   ],
 })
 export class AppModule {}

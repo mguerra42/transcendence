@@ -120,6 +120,33 @@ export class UsersService {
         });
     }
 
+    addUserToQueue(playerUsername: string) {
+        return this.db.queue.create({
+            data: {
+              username: playerUsername,
+            },
+          });
+      }
+
+    getUsersFromQueue() {
+        return this.db.queue.findMany({
+            select: {
+                profile: true,
+            },
+        });
+    }
+
+    getUserFromQueue(playerUsername:string) {
+        return this.db.queue.findFirst({
+            where: {
+                username: playerUsername,
+            },
+            select: {
+                profile: true,
+            },
+        });
+    }
+
     getUsersInChannel(channelName: string) {
         return this.db.channel.findMany({
             where: {

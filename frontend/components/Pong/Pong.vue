@@ -3,112 +3,141 @@
     <div class="">
         <canvas v-show="showPong" tabindex="0" @keydown.down="player1MoveDown" @keydown.up="player1MoveUp" class="bg-zinc-300 focus-outline-none rounded-lg cursor-crosshair" id="canvas"></canvas>
     </div>
-
-    <div class="">
-        <div v-if="showLoader" class="w-60">
-            <div class="bg-zinc-700 rounded p-4">
-                <div class="flex justify-center mx-auto">
-                    <div class="animate-bounce h-[16px] w-[16px] bg-zinc-200 rounded-full" v-if="showLoader"></div>
+    <!-- Loading animation-->
+    <div v-if="showLoader" class="w-50">
+        <div class="bg-zinc-700 rounded py-4 px-2">
+            <div class="flex justify-center mx-auto">
+                <div class="animate-bounce h-[16px] w-[16px] bg-zinc-200 rounded-full" v-if="showLoader"></div>
+            </div>
+            <div class="bg-zinc-200 h-1 w-10 m-2 mx-auto rounded"></div>
+            <p class="text-xs text-zinc-400 text-center">Waiting for an opponent...</p>
+            <p class="text-xs text-zinc-400 text-center">00:0{{ timeElapsed }}</p>
+        </div>
+    </div>
+    <!-- Accept match window-->
+    <div v-if="matchFound" @click="acceptMatch" class="bg-zinc-600 hover:bg-zinc-700 w-50 h-70 cursor-pointer rounded-lg">
+        <p class="text-zinc-200 m-2 text-2xl font-bold text-center">
+            Match found
+        </p>
+        <div class="flex mt-1 justify-center">
+            <div>
+                <img :src="auth.session.avatarPath" class="w-20 h-20 m-2 rounded-full" />
+                <div class="flex justify-center">
+                    <div class="flex-col flex justify-center">
+                        <p class="text-lg text-center text-zinc-200" >{{ auth.session.username }}</p>
+                        <p class="text-xs text-center text-zinc-400" >W/L : 10-3</p>
+                        <p class="text-xs text-center text-zinc-400" >Elo : 1230</p>
+                    </div>
                 </div>
-                <div class="bg-zinc-200 h-1 w-10 m-2 mx-auto rounded"></div>
-                <p class="text-xs text-zinc-400 text-center" >Waiting for an opponent...</p>
-                <p class="text-xs text-zinc-400 text-center">00:0{{ timeElapsed }}</p>
             </div>
         </div>
-        <div v-if="matchFound" @click="acceptMatch" class="bg-zinc-600 m-2 px-2 py-1 rounded-lg cursor-pointer">
-            <p class="text-zinc-200 m-2 text-center">
-                Match found !
-            </p>
-            <p class="text-sm text-zinc-200 mt-2 text-center">
-                Click to accept
-            </p>
-            <p class="text-sm text-zinc-200 mb-2 text-center">
-                {{ timeElapsed }}
-            </p>
-        </div>
+        <p class="text-2xl font-bold text-zinc-200 mb-1 mt-4 text-center">
+            {{ timeElapsed }}
+        </p>
+    </div>
+    <div v-if="matchFound" @click="declineMatch" class="bg-zinc-600 w-40 hover:bg-zinc-700 px-2 py-1 m-2 cursor-pointer rounded-lg">
+        <p class="text-zinc-200 text-center">
+            Decline
+        </p>
     </div>
 </template>
 
 <script setup lang="ts">
+
     const showPlayButton = ref(true);
     const showPong = ref(false);
+    const showLoader = ref(false);
+    const matchFound = ref(false)
+    const matchAccepted = ref(false)
+    const matchDeclined = ref(false)
+    const timeElapsed = ref(0);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
     const animationFrameId = ref();
+    const canvas = ref();
+    const context = ref();
+    
     const client = useClient();
     const auth = useAuth();
     const socket = useSocket();
-    const canvas = ref();
-    const context = ref();
-    const showLoader = ref(false);
-    const timeElapsed = ref(0);
-    const matchFound = ref(false)
-    const matchAccepted = ref(false)
 
     await socket.connect();
     
     const acceptMatch = () => {
         matchAccepted.value = true;
+    }
+
+    const declineMatch = () => {
+        matchDeclined.value = true;
+    }
+
+    const waitForMatch = async () => {
+        showPlayButton.value = false;
+
+        showLoader.value = true;
+        const timeElapsedInterval = setInterval(() => {
+        timeElapsed.value++;
+        }, 1000);
+
+        const res:any = await client.game.addToGameLobby('newguy');
+        console.log(res)
+        //returns a tab of users res[0].profile.username etc
+        clearInterval(timeElapsedInterval);
         timeElapsed.value = 0;
+    }
+
+    const waitForConfirm = async () => {
+        matchFound.value = true;
+        timeElapsed.value = 10;
+        const timeElapsedInterval2 = setInterval(() => {
+            timeElapsed.value--;
+        }, 1000);
+
+        showLoader.value = false;
+        await Promise.race([
+            new Promise<void>(timeout => setTimeout(timeout, 10000)),
+            new Promise<void>(resolve => {
+                const checkMatchAccepted = () => {
+                    if (matchAccepted.value === true || matchDeclined.value === true)
+                        resolve();
+                    else
+                        setTimeout(checkMatchAccepted, 10); // Check every 100 milliseconds
+                };
+                
+                checkMatchAccepted();
+            }),   
+        ]);
+        clearInterval(timeElapsedInterval2);
     }
 
     const startGame = async () => {
         const player = auth.session;
         if (showPong.value === false) {
-            showPlayButton.value = false;
-
-            showLoader.value = true;
-            const timeElapsedInterval = setInterval(() => {
-            timeElapsed.value++;
-            }, 1000);
-
-            await client.game.addToGameLobby(player);
-
-            clearInterval(timeElapsedInterval);
-            timeElapsed.value = 0;
-            
-            matchFound.value = true;
-            timeElapsed.value = 5;
-            const timeElapsedInterval2 = setInterval(() => {
-                timeElapsed.value--;
-            }, 1000);
-
-            showLoader.value = false;
-            await Promise.race([
-                new Promise<void>(timeout => setTimeout(timeout, 5000)),
-                new Promise<void>(resolve => {
-                    const checkMatchAccepted = () => {
-                        if (matchAccepted.value)
-                            resolve();
-                        else
-                            setTimeout(checkMatchAccepted, 100); // Check every 100 milliseconds
-                    };
-                    
-                    checkMatchAccepted();
-                }),   
-            ]);
-
-            clearInterval(timeElapsedInterval2);
+            await waitForMatch();
+            await waitForConfirm();
             if (matchAccepted.value === true)
             {
                 showPong.value = true;
                 matchFound.value = false;
                 matchAccepted.value = false;
-                timeElapsed.value = 0;
+                matchDeclined.value = false;
                 showPlayButton.value = true;
+                timeElapsed.value = 0;
                 gameLoop();
             }
-            else
-            {
-                showPlayButton.value = true;
-                matchFound.value = false;
-                matchAccepted.value = false;
-            }
-        } else {
             matchFound.value = false;
             matchAccepted.value = false;
-            cancelAnimationFrame(animationFrameId.value);
+            matchDeclined.value = false;
+            showPlayButton.value = true;
+            timeElapsed.value = 0;
+        } else {
             resetGame();
+            cancelAnimationFrame(animationFrameId.value);
+            matchFound.value = false;
+            matchAccepted.value = false;
+            matchDeclined.value = false;
             showPong.value = false;
             showPlayButton.value = true;
+            timeElapsed.value = 0;
         }
     }
 
@@ -248,6 +277,7 @@
         context.value.fillRect(Player1.value.x, Player1.value.y, Player1.value.width, Player1.value.height);
         context.value.fillRect(Player2.value.x, Player2.value.y, Player2.value.width, Player2.value.height);
         context.value.fillRect(Ball.value.x, Ball.value.y, Ball.value.width, Ball.value.height);
+
 
         // Call the game loop recursively
         animationFrameId.value = requestAnimationFrame(gameLoop);

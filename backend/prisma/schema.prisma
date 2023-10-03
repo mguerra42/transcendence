@@ -28,6 +28,14 @@ model User {
   lostGames      Game[]        @relation("loser")
   channels       ChannelUser[] //channels the user is in
   socketId       String        @default("") //socket id for the user
+  queue          Queue?        // Define the Queue relation here
+
+}
+
+model Queue {
+  id         Int      @id @default(autoincrement())
+  username   String   @unique
+  profile    User     @relation(fields: [username], references: [username])
 }
 
 //Friend list
