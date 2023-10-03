@@ -61,7 +61,7 @@ export class UsersService {
             },
         });
     }
-    findAllOnlineUsers(){
+    findAllOnlineUsers() {
         return this.db.user.findMany({
             where: {
                 status: 'ONLINE',
@@ -69,11 +69,11 @@ export class UsersService {
         });
     }
 
-    findAllUsers(){
+    findAllUsers() {
         return this.db.user.findMany();
     }
 
-    findAllOfflineUsers(){
+    findAllOfflineUsers() {
         return this.db.user.findMany({
             where: {
                 status: 'OFFLINE',
@@ -81,7 +81,7 @@ export class UsersService {
         });
     }
 
-    findAllChannels(){
+    findAllChannels() {
         return this.db.channel.findMany();
     }
 
@@ -98,14 +98,14 @@ export class UsersService {
             },
         });
     }
-    
+
     addChannelUser(channelId: number, userId: number, role: Role) {
         return this.db.channelUser.create({
-          data: {
-            role,
-            user: { connect: { id: userId } }, // Connect the user by ID
-            channel: { connect: { id: channelId } }, // Connect the channel by ID
-          },
+            data: {
+                role,
+                user: { connect: { id: userId } }, // Connect the user by ID
+                channel: { connect: { id: channelId } }, // Connect the channel by ID
+            },
         });
     }
 
@@ -168,4 +168,105 @@ export class UsersService {
         }
         return result;
     }
+
+    getHistory(body: any) {
+        //console.log('in getHistory (user.service) -  body = ', body);
+        const history = this.db.history.findFirst({
+            where: {
+                AND: [
+                    {
+                        users: {
+                            some: {
+                                id: body.senderId,
+                            },
+                        },
+                    },
+                    {
+                        users: {
+                            some: {
+                                id: body.receiverId,
+                            },
+                        },
+                    },
+                ],
+            },
+        });
+        return history;
+    }
+
+    async findHistory(body: any) {
+        //body.userId = body.senderId;
+        console.log('in findHistory (user.service) - body = ', body);
+        const history = await this.getHistory(body);
+        if (history === null) {
+            console.log('in findHistory (user.service) - history is null');
+            return [];
+        }
+        const messages = await this.db.message.findMany({
+            where: {
+                receiverId: history.id,
+            },
+        });
+        return messages;
+    }
+
+    async addMessage(client: any, payload: any) {
+        console.log('in addMessage (user.service) - payload = ', payload);
+        const history = await this.getHistory(payload);
+        console.log('in addMessage (user.service) - history = ', history);
+        if (history === null) {
+            console.log('in addMessage (user.service) - history is null');
+            const newHistory = await this.db.history.create({
+                data: {
+                    users: {
+                        connect: [
+                            {
+                                id: payload.senderId,
+                            },
+                            {
+                                id: payload.receiverId,
+                            },
+                        ],
+                    },
+                },
+            });
+            console.log(
+                'in addMessage (user.service) - newHistory = ',
+                newHistory,
+            );
+            const message = this.db.message.create({
+                data: {
+                    content: payload.text,
+                    //senderId: payload.userId,
+                    receiverId: newHistory.id,
+                    senderId: payload.senderId,
+                },
+            });
+            console.log(
+                'in addMessage (user.service) - message created : ',
+                message,
+            );
+            return message;
+        } else {
+            console.log(
+                'in addMessage (user.service) - history is not null, id = ',
+                history.id,
+            );
+            const message = this.db.message.create({
+                data: {
+                    content: payload.text,
+                    receiverId: history.id,
+                    senderId: payload.senderId,
+                    //sender: { connect: { id: payload.userId } },
+                },
+            });
+            console.log(
+                'in addMessage (user.service) - message created : ',
+                message,
+            );
+
+            return message;
+        }
+    }
+
 }

@@ -3,27 +3,26 @@ const client = useClient();
 const auth = useAuth();
 const socket = useSocket();
 
-const sendMessage = () => {
+const sendMessage = async () => {
     if (client.chat.newMessage.trim() === '') 
         return;
     socket.emit('sendPrivateMessage', {
       sender: auth.session.username,
+      senderId: auth.session.id,
       receiver: client.chat.chatState.receiver.username,
+      receiverId: client.chat.chatState.receiver.id,
       text: client.chat.newMessage 
     });
-
-    client.chat.messages.push({
-      sender: auth.session.username,
-      text: client.chat.newMessage,
-    });
     client.chat.newMessage = '';
-
-    setTimeout(() => {
-      client.chat.scrollToBottom();
-    }, 0);
+    //await new Promise(timeout => setTimeout(timeout, 100))
+    setInterval(() => {}, 100);
+    client.chat.messages = await client.chat.currentHistory();
+    // setTimeout(() => {
+      // client.chat.scrollToBottom();
+    // }, 0);
   };
 
-const sendMessageInChannel = () => {
+const sendMessageInChannel = async () => {
   if (client.chat.newMessage.trim() === '') 
       return;
     socket.emit('sendMessageToChannel', {
@@ -33,9 +32,10 @@ const sendMessageInChannel = () => {
     text: client.chat.newMessage 
   });
   client.chat.newMessage = '';
-  setTimeout(() => {
-    client.chat.scrollToBottom();
-  }, 0);
+  client.chat.messages = await client.chat.currentHistory();
+  // setTimeout(() => {
+    // client.chat.scrollToBottom();
+  // }, 0);
 }
 </script>
 

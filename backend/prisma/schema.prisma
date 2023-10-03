@@ -27,7 +27,30 @@ model User {
   wonGames       Game[]        @relation("winner")
   lostGames      Game[]        @relation("loser")
   channels       ChannelUser[] //channels the user is in
+  history        history[]    //history of DMs, and maybe channels soon
+  messages       Message[]     @relation("sender")
   socketId       String        @default("") //socket id for the user
+}
+
+//Message history (may be used for group chat ?)
+model history {
+  id        Int      @id @default(autoincrement())
+  users     User[]    
+  //contentId Int  
+  content   Message[]
+  date      DateTime @default(now())
+}
+
+//Message content
+model Message {
+  id          Int       @id @default(autoincrement())
+  content     String
+  senderId    Int
+  receiverId  Int
+  sender      User      @relation("sender", fields: [senderId], references: [id])
+  receiver    history   @relation(fields: [receiverId], references: [id])
+  date        DateTime  @default(now())
+
 }
 
 //Friend list

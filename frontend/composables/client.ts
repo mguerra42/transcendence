@@ -58,7 +58,7 @@ interface AppClient {
         loginWithGoogle: () => void // login with google
         login42: () => void // login 42
         logout: () => void // logout
-        session: () => void // get user data
+        session: () => any // get user data
     }
     friends: {
         profile: () => void // get user profile
@@ -88,21 +88,23 @@ interface AppClient {
         block: () => void // block user
         inviteGame: () => void // invite user to game
         getAllChannels: () => any // get offline users
-        clearChat: () => void
-        scrollToBottom: () => void
+        clearChat: (div: any) => void
+        scrollToBottom: (div: any) => void
+        currentHistory: () => any // { sender: string; text: string; time?: string; avatar?: string; user?: any }[]
         usersArray: globalThis.Ref<any[]>
         channelArray: globalThis.Ref<any[]>
         chatVisible: boolean
         chatMessages: globalThis.Ref<any>
         chatState: { select: string; receiver: any }
         newMessage: string
-        messages: Ref<{ sender: string; text: string; time?: string; avatar?: string; user?: any}[]>
+        // messages: Ref<{ sender: string; text: string; time?: string; avatar?: string; user?: any }[]>
+        messages: any[]
         showUserProfile: boolean
     }
 
     game: {
         gameLobby: Ref<any[]>
-        addToGameLobby: (user:any) => void
+        addToGameLobby: (user: any) => void
         create: () => void // create game
     }
 }
@@ -290,33 +292,57 @@ export const useClient = defineStore('client', () => {
         return data.value
     }
 
-    client.chat.clearChat = () => {
-        client.chat.messages = ref([])
-        client.chat.scrollToBottom()
+    client.chat.clearChat = async (div: any) => {
+        client.chat.messages = await client.chat.currentHistory()
+        client.chat.scrollToBottom(div)
     }
 
-    client.chat.scrollToBottom = () => {
-        if (client.chat.chatMessages.value === undefined)
+    client.chat.scrollToBottom = (div: any) => {
+        if (div.value === undefined)
             return
-        client.chat.chatMessages.value.scrollTop = client.chat.chatMessages.value.scrollHeight
+        div.value = div.value.scrollHeight
     }
 
-    const gameLobby : Ref<any[]> = ref([]);
+    client.chat.currentHistory = async () => {
+        if (client.chat.chatState !== undefined && client.chat.chatState.select === 'DM') {
+            const { data, error } = await useRequest('/socket/gethistory', {
+                method: 'POST',
+                body: {
+                    senderId: authStore.session.id,
+                    senderName: authStore.session.username,
+                    receiverId: client.chat.chatState.receiver.id,
+                    receiverName: client.chat.chatState.receiver.username,
+                },
+            })
+
+            // console.log('in currentHistory (client.ts), data = ', data.value)
+
+            if (error.value?.statusCode) {
+                authStore.error = error.value?.statusMessage as string
+                return null
+            }
+
+            return data.value
+        }
+        return []
+    }
+
+    const gameLobby: Ref<any[]> = ref([])
 
     // ... your other code ...
 
     // Add gameLobby to the client.game object
     client.game = {
-        gameLobby: gameLobby,
+        gameLobby,
 
         addToGameLobby: async (player: any) => {
-            await new Promise(timeout => setTimeout(timeout, 5000));
-            console.log(player);
-            gameLobby.value.push(player); // Access gameLobby through its ref
+            await new Promise(timeout => setTimeout(timeout, 5000))
+            console.log(player)
+            gameLobby.value.push(player) // Access gameLobby through its ref
         },
         create: () => {
             // Add logic here
         },
-    };
+    }
     return client
 })

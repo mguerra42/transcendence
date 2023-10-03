@@ -27,22 +27,23 @@
   const refreshUsers = async () => {
     client.chat.usersArray = await client.chat.getAllUsers();
     client.chat.channelArray = await channel.getAllChannels();
+    client.chat.messages = await client.chat.currentHistory();
   };
 
 const chatWithUser = async (userToMessage : any) => {
-    if (client.chat.chatState.receiver.id != userToMessage.id || client.chat.chatState.select != 'DM')
-      client.chat.clearChat();
     client.chat.chatState.select = 'DM';
     client.chat.chatState.receiver.id = userToMessage.id;
     client.chat.chatState.receiver.username = userToMessage.username;
+    //console.log('chatWithUser BEFORE : ', client.chat.messages);
+    client.chat.messages = await client.chat.currentHistory();
+    //console.log('chatWithUser AFTER : ', client.chat.messages);
     client.chat.chatState.receiver.avatarPath = userToMessage.avatarPath;
     client.chat.chatState.receiver.victories = userToMessage.victories;
     client.chat.chatState.receiver.defeats = userToMessage.defeats;
     client.chat.chatState.receiver.ladderPoint = userToMessage.ladderPoint;
+    //if (client.chat.chatState.receiver.id != userToMessage.id || client.chat.chatState.select != 'DM')
   };
   const chatWithChannel = async (channelToMessage : any) => {
-    if (client.chat.chatState.receiver.id != channelToMessage.id || client.chat.chatState.select != 'CHANNEL')
-      client.chat.clearChat();
     client.chat.chatState.select = 'CHANNEL';
     client.chat.chatState.receiver.id = channelToMessage.id;
     client.chat.chatState.receiver.name = channelToMessage.name;
@@ -50,6 +51,8 @@ const chatWithUser = async (userToMessage : any) => {
       sender: auth.session.username,
       receiver: client.chat.chatState.receiver.name,
     });
+    //if (client.chat.chatState.receiver.id != channelToMessage.id || client.chat.chatState.select != 'CHANNEL')
+    //client.chat.clearChat();
   };
 </script>
 

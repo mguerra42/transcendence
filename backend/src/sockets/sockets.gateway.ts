@@ -38,10 +38,8 @@ export class SocketsGateway {
             if (user === null) {
                 throw new Error('User not found in database');
             }
-            this.server.to(user.socketId).emit('receivePrivateMessage', {
-                content: payload.text,
-                sender: payload.sender,
-            });
+            this.userService.addMessage(client, payload);
+            this.server.to(user.socketId).emit('receivePrivateMessage', {});
         } catch (e) {
             throw new WsException((e as Error).message);
         }
@@ -49,7 +47,9 @@ export class SocketsGateway {
 
     @SubscribeMessage('sendMessageToChannel')
     async handleChannelMessage(client: any, payload: any) {
-        const userProfile = await this.userService.findByUsername(payload.sender);
+        const userProfile = await this.userService.findByUsername(
+            payload.sender,
+        );
         try {
             this.server.to(payload.receiver).emit('receiveMessageFromChannel', {
                 yourdata: payload.text,
@@ -107,8 +107,7 @@ export class SocketsGateway {
     }
 
     @SubscribeMessage('playerMovement')
-    handlePlayerMovement(client:any, payload:any)
-    {
+    handlePlayerMovement(client: any, payload: any) {
         this.server.emit('playerMovementResponse', {
             player: payload.player,
             move: payload.move,
@@ -136,36 +135,34 @@ export class SocketsGateway {
 
     async handleConnection(client) {
         // try {
-            // Split all cookies and key/value pairs
-            const cookies = client.handshake.headers.cookie
-                ?.split(';')
-                .map((c) => c.split('='));
-            const access_token = cookies?.find((c) => c[0] === 'access_token');
-            if (!access_token) {
-                client.disconnect();
-                return ;
-                // throw new Error('Access token not found');
-            }
-            const payload = await this.authService.validateToken(
-                access_token[1],
-            );
-            if (!payload) {
-                client.disconnect();
-                // throw new Error('Invalid access token');
-            }
-            client.user = {
-                id: payload.id,
-                email: payload.email,
-            };
-            const user = await this.userService.findByEmail(payload.email);
-            if (user !== null) {
-                const userToUpdate: UpdateUserDto = {};
-                userToUpdate.socketId = client.id;
-                userToUpdate.status = 'ONLINE';
-                await this.userService.update(user.id, userToUpdate);
-            } else {
-                // throw new Error('User not found in database');
-            }
+        // Split all cookies and key/value pairs
+        const cookies = client.handshake.headers.cookie
+            ?.split(';')
+            .map((c) => c.split('='));
+        const access_token = cookies?.find((c) => c[0] === 'access_token');
+        if (!access_token) {
+            client.disconnect();
+            return;
+            // throw new Error('Access token not found');
+        }
+        const payload = await this.authService.validateToken(access_token[1]);
+        if (!payload) {
+            client.disconnect();
+            // throw new Error('Invalid access token');
+        }
+        client.user = {
+            id: payload.id,
+            email: payload.email,
+        };
+        const user = await this.userService.findByEmail(payload.email);
+        if (user !== null) {
+            const userToUpdate: UpdateUserDto = {};
+            userToUpdate.socketId = client.id;
+            userToUpdate.status = 'ONLINE';
+            await this.userService.update(user.id, userToUpdate);
+        } else {
+            // throw new Error('User not found in database');
+        }
         // } catch (e) {
         //     throw new WsException((e as Error).message);
         // }

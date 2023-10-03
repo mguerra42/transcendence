@@ -23,6 +23,8 @@
 </style>
 
 <script setup lang="ts">
+import { createClientOnly } from 'nuxt/dist/app/components/client-only';
+
 
   //TODO : refactor to make this shorter 
   const auth = useAuth();
@@ -38,6 +40,7 @@
   client.chat.chatState= {select: 'EMPTY', receiver:[] };
 
   const refreshUsers = async () => {
+    client.chat.messages = await client.chat.currentHistory();
     client.chat.usersArray = await client.chat.getAllUsers();
     client.chat.channelArray = await channel.getAllChannels();
   };
@@ -73,11 +76,11 @@
     socket.on('afkResponse', () => {
       refreshUsers();
     });
-    socket.on('receivePrivateMessage', (data: any) => {
-      client.chat.messages.push({
-        sender: data.sender,
-        text: data.content,
-      });
+    socket.on('receivePrivateMessage', async (data: any) => {
+      client.chat.messages = await client.chat.currentHistory();
+    //   setTimeout(() => {
+    //     client.chat.scrollToBottom();
+    // }, 0);
     });
     socket.on('joinChannelResponse', (data: any) => {
       client.chat.chatState.receiver.userCount = data.userCount;
@@ -87,14 +90,14 @@
         const currentTime = new Date();
         const timeOptions = { hour: '2-digit', minute: '2-digit' };
         const formattedTime = currentTime.toLocaleTimeString(undefined, timeOptions);
-
-        client.chat.messages.push({
-          sender: data.sender,
-          avatar: data.avatar,
-          time: formattedTime,
-          text: data.yourdata,
-          user: data.profile,
-        });
+        // client.chat.messages = await client.chat.currentHistory();
+        // client.chat.messages.push({
+          // sender: data.sender,
+          // avatar: data.avatar,
+          // time: formattedTime,
+          // text: data.yourdata,
+          // user: data.profile,
+        //});
     });
 
     //trick to scroll to bottom always after vue has updated the DOM

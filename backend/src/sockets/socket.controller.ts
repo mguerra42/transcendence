@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 //import { ChannelService } from '../channel/channel.service';
 
@@ -36,5 +36,17 @@ export class SocketController {
         const channelsList = await this.userService.findAllChannels();
         //console.log('channel List = ', channelsList);
         return channelsList;
+    }
+
+    // export class HistoryDto {
+    //     channelName: string;
+    //     history: string;
+    // }
+
+    @Post('gethistory')
+    async GetHistory(@Body() body: any) {
+        const history = await this.userService.findHistory(body);
+        //console.log('in getHistory (socket.controller), history = ', history);
+        return history;
     }
 }
