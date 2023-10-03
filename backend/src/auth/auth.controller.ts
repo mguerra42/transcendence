@@ -15,8 +15,9 @@ import { SignUpDto } from './dto/signup.dto';
 import { Response } from 'express';
 import { LocalAuthGuard } from './local-auth.guard';
 import { JwtAuthGuard } from './jwt-auth.guard';
-import { UpdateDto } from './dto/update.dto';
 import { updateSessionDto } from './dto/session.dto';
+import { UpdateUserDto } from '../users/dto/update-user.dto';
+
 import { Express } from 'express';
 import * as fs from 'fs';
 import { GoogleStrategy } from './google.strategy';
@@ -134,18 +135,10 @@ export class AuthController {
     async logout(@Request() req, @Res({ passthrough: true }) res: Response) {
         res.clearCookie('access_token');
         const user = await this.usersService.findByEmail(req.user.email);
-        interface userToUpdateObject {
-            email?: string;
-            password?: string;
-            username?: string;
-            avatarPath?: string;
-            socketId?: string;
-            status?: string;
-        }
 
         if (user != null) {
             //console.log('user found in the database : ', user.email);
-            const userToUpdate: userToUpdateObject = {};
+            const userToUpdate: UpdateUserDto = {};
             userToUpdate.status = 'OFFLINE';
             await this.usersService.update(user.id, userToUpdate);
         }
@@ -156,7 +149,7 @@ export class AuthController {
     @UseInterceptors(FileInterceptor('avatar'))
     async update(
         @Request() req,
-        @Body() updateDto: UpdateDto,
+        @Body() updateDto: UpdateUserDto,
         @UploadedFile() avatar: Express.Multer.File,
         @Res({ passthrough: true }) res: Response,
     ) {

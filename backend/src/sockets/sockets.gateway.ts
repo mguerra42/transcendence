@@ -2,12 +2,14 @@ import {
     SubscribeMessage,
     WebSocketGateway,
     WebSocketServer,
+    WsException,
 } from '@nestjs/websockets';
 
 import { UsersService } from '../users/users.service';
 import { AuthService } from '../auth/auth.service';
 import { Server } from 'socket.io';
 import { channel } from 'diagnostics_channel';
+import { UpdateUserDto } from '../users/dto/update-user.dto';
 
 @WebSocketGateway({
     cors: {
@@ -24,140 +26,148 @@ export class SocketsGateway {
     @WebSocketServer()
     public server: Server;
 
-    @SubscribeMessage('chatBox')
-    async handleMessage(client: any, payload: any): Promise<string> {
-        //console.log('SOCKET GATEWAY payload = ', payload);
-        //console.log("socket from " , payload.sender, " to ", payload.receiver, " : ", payload.text );
-        const user = await this.userService.findByUsername(payload.receiver);
-        if (user !== null && payload.receiver !== undefined) {
-            this.server.to(user.socketId).emit('chatBoxResponse', {
-                yourdata: payload.text,
+    @SubscribeMessage('sendPrivateMessage')
+    async handlePrivateMessage(client: any, payload: any) {
+        try {
+            if (payload.receiver === undefined) {
+                throw new Error('Receiver not defined');
+            }
+            const user = await this.userService.findByUsername(
+                payload.receiver,
+            );
+            if (user === null) {
+                throw new Error('User not found in database');
+            }
+            this.server.to(user.socketId).emit('receivePrivateMessage', {
+                content: payload.text,
                 sender: payload.sender,
             });
-        } else console.log('User not found in database');
+        } catch (e) {
+            throw new WsException((e as Error).message);
+        }
+    }
 
-        return 'Hello world!';
+    @SubscribeMessage('sendMessageToChannel')
+    async handleChannelMessage(client: any, payload: any) {
+        const userProfile = await this.userService.findByUsername(payload.sender);
+        try {
+            this.server.to(payload.receiver).emit('receiveMessageFromChannel', {
+                yourdata: payload.text,
+                sender: payload.sender,
+                avatar: payload.avatar,
+                profile: userProfile,
+                timestamp: '',
+            });
+        } catch (e) {
+            throw new WsException((e as Error).message);
+        }
     }
 
     @SubscribeMessage('joinChannel')
-    async handleJoinChannel(client: any, payload: any): Promise<string> {
-        
-        const channelToJoin = await this.userService.findChannelByName(payload.receiver);
-        const userToSubscribe = await this.userService.findByUsername(payload.sender);
-
-        const channelId = channelToJoin.id;
-        const userId = userToSubscribe.id;
-        const userStatus = userToSubscribe.status;
-        const role = 'USER';
-
-        const usersInChannel = channelToJoin.userList;
-        let onlineUsersInChannel = 0;
-        for (let i = 0; i < usersInChannel.length; i++) {
-            const userId = usersInChannel[i].userId;
-            const res = await this.userService.getUserInChannelUser(userId);
-            if (res.user.status === 'ONLINE')
-                onlineUsersInChannel++;
-            if (usersInChannel[i].userId === userToSubscribe.id) {
-                client.join(payload.receiver);
-                this.server.to(payload.receiver).emit('joinChannelResponse', {
-                    userCount: usersInChannel.length,
-                    onlineUsers: onlineUsersInChannel,
-                });
-                console.log('user already in the channel ', usersInChannel.length, payload.receiver);
-                return 'user already in the channel';
+    async handleJoinChannel(client: any, payload: any) {
+        try {
+            const channelToJoin = await this.userService.findChannelByName(
+                payload.receiver,
+            );
+            if (channelToJoin === null) {
+                throw new Error('Channel not found in database');
             }
+            const userToSubscribe = await this.userService.findByUsername(
+                payload.sender,
+            );
+            if (userToSubscribe === null) {
+                throw new Error('User not found in database');
+            }
+            let onlineUsersInChannel = 0;
+            let userIsInChannel = false;
+            for (let i = 0; i < channelToJoin.userList.length; i++) {
+                const res = await this.userService.getUserInChannelUser(
+                    channelToJoin.userList[i].userId,
+                );
+                if (res.user.status === 'ONLINE') onlineUsersInChannel++;
+                if (channelToJoin.userList[i].userId === userToSubscribe.id) {
+                    userIsInChannel = true;
+                }
+            }
+            if (!userIsInChannel) {
+                await this.userService.addChannelUser(
+                    channelToJoin.id,
+                    userToSubscribe.id,
+                    'USER',
+                );
+            }
+            client.join(payload.receiver);
+            this.server.to(payload.receiver).emit('joinChannelResponse', {
+                userCount: channelToJoin.userList.length,
+                onlineUsersInChannel: onlineUsersInChannel,
+            });
+        } catch (e) {
+            throw new WsException((e as Error).message);
         }
-
-        const channelUser = await this.userService.addChannelUser(channelId, userId, role);
-        client.join(payload.receiver);
-
-        this.server.to(payload.receiver).emit('joinChannelResponse', {
-            userCount: channelToJoin.userList.length,
-        });        
-        return 'Hello world!';
     }
 
-    @SubscribeMessage('channelMessage')
-    async handleChannelMessage(client: any, payload: any): Promise<string> {
-        this.server.to(payload.receiver).emit('channelMessageResponse', {
-            yourdata: payload.text,
-            sender: payload.sender,
-            avatar: payload.avatar,
-            timestamp: ''
+    @SubscribeMessage('playerMovement')
+    handlePlayerMovement(client:any, payload:any)
+    {
+        this.server.emit('playerMovementResponse', {
+            player: payload.player,
+            move: payload.move,
         });
-        console.log(payload)
-        return 'Hello world!';
     }
 
     @SubscribeMessage('afk')
-    async handleDisconnection(client: any, payload: any): Promise<string> {
-        const user = await this.userService.findByUsername(payload.sender);
-        if (user !== null) {
-            this.server.emit('afkResponse', {
-                sender: payload.sender,
-            });
-        } else console.log('User not found in database');
-
-        interface userToUpdateObject {
-            email?: string;
-            password?: string;
-            username?: string;
-            avatarPath?: string;
-            socketId?: string;
-            status?: string;
+    async handleDisconnection(client: any, payload: any) {
+        try {
+            const user = await this.userService.findByUsername(payload.sender);
+            if (user !== null) {
+                this.server.emit('afkResponse', {
+                    sender: payload.sender,
+                });
+                const userToUpdate: UpdateUserDto = {};
+                userToUpdate.status = payload.text;
+                await this.userService.update(user.id, userToUpdate);
+            } else {
+                throw new Error('User not found in database');
+            }
+        } catch (e) {
+            throw new WsException((e as Error).message);
         }
-        if (user != null) {
-            const userToUpdate: userToUpdateObject = {};
-            userToUpdate.status = payload.text;
-            await this.userService.update(user.id, userToUpdate);
-        }
-        return 'Hello world!';
     }
 
     async handleConnection(client) {
-        // Split all cookies and key/value pairs
-        const cookies = client.handshake.headers.cookie
-            ?.split(';')
-            .map((c) => c.split('='));
-
-        const access_token = cookies?.find((c) => c[0] === 'access_token');
-
-        if (!access_token) {
-            client.disconnect();
-            return;
-        }
-
-        //console.log('access_token = ', access_token[1]);
-        const payload = await this.authService.validateToken(access_token[1]);
-        !payload && client.disconnect(); // If token is invalid, disconnect
-
-        client.user = {
-            id: payload.id,
-            email: payload.email,
-        };
-
-        //console.log('payload = ', payload);
-        const user = await this.userService.findByEmail(payload.email);
-
-        interface userToUpdateObject {
-            email?: string;
-            password?: string;
-            username?: string;
-            avatarPath?: string;
-            socketId?: string;
-            status?: string;
-        }
-
-        if (user != null) {
-            //console.log('user found in the database : ', user.email, user.socketId);
-            const userToUpdate: userToUpdateObject = {};
-            userToUpdate.socketId = client.id;
-            userToUpdate.status = 'ONLINE';
-            await this.userService.update(user.id, userToUpdate);
-            //console.log('new socket id : ' + client.id);
-        }
-        //else
-        //console.log('User not found in database');
-        //TO DO = supprimer le cookie si l'user est null (pas dans la db)
+        // try {
+            // Split all cookies and key/value pairs
+            const cookies = client.handshake.headers.cookie
+                ?.split(';')
+                .map((c) => c.split('='));
+            const access_token = cookies?.find((c) => c[0] === 'access_token');
+            if (!access_token) {
+                client.disconnect();
+                return ;
+                // throw new Error('Access token not found');
+            }
+            const payload = await this.authService.validateToken(
+                access_token[1],
+            );
+            if (!payload) {
+                client.disconnect();
+                // throw new Error('Invalid access token');
+            }
+            client.user = {
+                id: payload.id,
+                email: payload.email,
+            };
+            const user = await this.userService.findByEmail(payload.email);
+            if (user !== null) {
+                const userToUpdate: UpdateUserDto = {};
+                userToUpdate.socketId = client.id;
+                userToUpdate.status = 'ONLINE';
+                await this.userService.update(user.id, userToUpdate);
+            } else {
+                // throw new Error('User not found in database');
+            }
+        // } catch (e) {
+        //     throw new WsException((e as Error).message);
+        // }
     }
 }

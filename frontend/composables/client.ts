@@ -87,13 +87,22 @@ interface AppClient {
         sendTo: () => void // send DM to user
         block: () => void // block user
         inviteGame: () => void // invite user to game
-
-        avatar: string
-        receiver: string
-
         getAllChannels: () => any // get offline users
+        clearChat: () => void
+        scrollToBottom: () => void
+        usersArray: globalThis.Ref<any[]>
+        channelArray: globalThis.Ref<any[]>
+        chatVisible: boolean
+        chatMessages: globalThis.Ref<any>
+        chatState: { select: string; receiver: any }
+        newMessage: string
+        messages: Ref<{ sender: string; text: string; time?: string; avatar?: string; user?: any}[]>
+        showUserProfile: boolean
     }
+
     game: {
+        gameLobby: Ref<any[]>
+        addToGameLobby: (user:any) => void
         create: () => void // create game
     }
 }
@@ -109,6 +118,7 @@ export const useClient = defineStore('client', () => {
     // Authentification
     client.auth = {} as AppClient['auth']
     client.chat = {} as AppClient['chat']
+    client.game = {} as AppClient['game']
 
     // This variable is used to determine which auth method is used at the time of signin
     client.auth.authMethod = 'default'
@@ -280,5 +290,33 @@ export const useClient = defineStore('client', () => {
         return data.value
     }
 
+    client.chat.clearChat = () => {
+        client.chat.messages = ref([])
+        client.chat.scrollToBottom()
+    }
+
+    client.chat.scrollToBottom = () => {
+        if (client.chat.chatMessages.value === undefined)
+            return
+        client.chat.chatMessages.value.scrollTop = client.chat.chatMessages.value.scrollHeight
+    }
+
+    const gameLobby : Ref<any[]> = ref([]);
+
+    // ... your other code ...
+
+    // Add gameLobby to the client.game object
+    client.game = {
+        gameLobby: gameLobby,
+
+        addToGameLobby: async (player: any) => {
+            await new Promise(timeout => setTimeout(timeout, 5000));
+            console.log(player);
+            gameLobby.value.push(player); // Access gameLobby through its ref
+        },
+        create: () => {
+            // Add logic here
+        },
+    };
     return client
 })
