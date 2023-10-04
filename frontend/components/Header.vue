@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // const client = useClient()
 const auth = useAuth()
+const friend = useFriend()
 const socket = useSocket()
 const client = useClient()
 onMounted(async () => {

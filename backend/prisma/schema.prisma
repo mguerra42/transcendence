@@ -30,6 +30,14 @@ model User {
   history        history[]    //history of DMs, and maybe channels soon
   messages       Message[]     @relation("sender")
   socketId       String        @default("") //socket id for the user
+  queue          Queue?        // Define the Queue relation here
+
+}
+
+model Queue {
+  id         Int      @id @default(autoincrement())
+  username   String   @unique
+  profile    User     @relation(fields: [username], references: [username])
 }
 
 //Message history (may be used for group chat ?)
