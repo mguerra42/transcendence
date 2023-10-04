@@ -5,6 +5,12 @@
   const friend = useFriend();
   const channel = useChannel();
 
+  const toggleFriends = () => {
+    client.chat.chatState.select = 'Amis';
+    if (friend.showFriend === false)
+      friend.showFriend = true
+  }
+
   const toggleChat = () => {
     client.chat.chatVisible = !client.chat.chatVisible;
     if (client.chat.chatVisible === false)
@@ -60,10 +66,11 @@ const chatWithUser = async (userToMessage : any) => {
           Close
         </button>
         <!-- MP -->
-        <button @click="friend.showFriend = !friend.showFriend" class="text-sm mb-2 mt-2 text-left text-zinc-200 hover:text-zinc-400 font-semi-bold px-2 py-2">
+        <!-- client.chat.chatState.select = 'DM'; -->
+        <button @click="toggleFriends" class="text-sm mb-2 mt-2 text-left text-zinc-200 hover:text-zinc-400 font-semi-bold px-2 py-2">
           Amis
         </button>
-        <button @click="refreshUsers" class="text-sm mb-2 mt-2 text-left text-zinc-200 hover:text-zinc-400 font-semi-bold px-2 py-2">
+        <button @click="refreshUsers" class="text-sm mb-2 text-left text-zinc-200 hover:text-zinc-400 font-semi-bold px-2 py-2">
           Messages privés
         </button>
         <div v-for="user in client.chat.usersArray" @click="chatWithUser(user)" class="mb-1 flex w-full hover:bg-zinc-700 cursor-pointer rounded">
