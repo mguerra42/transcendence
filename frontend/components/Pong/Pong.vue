@@ -51,6 +51,7 @@
 
     const opponentProfile : Ref<{ username?: string; avatar?: string;}> = ref({});
     const opponentDeclined = ref(false);
+    const opponentAccepted = ref(false);
     const showMatchmakingError = ref(false);
     const showPlayButton = ref(true);
     const MatchmakingError = ref('Matchmaking : An error occured.');
@@ -75,11 +76,12 @@
 
     const acceptMatch = () => {
         matchAccepted.value = true;
+        socket.emit('matchmakingConfirm', {player: auth.session.username, confirm: 'accept'})
     }
 
     const declineMatch = () => {
         matchDeclined.value = true;
-        socket.emit('matchmakingDecline', {player: auth.session.username, confirm: 'decline'})
+        socket.emit('matchmakingConfirm', {player: auth.session.username, confirm: 'decline'})
     }
 
     const stopMatchmaking = () => {
@@ -121,12 +123,16 @@
             new Promise<void>(timeout => setTimeout(timeout, 10000)),
             new Promise<void>(resolve => {
                 const checkMatchAccepted = () => {
-                    if (matchAccepted.value === true || matchDeclined.value === true)
+                    if (matchAccepted.value === true && opponentAccepted.value === true)
                         resolve();
                     else if (opponentDeclined.value === true)
                     {
                         resolve();
                         opponentDeclined.value = false;
+                    }
+                    else if (matchDeclined.value === true)
+                    {
+                        resolve();
                     }
                     else
                         setTimeout(checkMatchAccepted, 100);
@@ -156,13 +162,14 @@
                 return ;
             }
             await waitForConfirm();
-            if (matchAccepted.value === true)
+            if (matchAccepted.value === true && opponentAccepted.value === true)
             {
                 showPong.value = true;
                 matchFound.value = false;
                 matchAccepted.value = false;
                 matchDeclined.value = false;
                 showPlayButton.value = true;
+                opponentAccepted.value = false;
                 timeElapsed.value = 0;
                 await client.game.removeFromGameQueue(auth.session.username)
                 gameLoop();
@@ -171,6 +178,7 @@
             matchAccepted.value = false;
             matchDeclined.value = false;
             showPlayButton.value = true;
+            opponentAccepted.value = false;
             timeElapsed.value = 0;
             await client.game.removeFromGameQueue(auth.session.username)
         } else {
@@ -181,6 +189,7 @@
             matchDeclined.value = false;
             showPong.value = false;
             showPlayButton.value = true;
+            opponentAccepted.value = false;
             timeElapsed.value = 0;
         }
     }
@@ -350,11 +359,13 @@
             }
         });
 
-        socket.on('matchmakingDeclineResponse', (data: any) => {
+        socket.on('matchmakingConfirmResponse', (data: any) => {
             if (data.player !== auth.session.username)
             {
                 if (data.confirm === 'decline')
                     opponentDeclined.value = true;
+                if (data.confirm === 'accept')
+                    opponentAccepted.value = true;
             }
         });
 

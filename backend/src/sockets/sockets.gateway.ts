@@ -115,10 +115,10 @@ export class SocketsGateway {
         });
     }
 
-    @SubscribeMessage('matchmakingDecline')
+    @SubscribeMessage('matchmakingConfirm')
     handleMatchmakingDecline(client:any, payload:any)
     {
-        this.server.emit('matchmakingDeclineResponse', {
+        this.server.emit('matchmakingConfirmResponse', {
             player: payload.player,
             confirm: payload.confirm,
         });
