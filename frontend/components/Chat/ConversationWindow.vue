@@ -6,6 +6,7 @@ const auth = useAuth();
 
 <template>
   <div class="flex flex-col w-2/3 p-2 m-2">
+        <FriendList v-if="client.chat.chatState.select === 'Amis'"/>
         <!-- Messages -->
         <ChatMessageWindowDM/>
 
