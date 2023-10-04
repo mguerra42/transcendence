@@ -50,6 +50,7 @@
 <script setup lang="ts">
 
     const opponentProfile : Ref<{ username?: string; avatar?: string;}> = ref({});
+    const opponentDeclined = ref(false);
     const showMatchmakingError = ref(false);
     const showPlayButton = ref(true);
     const MatchmakingError = ref('Matchmaking : An error occured.');
@@ -70,12 +71,15 @@
 
     await socket.connect();
     
+    // MATCHMAKING CODE
+
     const acceptMatch = () => {
         matchAccepted.value = true;
     }
 
     const declineMatch = () => {
         matchDeclined.value = true;
+        socket.emit('matchmakingDecline', {player: auth.session.username, confirm: 'decline'})
     }
 
     const stopMatchmaking = () => {
@@ -119,6 +123,11 @@
                 const checkMatchAccepted = () => {
                     if (matchAccepted.value === true || matchDeclined.value === true)
                         resolve();
+                    else if (opponentDeclined.value === true)
+                    {
+                        resolve();
+                        opponentDeclined.value = false;
+                    }
                     else
                         setTimeout(checkMatchAccepted, 100);
                 };
@@ -175,6 +184,8 @@
             timeElapsed.value = 0;
         }
     }
+
+    //PONG CODE
 
     let Player1 = ref({
         width: 15,
@@ -338,6 +349,15 @@
                     player2MoveDown();
             }
         });
+
+        socket.on('matchmakingDeclineResponse', (data: any) => {
+            if (data.player !== auth.session.username)
+            {
+                if (data.confirm === 'decline')
+                    opponentDeclined.value = true;
+            }
+        });
+
         
     });
 </script>

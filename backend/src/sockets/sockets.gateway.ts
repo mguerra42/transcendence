@@ -115,6 +115,15 @@ export class SocketsGateway {
         });
     }
 
+    @SubscribeMessage('matchmakingDecline')
+    handleMatchmakingDecline(client:any, payload:any)
+    {
+        this.server.emit('matchmakingDeclineResponse', {
+            player: payload.player,
+            confirm: payload.confirm,
+        });
+    }
+
     @SubscribeMessage('afk')
     async handleDisconnection(client: any, payload: any) {
         try {
