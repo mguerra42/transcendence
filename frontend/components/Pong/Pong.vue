@@ -6,12 +6,17 @@
     <!-- Loading animation-->
     <div v-if="showLoader" class="w-50">
         <div class="bg-zinc-700 rounded py-4 px-2">
-            <div class="flex justify-center mx-auto">
-                <div class="animate-bounce h-[16px] w-[16px] bg-zinc-200 rounded-full" v-if="showLoader"></div>
+            <div v-if="!showMatchmakingError">
+                <div class="flex justify-center mx-auto">
+                    <div class="animate-bounce h-[16px] w-[16px] bg-zinc-200 rounded-full" v-if="showLoader"></div>
+                </div>
+                <div class="bg-zinc-200 h-1 w-10 m-2 mx-auto rounded"></div>
+                <p class="text-xs text-zinc-400 text-center">Waiting for an opponent...</p>
+                <p class="text-xs text-zinc-400 text-center">00:0{{ timeElapsed }}</p>
             </div>
-            <div class="bg-zinc-200 h-1 w-10 m-2 mx-auto rounded"></div>
-            <p class="text-xs text-zinc-400 text-center">Waiting for an opponent...</p>
-            <p class="text-xs text-zinc-400 text-center">00:0{{ timeElapsed }}</p>
+            <div v-else class="flex justify-center">
+                <p class="text-xs text-zinc-200 text-center">{{ MatchmakingError }}</p>
+            </div>
         </div>
     </div>
     <!-- Accept match window-->
@@ -21,10 +26,10 @@
         </p>
         <div class="flex mt-1 justify-center">
             <div>
-                <img :src="auth.session.avatarPath" class="w-20 h-20 m-2 rounded-full" />
+                <img :src="opponentProfile.avatarPath" class="w-20 h-20 m-2 rounded-full" />
                 <div class="flex justify-center">
                     <div class="flex-col flex justify-center">
-                        <p class="text-lg text-center text-zinc-200" >{{ auth.session.username }}</p>
+                        <p class="text-lg text-center text-zinc-200" >{{ opponentProfile.username }}</p>
                         <p class="text-xs text-center text-zinc-400" >W/L : 10-3</p>
                         <p class="text-xs text-center text-zinc-400" >Elo : 1230</p>
                     </div>
@@ -44,7 +49,10 @@
 
 <script setup lang="ts">
 
+    const opponentProfile : Ref<{ username?: string; avatar?: string;}> = ref({});
+    const showMatchmakingError = ref(false);
     const showPlayButton = ref(true);
+    const MatchmakingError = ref('Matchmaking : An error occured.');
     const showPong = ref(false);
     const showLoader = ref(false);
     const matchFound = ref(false)
@@ -70,6 +78,10 @@
         matchDeclined.value = true;
     }
 
+    const stopMatchmaking = () => {
+        showLoader.value = false;
+    }
+
     const waitForMatch = async () => {
         showPlayButton.value = false;
 
@@ -78,24 +90,28 @@
         timeElapsed.value++;
         }, 1000);
 
-        const res:any = await client.game.addToGameLobby(auth.session.username);
-        if (res === null || res === undefined)
-            console.log('couldnt add to gamelobby')
-        else
-            console.log('added to game lobby')
-        console.log(res)
-        //returns a tab of users res[0].profile.username etc
+        await client.game.addToGameQueue(auth.session.username)
+        const matchOpponent:any = await client.game.findAMatch(auth.session.username);
+        if (matchOpponent === null)
+        {
+            MatchmakingError.value = 'No players available.'
+            clearInterval(timeElapsedInterval);
+            timeElapsed.value = 0;
+            return null;
+        }
+        opponentProfile.value.username = matchOpponent.profile.username;
+        opponentProfile.value.avatarPath = matchOpponent.profile.avatarPath;
         clearInterval(timeElapsedInterval);
         timeElapsed.value = 0;
+        return matchOpponent;
     }
 
     const waitForConfirm = async () => {
         matchFound.value = true;
         timeElapsed.value = 10;
-        const timeElapsedInterval2 = setInterval(() => {
+        const timeElapsedInterval = setInterval(() => {
             timeElapsed.value--;
         }, 1000);
-
         showLoader.value = false;
         await Promise.race([
             new Promise<void>(timeout => setTimeout(timeout, 10000)),
@@ -104,19 +120,32 @@
                     if (matchAccepted.value === true || matchDeclined.value === true)
                         resolve();
                     else
-                        setTimeout(checkMatchAccepted, 10); // Check every 100 milliseconds
+                        setTimeout(checkMatchAccepted, 100);
                 };
-                
                 checkMatchAccepted();
             }),   
         ]);
-        clearInterval(timeElapsedInterval2);
+        clearInterval(timeElapsedInterval);
     }
 
     const startGame = async () => {
         const player = auth.session;
         if (showPong.value === false) {
-            await waitForMatch();
+            const ret = await waitForMatch();
+            if (ret === null)
+            {
+                await client.game.removeFromGameQueue(auth.session.username)
+                showMatchmakingError.value = true;
+                await new Promise(timeout => setTimeout(timeout, 2000));
+                showLoader.value = false;
+                showMatchmakingError.value = false;
+                matchFound.value = false;
+                matchAccepted.value = false;
+                matchDeclined.value = false;
+                showPlayButton.value = true;
+                timeElapsed.value = 0;
+                return ;
+            }
             await waitForConfirm();
             if (matchAccepted.value === true)
             {
@@ -126,6 +155,7 @@
                 matchDeclined.value = false;
                 showPlayButton.value = true;
                 timeElapsed.value = 0;
+                await client.game.removeFromGameQueue(auth.session.username)
                 gameLoop();
             }
             matchFound.value = false;
@@ -133,6 +163,7 @@
             matchDeclined.value = false;
             showPlayButton.value = true;
             timeElapsed.value = 0;
+            await client.game.removeFromGameQueue(auth.session.username)
         } else {
             resetGame();
             cancelAnimationFrame(animationFrameId.value);

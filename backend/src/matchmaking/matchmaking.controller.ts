@@ -18,9 +18,17 @@ export class MatchmakingController {
     }
 
     @Post ('addPlayerToQueue')
-    addPlayerToQuueue(@Body() req:any){
+    addPlayerToQueue(@Body() req:any){
         if (req.username === undefined)
             return null
         return this.userService.addUserToQueue(req.username); 
+    }
+    
+    @Post ('removePlayerFromQueue')
+    removePlayerToQueue(@Body() req:any){
+        if (req.username === undefined)
+            return null
+        console.log('quququ')
+        return this.userService.removeUserFromQueue(req.username); 
     }
 }

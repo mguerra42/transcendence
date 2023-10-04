@@ -128,6 +128,15 @@ export class UsersService {
           });
       }
 
+    removeUserFromQueue(playerUsername: string) {
+    console.log('removing user : ', playerUsername)
+    return this.db.queue.delete({
+            where: {
+                username: playerUsername,
+            },
+        });
+    }
+
     getUsersFromQueue() {
         return this.db.queue.findMany({
             select: {

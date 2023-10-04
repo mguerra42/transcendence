@@ -104,7 +104,9 @@ interface AppClient {
     }
 
     game: {
-        addToGameLobby: (user:any) => void
+        addToGameQueue: (user:any) => void
+        removeFromGameQueue: (user:any) => void
+        findAMatch: (user:any) => void
         create: () => void // create game
     }
 }
@@ -327,47 +329,69 @@ export const useClient = defineStore('client', () => {
     }
 
     client.game = {
-        addToGameLobby: async (playerUsername: string) => {
-            //Initial load time
-            // await new Promise(timeout => setTimeout(timeout, 2000));
-            //Additional DB load time
-            const { data, error } = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${playerUsername}`, {
+        addToGameQueue: async (playerUsername: string) => {
+            //If user is already in the game queue, return
+            const userExists:any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${playerUsername}`, {
                 method: 'GET',
             })
-            
-            const userProfile:any = data.value;
-            if (userProfile.profile === undefined)
-            {
-                const { data, error } = await useRequest('/matchmaking/addPlayerToQueue', {
-                    method: 'POST',
-                    body: {username: playerUsername}
-                })
-                console.log(data.value)
-                return data.value
-            }
-            else
-            {
-                console.log('user exists already')
-                console.log(userProfile.profile)
+            if(userExists.data.value.profile !== undefined)
                 return null
-                    // await this.userService.addUserToQueue(playerUsername)
+            //Else add user in the game queue
+            const response:any = await useRequest('/matchmaking/addPlayerToQueue', {
+                method: 'POST',
+                body: {username: playerUsername}
+            })
+            return response.data.value;
+        },
+
+        removeFromGameQueue: async (playerUsername: string) => {
+            const userExists:any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${playerUsername}`, {
+                method: 'GET',
+            })
+            if(userExists.data.value.profile === undefined)
+                return null
+            const response:any = await useRequest('/matchmaking/removePlayerFromQueue', {
+                method: 'POST',
+                body: {username: playerUsername}
+            })
+            return response.data.value;
+        },
+
+        findAMatch: async (playerUsername: string) => {
+            //Fetch users in the queue
+            let usersArray:any = await useRequest('/matchmaking/getNormalGameQueue', {
+                method: 'GET',
+            })
+            //If there are less than 2 users
+            //Wait 10 ticks for someone to join the queue
+            //Return null if nobody joined after 10 tries
+            if (usersArray.data.value.length < 2)
+            {
+                let retries = 0;
+                while (retries < 10 && usersArray.data.value.length < 2)
+                {
+                    await new Promise(timeout => setTimeout(timeout, 1000));
+                    usersArray = await useRequest('/matchmaking/getNormalGameQueue', {
+                        method: 'GET',
+                    })
+                    retries++;
+                }
+                if (retries >= 10)
+                {
+                    await useRequest('/matchmaking/removePlayerFromQueue', {
+                        method: 'POST',
+                        body: {username: playerUsername}
+                    })
+                    return null
+                }
             }
-            // let userArray:any = data.value;
-            // for (let i =0 ; i < userArray.length; i++)
-            // {
-            //     console.log(userArray[i].profile.username)
-            // }
-            // const res = await this.userService.getUsersFromQueue();
-            // let found = 0;
-            
-            // for (let i =0; i < res.length; i++)
-            // {
-            //     console.log(res[i].profile.username)
-            //     if (res[i].profile.username === payload.sender)
-            //         found = 1;
-            // }
-            // if (found === 0)
-            //     await this.userService.addUserToQueue(payload.sender)
+            //Else, match with the next player in the queue
+            for (let i = 0; i < usersArray.data.value.length; i++)
+            {
+                if (usersArray.data.value[i].profile.username != playerUsername)
+                    return usersArray.data.value[i]
+            }
+            return null
         },
         create: () => {
         },
