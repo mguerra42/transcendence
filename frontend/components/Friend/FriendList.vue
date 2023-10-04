@@ -48,7 +48,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="friend.showFriend" class="fixed min-h-90 max-h-90 bg-gray-700 rounded-t-md right-30 bottom-10 p-4 h-70">
+  <div v-if="friend.showFriend" class="bg-zinc-700 rounded">
     <div class="flex">
 
     <input

@@ -9,7 +9,6 @@
         <div class="b-l">Sidebar Right</div>
       </div>
       <Footer/>
-      <FriendList/>
     <AuthModal/>
   </main>
 </template>

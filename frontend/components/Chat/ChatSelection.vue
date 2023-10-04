@@ -2,6 +2,7 @@
   const auth = useAuth();
   const client = useClient();
   const socket = useSocket();
+  const friend = useFriend();
   const channel = useChannel();
 
   const toggleChat = () => {
@@ -59,6 +60,9 @@ const chatWithUser = async (userToMessage : any) => {
           Close
         </button>
         <!-- MP -->
+        <button @click="friend.showFriend = !friend.showFriend" class="text-sm mb-2 mt-2 text-left text-zinc-200 hover:text-zinc-400 font-semi-bold px-2 py-2">
+          Amis
+        </button>
         <button @click="refreshUsers" class="text-sm mb-2 mt-2 text-left text-zinc-200 hover:text-zinc-400 font-semi-bold px-2 py-2">
           Messages privés
         </button>
