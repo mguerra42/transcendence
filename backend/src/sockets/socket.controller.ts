@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
+import { find } from 'rxjs';
 //import { ChannelService } from '../channel/channel.service';
 
 @Controller('socket')
@@ -47,6 +48,14 @@ export class SocketController {
     async GetHistory(@Body() body: any) {
         const history = await this.userService.findHistory(body);
         //console.log('in getHistory (socket.controller), history = ', history);
+        return history;
+    }
+
+    @Post('getchannelhistory')
+    async GetChannelHistory(@Body() body: any) {
+        //console.log('in getChannelHistory (socket.controller), body = ', body);
+        const history = await this.userService.findChannelHistory(body);
+        //console.log('in getChannelHistory (socket.controller), history = ',history);
         return history;
     }
 }

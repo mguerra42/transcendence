@@ -99,6 +99,14 @@ export class UsersService {
         });
     }
 
+    findChannelById(id: number) {
+        return this.db.channel.findFirst({
+            where: {
+                id: id,
+            },
+        });
+    }
+
     addChannelUser(channelId: number, userId: number, role: Role) {
         return this.db.channelUser.create({
             data: {
@@ -210,12 +218,30 @@ export class UsersService {
         return messages;
     }
 
+    async findChannelHistory(body: any) {
+        const messages = await this.db.message.findMany({
+            where: {
+                channelId: body.channelId,
+            },
+        });
+        const ret = [];
+        for (let i = 0; i < messages.length; i++) {
+            ret[i] = messages[i];
+            ret[i].user = await this.db.user.findUnique({
+                where: {
+                    id: messages[i].senderId,
+                },
+            });
+        }
+        return ret;
+    }
+
     async addMessage(client: any, payload: any) {
-        console.log('in addMessage (user.service) - payload = ', payload);
+        //console.log('in addMessage (user.service) - payload = ', payload);
         const history = await this.getHistory(payload);
-        console.log('in addMessage (user.service) - history = ', history);
+        //console.log('in addMessage (user.service) - history = ', history);
         if (history === null) {
-            console.log('in addMessage (user.service) - history is null');
+            //console.log('in addMessage (user.service) - history is null');
             const newHistory = await this.db.history.create({
                 data: {
                     users: {
@@ -230,43 +256,50 @@ export class UsersService {
                     },
                 },
             });
-            console.log(
-                'in addMessage (user.service) - newHistory = ',
-                newHistory,
-            );
+            //console.log('in addMessage (user.service) - newHistory = ',newHistory);
             const message = this.db.message.create({
                 data: {
                     content: payload.text,
                     //senderId: payload.userId,
                     receiverId: newHistory.id,
                     senderId: payload.senderId,
+                    channelId: null,
                 },
             });
-            console.log(
-                'in addMessage (user.service) - message created : ',
-                message,
-            );
+            //console.log('in addMessage (user.service) - message created : ',message,);
             return message;
         } else {
-            console.log(
-                'in addMessage (user.service) - history is not null, id = ',
-                history.id,
-            );
+            //console.log('in addMessage (user.service) - history is not null, id = ',history.id);
             const message = this.db.message.create({
                 data: {
                     content: payload.text,
                     receiverId: history.id,
                     senderId: payload.senderId,
+                    channelId: null,
                     //sender: { connect: { id: payload.userId } },
                 },
             });
-            console.log(
-                'in addMessage (user.service) - message created : ',
-                message,
-            );
-
+            //console.log('in addMessage (user.service) - message created : ',message);
             return message;
         }
     }
 
+    async addMessageInChannel(client: any, payload: any) {
+        //console.log('in addMessageInChannel (user.service) - payload = ', payload);
+        const channel = await this.findChannelByName(payload.receiver);
+        if (channel !== null) {
+            //console.log('in addMessageInChannel (user.service) - channel is not null, id = ',channel.id);
+            const message = this.db.message.create({
+                data: {
+                    content: payload.text,
+                    receiverId: null,
+                    senderId: payload.senderId,
+                    channelId: channel.id,
+                    //sender: { connect: { id: payload.userId } },
+                },
+            });
+            //console.log('in addMessageInChannel (user.service) - message created : ',message);
+            return message;
+        }
+    }
 }

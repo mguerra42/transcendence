@@ -36,7 +36,8 @@ model User {
 model history {
   id        Int      @id @default(autoincrement())
   users     User[]    
-  //contentId Int  
+  // channelId Int
+  // channel   Channel? @relation(fields: [channelId], references: [id])
   content   Message[]
   date      DateTime @default(now())
 }
@@ -46,9 +47,11 @@ model Message {
   id          Int       @id @default(autoincrement())
   content     String
   senderId    Int
-  receiverId  Int
+  receiverId  Int?
   sender      User      @relation("sender", fields: [senderId], references: [id])
-  receiver    history   @relation(fields: [receiverId], references: [id])
+  receiver    history?   @relation(fields: [receiverId], references: [id])
+  channelId   Int?
+  channel     Channel?  @relation(fields: [channelId], references: [id])
   date        DateTime  @default(now())
 
 }
@@ -91,6 +94,7 @@ model Channel {
   access       Access //public, private, protected
   password     String? //if access is defined as protected
   userList     ChannelUser[] //users in the channel        //lists mutes
+  messages     Message[]     //messages in the channel
   creationDate DateTime      @default(now())
 }
 

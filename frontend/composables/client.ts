@@ -309,13 +309,28 @@ export const useClient = defineStore('client', () => {
                 method: 'POST',
                 body: {
                     senderId: authStore.session.id,
-                    senderName: authStore.session.username,
                     receiverId: client.chat.chatState.receiver.id,
-                    receiverName: client.chat.chatState.receiver.username,
                 },
             })
 
             // console.log('in currentHistory (client.ts), data = ', data.value)
+
+            if (error.value?.statusCode) {
+                authStore.error = error.value?.statusMessage as string
+                return null
+            }
+
+            return data.value
+        }
+        else if (client.chat.chatState !== undefined && client.chat.chatState.select === 'CHANNEL') {
+            const { data, error } = await useRequest('/socket/getchannelhistory', {
+                method: 'POST',
+                body: {
+                    channelId: client.chat.chatState.receiver.id,
+                },
+            })
+
+            //console.log('in currentHistory (client.ts), data = ', data.value)
 
             if (error.value?.statusCode) {
                 authStore.error = error.value?.statusMessage as string

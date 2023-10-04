@@ -29,16 +29,14 @@ export class SocketsGateway {
     @SubscribeMessage('sendPrivateMessage')
     async handlePrivateMessage(client: any, payload: any) {
         try {
-            if (payload.receiver === undefined) {
+            if (payload.receiverId === undefined) {
                 throw new Error('Receiver not defined');
             }
-            const user = await this.userService.findByUsername(
-                payload.receiver,
-            );
+            const user = await this.userService.findOne(payload.receiverId);
             if (user === null) {
                 throw new Error('User not found in database');
             }
-            this.userService.addMessage(client, payload);
+            await this.userService.addMessage(client, payload);
             this.server.to(user.socketId).emit('receivePrivateMessage', {});
         } catch (e) {
             throw new WsException((e as Error).message);
@@ -47,17 +45,12 @@ export class SocketsGateway {
 
     @SubscribeMessage('sendMessageToChannel')
     async handleChannelMessage(client: any, payload: any) {
-        const userProfile = await this.userService.findByUsername(
-            payload.sender,
-        );
+        //const userProfile = await this.userService.findByUsername(payload.sender);
         try {
-            this.server.to(payload.receiver).emit('receiveMessageFromChannel', {
-                yourdata: payload.text,
-                sender: payload.sender,
-                avatar: payload.avatar,
-                profile: userProfile,
-                timestamp: '',
-            });
+            await this.userService.addMessageInChannel(client, payload);
+            this.server
+                .to(payload.receiver)
+                .emit('receiveMessageFromChannel', {});
         } catch (e) {
             throw new WsException((e as Error).message);
         }

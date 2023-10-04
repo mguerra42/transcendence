@@ -4,38 +4,36 @@ const auth = useAuth();
 const socket = useSocket();
 
 const sendMessage = async () => {
-    if (client.chat.newMessage.trim() === '') 
-        return;
-    socket.emit('sendPrivateMessage', {
-      sender: auth.session.username,
-      senderId: auth.session.id,
-      receiver: client.chat.chatState.receiver.username,
-      receiverId: client.chat.chatState.receiver.id,
-      text: client.chat.newMessage 
-    });
-    client.chat.newMessage = '';
-    //await new Promise(timeout => setTimeout(timeout, 100))
-    setInterval(() => {}, 100);
-    client.chat.messages = await client.chat.currentHistory();
-    // setTimeout(() => {
-      // client.chat.scrollToBottom();
-    // }, 0);
-  };
+  if (client.chat.newMessage.trim() === '') 
+      return;
+  socket.emit('sendPrivateMessage', {
+    senderId: auth.session.id,
+    receiverId: client.chat.chatState.receiver.id,
+    text: client.chat.newMessage 
+  });
+  client.chat.newMessage = '';
+  setInterval(() => {}, 80);
+  client.chat.messages = await client.chat.currentHistory();
+  setInterval(() => {}, 80);
+  client.chat.messages = await client.chat.currentHistory();
+};
 
 const sendMessageInChannel = async () => {
   if (client.chat.newMessage.trim() === '') 
       return;
-    socket.emit('sendMessageToChannel', {
-    sender: auth.session.username,
-    avatar: auth.session.avatarPath,
+  socket.emit('sendMessageToChannel', {
+    senderId: auth.session.id,
+    //avatar: auth.session.avatarPath,
+    receiverId: client.chat.chatState.receiver.id,
     receiver: client.chat.chatState.receiver.name,
     text: client.chat.newMessage 
   });
   client.chat.newMessage = '';
+  setInterval(() => {}, 80);
   client.chat.messages = await client.chat.currentHistory();
-  // setTimeout(() => {
-    // client.chat.scrollToBottom();
-  // }, 0);
+  setInterval(() => {}, 80);
+  client.chat.messages = await client.chat.currentHistory();
+  //console.log('sendMessageInChannel (InputField.vue) , client.chat.messages = ', client.chat.messages);
 }
 </script>
 
