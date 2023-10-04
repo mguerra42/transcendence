@@ -20,12 +20,27 @@
         </div>
     </div>
     <!-- Accept match window-->
-    <div v-if="matchFound" @click="acceptMatch" class="bg-zinc-600 hover:bg-zinc-700 w-50 h-70 cursor-pointer rounded-lg">
-        <p class="text-zinc-200 m-2 text-2xl font-bold text-center">
-            Match found
+    <div v-if="matchFound" @click="acceptMatch" class="bg-zinc-600 hover:bg-zinc-700 w-120 h-65 cursor-pointer rounded-lg flex flex-col justify-center">
+        <p class="text-zinc-200 m-4 text-5xl font-bold text-center">
+            Match found !
         </p>
         <div class="flex mt-1 justify-center">
-            <div>
+            <div class="flex">
+                <div class="flex justify-center">
+                    <div class="flex-col flex justify-center">
+                        <p class="text-lg text-center text-zinc-200" >{{ auth.session.username }}</p>
+                        <p class="text-xs text-center text-zinc-400" >W/L : 10-3</p>
+                        <p class="text-xs text-center text-zinc-400" >Elo : 1230</p>
+                    </div>
+                </div>
+                <img :src="auth.session.avatarPath" class="w-20 h-20 m-2 rounded-full" />
+            </div>
+            <div class="flex flex-col justify-center">
+                <p class="text-zinc-200 ml-5 mr-5 text-7xl font-bold text-center">
+                    ⚔️
+                </p>
+            </div>
+            <div class="flex">
                 <img :src="opponentProfile.avatarPath" class="w-20 h-20 m-2 rounded-full" />
                 <div class="flex justify-center">
                     <div class="flex-col flex justify-center">
@@ -36,7 +51,7 @@
                 </div>
             </div>
         </div>
-        <p class="text-2xl font-bold text-zinc-200 mb-1 mt-4 text-center">
+        <p class="text-2xl font-bold text-zinc-200 mb-4 mt-4 text-center">
             {{ timeElapsed }}
         </p>
     </div>
