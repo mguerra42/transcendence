@@ -125,12 +125,12 @@
                 const checkMatchAccepted = () => {
                     if (matchAccepted.value === true && opponentAccepted.value === true)
                         resolve();
-                    else if (opponentDeclined.value === true)
+                    else if (opponentDeclined.value === true && matchDeclined.value === false)
                     {
                         resolve();
                         opponentDeclined.value = false;
                     }
-                    else if (matchDeclined.value === true)
+                    else if (matchDeclined.value === true && opponentDeclined.value === false)
                     {
                         resolve();
                     }
@@ -179,6 +179,7 @@
             matchDeclined.value = false;
             showPlayButton.value = true;
             opponentAccepted.value = false;
+            opponentDeclined.value = false;
             timeElapsed.value = 0;
             await client.game.removeFromGameQueue(auth.session.username)
         } else {
@@ -190,6 +191,7 @@
             showPong.value = false;
             showPlayButton.value = true;
             opponentAccepted.value = false;
+            opponentDeclined.value = false;
             timeElapsed.value = 0;
         }
     }
@@ -368,7 +370,5 @@
                     opponentAccepted.value = true;
             }
         });
-
-        
     });
 </script>

@@ -1,52 +1,48 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
-const friend = useFriend()
-const client = useClient()
-let categoryTab = 'amis';
-const newFriendName = ref('')
-const selectedItem = ref<any | null>(null);
-let currentCategory : Ref<any[]|undefined> = ref([]);
+  import { ref, onMounted, watch } from 'vue';
+  const friend = useFriend()
+  const client = useClient()
+  let categoryTab = 'amis';
+  const newFriendName = ref('')
+  const selectedItem = ref<any | null>(null);
+  let currentCategory : Ref<any[]|undefined> = ref([]);
 
-const fetchFriendlist = async (category:string) => {
-  if (category === 'amis') {
-    currentCategory.value = await friend.toggleCategory(category)
-    categoryTab = 'amis';
-    console.log("fetchfriendlist:")
-    console.log(currentCategory.value)
-  } else if (category === 'enAttente') {
-    currentCategory.value = await friend.toggleCategory(category)
-    categoryTab = 'enAttente';
-  } else if (category === 'demandes') {
-    currentCategory.value = await friend.toggleCategory(category)
-    categoryTab = 'demandes';
-    console.log("fetchinversefriendlist:")
-    console.log(currentCategory.value)
-  }
+  const fetchFriendlist = async (category:string) => {
+    if (category === 'amis') {
+      currentCategory.value = await friend.toggleCategory(category)
+      categoryTab = 'amis';
+      console.log("fetchfriendlist:")
+      console.log(currentCategory.value)
+    } else if (category === 'enAttente') {
+      currentCategory.value = await friend.toggleCategory(category)
+      categoryTab = 'enAttente';
+    } else if (category === 'demandes') {
+      currentCategory.value = await friend.toggleCategory(category)
+      categoryTab = 'demandes';
+      console.log("fetchinversefriendlist:")
+      console.log(currentCategory.value)
+    }
+    };
+
+    const addFriend = async (newFriendName: string) => {
+      console.log('add a friend : ', newFriendName);
+      await client.friend.add(newFriendName);
+      await fetchFriendlist(categoryTab);
+      newFriendName.value = ''
   };
 
-  const addFriend = async (newFriendName: string) => {
-    console.log('add a friend : ', newFriendName);
-    await client.friend.add(newFriendName);
+  const removeFriend = async (friendName: string) => {
+    console.log('remove a friend : ', friendName);
+    await client.friend.remove(friendName);
     await fetchFriendlist(categoryTab);
-    newFriendName.value = ''
-};
+  };
 
-const removeFriend = async (friendName: string) => {
-  console.log('remove a friend : ', friendName);
-  await client.friend.remove(friendName);
-  await fetchFriendlist(categoryTab);
-};
-
-
-onMounted(() => {
-  friend.fetchMutualFriendList();
-  friend.fetchInverseFriendList();
-  fetchFriendlist('amis')
-  friend.toggleCategory('amis');
-});
-
-
-
+  onMounted(() => {
+    friend.fetchMutualFriendList();
+    friend.fetchInverseFriendList();
+    fetchFriendlist('amis')
+    friend.toggleCategory('amis');
+  });
 </script>
 
 <template>
@@ -101,10 +97,7 @@ onMounted(() => {
               </div>
           </div>
         </div>
-
-
+      </div>
     </div>
-  </div>
-
   </template>
   
