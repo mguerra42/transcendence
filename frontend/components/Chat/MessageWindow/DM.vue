@@ -14,6 +14,10 @@ const scrollToBottom = () => {
 const displayUserProfile = () => {
     client.chat.showUserProfile = !client.chat.showUserProfile;
 }
+
+onUpdated(() => {
+  scrollToBottom();
+})
 </script>
 
 <template>

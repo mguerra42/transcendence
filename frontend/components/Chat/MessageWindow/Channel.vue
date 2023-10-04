@@ -5,7 +5,15 @@
   const isTooltipVisible = ref(false);
   const tooltipX = ref(0);
   const tooltipY = ref(0);
+  const chatMessages = ref();
   let indexMessage : any;
+
+  const getDate = () => {
+      const currentTime = new Date();
+      const timeOptions = { hour: '2-digit', minute: '2-digit' };
+      const formattedTime = currentTime.toLocaleTimeString(undefined, timeOptions);
+      return formattedTime;
+  }
 
   const hideTooltip = () => {
     if (isTooltipVisible.value == true)
@@ -39,6 +47,15 @@
     // Prevent the click event from propagating to the document
     event.stopPropagation();
   }
+  const scrollToBottom = () => {
+    if (chatMessages.value === undefined)
+      return ;
+    chatMessages.value.scrollTop = chatMessages.value.scrollHeight;
+  };
+
+  onUpdated(() => {
+    scrollToBottom();
+  })
 
   onMounted(() => {
     document.addEventListener('click', hideTooltip);
@@ -89,7 +106,7 @@
                         </p>
                       </div> -->
                     <div class="flex flex-col justify-center" >
-                       <p class="text-xs ml-1 text-zinc-400"> - {{ message.date }} </p>
+                       <p class="text-xs ml-1 text-zinc-400"> - {{ getDate() }} </p>
                     </div>
                   </div>
                   <p class="text-sm text-zinc-300 break-all">

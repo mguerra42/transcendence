@@ -70,7 +70,6 @@ import { createClientOnly } from 'nuxt/dist/app/components/client-only';
     await socket.connect();
 
     refreshUsers();
-    //client.chat.scrollToBottom();
     socket.on('afkResponse', () => {
       refreshUsers();
     });
