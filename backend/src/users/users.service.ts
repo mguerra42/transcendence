@@ -61,7 +61,7 @@ export class UsersService {
             },
         });
     }
-    findAllOnlineUsers(){
+    findAllOnlineUsers() {
         return this.db.user.findMany({
             where: {
                 status: 'ONLINE',
@@ -69,11 +69,11 @@ export class UsersService {
         });
     }
 
-    findAllUsers(){
+    findAllUsers() {
         return this.db.user.findMany();
     }
 
-    findAllOfflineUsers(){
+    findAllOfflineUsers() {
         return this.db.user.findMany({
             where: {
                 status: 'OFFLINE',
@@ -81,7 +81,7 @@ export class UsersService {
         });
     }
 
-    findAllChannels(){
+    findAllChannels() {
         return this.db.channel.findMany();
     }
 
@@ -98,14 +98,22 @@ export class UsersService {
             },
         });
     }
-    
+
+    findChannelById(id: number) {
+        return this.db.channel.findFirst({
+            where: {
+                id: id,
+            },
+        });
+    }
+
     addChannelUser(channelId: number, userId: number, role: Role) {
         return this.db.channelUser.create({
-          data: {
-            role,
-            user: { connect: { id: userId } }, // Connect the user by ID
-            channel: { connect: { id: channelId } }, // Connect the channel by ID
-          },
+            data: {
+                role,
+                user: { connect: { id: userId } }, // Connect the user by ID
+                channel: { connect: { id: channelId } }, // Connect the channel by ID
+            },
         });
     }
 
@@ -203,5 +211,131 @@ export class UsersService {
             result += characters.charAt(randomIndex);
         }
         return result;
+    }
+
+    getHistory(body: any) {
+        //console.log('in getHistory (user.service) -  body = ', body);
+        const history = this.db.history.findFirst({
+            where: {
+                AND: [
+                    {
+                        users: {
+                            some: {
+                                id: body.senderId,
+                            },
+                        },
+                    },
+                    {
+                        users: {
+                            some: {
+                                id: body.receiverId,
+                            },
+                        },
+                    },
+                ],
+            },
+        });
+        return history;
+    }
+
+    async findHistory(body: any) {
+        //body.userId = body.senderId;
+        console.log('in findHistory (user.service) - body = ', body);
+        const history = await this.getHistory(body);
+        if (history === null) {
+            console.log('in findHistory (user.service) - history is null');
+            return [];
+        }
+        const messages = await this.db.message.findMany({
+            where: {
+                receiverId: history.id,
+            },
+        });
+        return messages;
+    }
+
+    async findChannelHistory(body: any) {
+        const messages = await this.db.message.findMany({
+            where: {
+                channelId: body.channelId,
+            },
+        });
+        const ret = [];
+        for (let i = 0; i < messages.length; i++) {
+            ret[i] = messages[i];
+            ret[i].user = await this.db.user.findUnique({
+                where: {
+                    id: messages[i].senderId,
+                },
+            });
+        }
+        return ret;
+    }
+
+    async addMessage(client: any, payload: any) {
+        //console.log('in addMessage (user.service) - payload = ', payload);
+        const history = await this.getHistory(payload);
+        //console.log('in addMessage (user.service) - history = ', history);
+        if (history === null) {
+            //console.log('in addMessage (user.service) - history is null');
+            const newHistory = await this.db.history.create({
+                data: {
+                    users: {
+                        connect: [
+                            {
+                                id: payload.senderId,
+                            },
+                            {
+                                id: payload.receiverId,
+                            },
+                        ],
+                    },
+                },
+            });
+            //console.log('in addMessage (user.service) - newHistory = ',newHistory);
+            const message = this.db.message.create({
+                data: {
+                    content: payload.text,
+                    //senderId: payload.userId,
+                    receiverId: newHistory.id,
+                    senderId: payload.senderId,
+                    channelId: null,
+                },
+            });
+            //console.log('in addMessage (user.service) - message created : ',message,);
+            return message;
+        } else {
+            //console.log('in addMessage (user.service) - history is not null, id = ',history.id);
+            const message = this.db.message.create({
+                data: {
+                    content: payload.text,
+                    receiverId: history.id,
+                    senderId: payload.senderId,
+                    channelId: null,
+                    //sender: { connect: { id: payload.userId } },
+                },
+            });
+            //console.log('in addMessage (user.service) - message created : ',message);
+            return message;
+        }
+    }
+
+    async addMessageInChannel(client: any, payload: any) {
+        //console.log('in addMessageInChannel (user.service) - payload = ', payload);
+        const channel = await this.findChannelByName(payload.receiver);
+        if (channel !== null) {
+            //console.log('in addMessageInChannel (user.service) - channel is not null, id = ',channel.id);
+            const message = this.db.message.create({
+                data: {
+                    content: payload.text,
+                    receiverId: null,
+                    senderId: payload.senderId,
+                    channelId: channel.id,
+                    //sender: { connect: { id: payload.userId } },
+                },
+            });
+            //console.log('in addMessageInChannel (user.service) - message created : ',message);
+            return message;
+        }
     }
 }

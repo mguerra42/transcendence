@@ -3,9 +3,16 @@ const client = useClient();
 const auth = useAuth();
 client.chat.showUserProfile = false;
 
+const chatMessages = ref();
+
+const scrollToBottom = () => {
+    if (chatMessages.value === undefined)
+      return ;
+    chatMessages.value.scrollTop = chatMessages.value.scrollHeight;
+  };
+
 const displayUserProfile = () => {
     client.chat.showUserProfile = !client.chat.showUserProfile;
-    //console.log('showUserProfile', client.chat.showUserProfile)
 }
 </script>
 
@@ -25,11 +32,13 @@ const displayUserProfile = () => {
 
     <div id="chatMessages" ref="chatMessages" class="overflow-y-auto max-w-full scrollbar-w-2 h-[3/5] px-1 rounded-lg">
       <div class="flex flex-col">
-        <div v-if="client.chat.chatState.select === 'DM'" v-for="message in client.chat.messages" class="mb-2">
-          <div :class="{ 'text-left': message.sender === auth.session.username, 'text-right': message.sender !== auth.session.username }">
-            <p class="text-sm text-zinc-300 w-full break-all rounded-lg hover:bg-zinc-600 inline-block p-2">
-              {{ message.text }}
-            </p>
+        <div v-if="client.chat.chatState.select === 'DM'">
+          <div v-for="message in client.chat.messages" class="mb-2">
+            <div :class="{ 'text-left': message.senderId !== auth.session.id, 'text-right': message.senderId === auth.session.id }">
+              <p class="text-sm text-zinc-300 w-full break-all rounded-lg hover:bg-zinc-600 inline-block p-2">
+                {{ message.content }} 
+              </p>
+            </div>
           </div>
         </div>
       </div>

@@ -27,6 +27,8 @@ model User {
   wonGames       Game[]        @relation("winner")
   lostGames      Game[]        @relation("loser")
   channels       ChannelUser[] //channels the user is in
+  history        history[]    //history of DMs, and maybe channels soon
+  messages       Message[]     @relation("sender")
   socketId       String        @default("") //socket id for the user
   queue          Queue?        // Define the Queue relation here
 
@@ -36,6 +38,30 @@ model Queue {
   id         Int      @id @default(autoincrement())
   username   String   @unique
   profile    User     @relation(fields: [username], references: [username])
+}
+
+//Message history (may be used for group chat ?)
+model history {
+  id        Int      @id @default(autoincrement())
+  users     User[]    
+  // channelId Int
+  // channel   Channel? @relation(fields: [channelId], references: [id])
+  content   Message[]
+  date      DateTime @default(now())
+}
+
+//Message content
+model Message {
+  id          Int       @id @default(autoincrement())
+  content     String
+  senderId    Int
+  receiverId  Int?
+  sender      User      @relation("sender", fields: [senderId], references: [id])
+  receiver    history?   @relation(fields: [receiverId], references: [id])
+  channelId   Int?
+  channel     Channel?  @relation(fields: [channelId], references: [id])
+  date        DateTime  @default(now())
+
 }
 
 //Friend list
@@ -76,6 +102,7 @@ model Channel {
   access       Access //public, private, protected
   password     String? //if access is defined as protected
   userList     ChannelUser[] //users in the channel        //lists mutes
+  messages     Message[]     //messages in the channel
   creationDate DateTime      @default(now())
 }
 
