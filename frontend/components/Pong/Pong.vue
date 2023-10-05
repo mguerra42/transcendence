@@ -20,7 +20,7 @@
         </div>
     </div>
     <!-- Accept match window-->
-    <div v-if="matchFound" @click="acceptMatch" class="bg-zinc-600 hover:bg-zinc-700 w-120 h-65 cursor-pointer rounded-lg flex flex-col justify-center">
+    <div v-if="matchFound" @click="acceptMatch" class="bg-zinc-600 shadow-lg hover:bg-zinc-700 w-140 h-70 cursor-pointer rounded-lg flex flex-col justify-center">
         <p class="text-zinc-200 m-4 text-5xl font-bold text-center">
             Match found !
         </p>
@@ -33,15 +33,15 @@
                         <p class="text-xs text-center text-zinc-400" >Elo : 1230</p>
                     </div>
                 </div>
-                <img :src="auth.session.avatarPath" class="w-20 h-20 m-2 rounded-full" />
+                <img :src="auth.session.avatarPath" class="w-30 h-30 m-2 border-8 border-zinc-100 rounded-full" />
             </div>
             <div class="flex flex-col justify-center">
                 <p class="text-zinc-200 ml-5 mr-5 text-7xl font-bold text-center">
-                    ⚔️
+                    VS
                 </p>
             </div>
             <div class="flex">
-                <img :src="opponentProfile.avatarPath" class="w-20 h-20 m-2 rounded-full" />
+                <img :src="opponentProfile.avatarPath" class="w-30 h-30 m-2 border-8 border-zinc-100 rounded-full" />
                 <div class="flex justify-center">
                     <div class="flex-col flex justify-center">
                         <p class="text-lg text-center text-zinc-200" >{{ opponentProfile.username }}</p>
@@ -105,7 +105,6 @@
 
     const waitForMatch = async () => {
         showPlayButton.value = false;
-
         showLoader.value = true;
         const timeElapsedInterval = setInterval(() => {
         timeElapsed.value++;
@@ -120,8 +119,8 @@
             timeElapsed.value = 0;
             return null;
         }
-        opponentProfile.value.username = matchOpponent.profile.username;
-        opponentProfile.value.avatarPath = matchOpponent.profile.avatarPath;
+        opponentProfile.value.username = matchOpponent.profile?.username;
+        opponentProfile.value.avatarPath = matchOpponent.profile?.avatarPath;
         clearInterval(timeElapsedInterval);
         timeElapsed.value = 0;
         return matchOpponent;

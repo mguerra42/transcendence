@@ -137,10 +137,20 @@ export class UsersService {
       }
 
     removeUserFromQueue(playerUsername: string) {
-    console.log('removing user : ', playerUsername)
-    return this.db.queue.delete({
+        return this.db.queue.delete({
+                where: {
+                    username: playerUsername,
+                },
+        });
+    }
+
+    setUserToWaitingMatch(playerUsername: string){
+        return this.db.queue.update({
             where: {
-                username: playerUsername,
+              username: playerUsername,
+            },
+            data: {
+              confirmed: 'waiting',
             },
         });
     }
@@ -149,6 +159,8 @@ export class UsersService {
         return this.db.queue.findMany({
             select: {
                 profile: true,
+                username: true,
+                confirmed: true,
             },
         });
     }

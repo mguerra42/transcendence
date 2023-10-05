@@ -28,7 +28,14 @@ export class MatchmakingController {
     removePlayerToQueue(@Body() req:any){
         if (req.username === undefined)
             return null
-        console.log('quququ')
         return this.userService.removeUserFromQueue(req.username); 
+    }
+
+    @Post ('setUserToWaiting')
+    setPlayerToWaiting(@Body() req:any){
+        console.log('update')
+        if (req.username === undefined)
+            return null
+        return this.userService.setUserToWaitingMatch(req.username);
     }
 }

@@ -1,22 +1,21 @@
 <script setup lang="ts">
-import { appName } from '~/constants'
+  import { appName } from '~/constants'
 
-const isLoading = ref(true);
+  const isLoading = ref(true);
 
-useHead({
-  title: appName,
-})
+  useHead({
+    title: appName,
+  })
 
-// Display the loader before the component is mounted
-onBeforeMount(() => {
-  isLoading.value = true;
-});
+  // Display the loader before the component is mounted
+  onBeforeMount(() => {
+    isLoading.value = true;
+  });
 
-//Let
-onMounted(() => {
-  isLoading.value = false;
-});
-
+  //Let
+  onMounted(() => {
+    isLoading.value = false;
+  });
 </script>
 
 <template>
