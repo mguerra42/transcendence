@@ -15,4 +15,7 @@
 
 <script setup lang="ts">
 const auth = useAuth()
+
+onMounted(() => {
+})
 </script>

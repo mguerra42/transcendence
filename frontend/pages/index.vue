@@ -7,5 +7,8 @@
 <script setup lang="ts">
   const auth = useAuth()
   const client = useClient()
+
+  onMounted(() => {
+})
 </script>
 

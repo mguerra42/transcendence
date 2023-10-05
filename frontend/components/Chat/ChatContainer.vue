@@ -8,9 +8,16 @@
   
   <!-- Chat window -->
   <div v-if="client.chat.chatVisible" class="fixed bottom-3 left-3 lg:w-1/3 md:w-1/3 sm:w-2/5 ">
-    <div class="max-h-[70vh] flex bg-zinc-700 rounded-lg">
+    <div v-if="!isLoading" class="max-h-[70vh] flex bg-zinc-700 rounded-lg">
       <ChatSelection/>
       <ChatConversationWindow/>
+    </div>
+    <div v-else class="min-h-[70vh] flex bg-zinc-700 rounded-lg">
+      <div class="w-1/3 h-[70vh] flex-col flex items-center justify-center bg-zinc-800 rounded-lg px-2">
+        <div clas="flex-col justity-center items-center">
+          <p class="text-sm animate-bounce text-center text-zinc-400 mb-4">Loading chats...</p>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -31,6 +38,7 @@ import { createClientOnly } from 'nuxt/dist/app/components/client-only';
   const client = useClient();
   const socket = useSocket();
   const channel = useChannel();
+  const isLoading = ref(true)
   client.chat.newMessage = '';
   client.chat.chatVisible = false;
   client.chat.chatMessages = ref();
@@ -65,10 +73,15 @@ import { createClientOnly } from 'nuxt/dist/app/components/client-only';
       });
   };
 
+  onBeforeMount(() => {
+      isLoading.value = true;
+  })
+
   onMounted(async () => {
     await auth.refreshSession();
     await socket.connect();
 
+    isLoading.value = false;
     refreshUsers();
     socket.on('afkResponse', () => {
       refreshUsers();
@@ -76,9 +89,6 @@ import { createClientOnly } from 'nuxt/dist/app/components/client-only';
     socket.on('receivePrivateMessage', async (data: any) => {
       setInterval(() => {}, 50);
       client.chat.messages = await client.chat.currentHistory();
-    //   setTimeout(() => {
-    //     client.chat.scrollToBottom();
-    // }, 0);
     });
     socket.on('joinChannelResponse', (data: any) => {
       client.chat.chatState.receiver.userCount = data.userCount;
@@ -91,11 +101,6 @@ import { createClientOnly } from 'nuxt/dist/app/components/client-only';
       setInterval(() => {}, 50);
       client.chat.messages = await client.chat.currentHistory();
     });
-
-    //trick to scroll to bottom always after vue has updated the DOM
-    setTimeout(() => {
-      //client.chat.scrollToBottom();
-    }, 0);
   });
 </script>
 
