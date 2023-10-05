@@ -55,11 +55,11 @@
             {{ timeElapsed }}
         </p>
     </div>
-    <div v-if="matchFound" @click="declineMatch" class="bg-zinc-600 w-40 hover:bg-zinc-700 px-2 py-1 m-2 cursor-pointer rounded-lg">
+    <!-- <div v-if="matchFound" @click="declineMatch" class="bg-zinc-600 w-40 hover:bg-zinc-700 px-2 py-1 m-2 cursor-pointer rounded-lg">
         <p class="text-zinc-200 text-center">
             Decline
         </p>
-    </div>
+    </div> -->
 </template>
 
 <script setup lang="ts">
@@ -138,14 +138,19 @@
             new Promise<void>(resolve => {
                 const checkMatchAccepted = () => {
                     if (matchAccepted.value === true && opponentAccepted.value === true)
+                    {
+                        console.log('both accepted')
                         resolve();
+                    }
                     else if (opponentDeclined.value === true && matchDeclined.value === false)
                     {
+                        console.log('bro declined')
                         resolve();
                         opponentDeclined.value = false;
                     }
                     else if (matchDeclined.value === true && opponentDeclined.value === false)
                     {
+                        console.log('í decline bro')
                         resolve();
                     }
                     else
