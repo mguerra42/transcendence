@@ -421,11 +421,6 @@ export const useClient = defineStore('client', () => {
                 method: 'GET',
             })
             
-
-            //If there are less than 2 users
-            //Wait 10 ticks for someone to join the queue
-            //Return null if nobody joined after 10 tries
-
             if (usersArray.data.value.length < 2)
             {
                 console.log('abon ?')
@@ -447,41 +442,7 @@ export const useClient = defineStore('client', () => {
                     return null
                 }
             }
-            // if(usersArray.data.value.length > 2)
-            // {
-            //     let numberOfIdlePlayers:number = 0;
 
-            //     for (let i = 0; i < usersArray.data.value.length; i++)
-            //     {
-            //         if (usersArray.data.value[i].profile.username != playerUsername && usersArray.data.value[i].confirmed === "idle")
-            //             numberOfIdlePlayers++;
-            //     }
-            //     let retries = 0;
-            //     while (retries < 10 && numberOfIdlePlayers < 2)
-            //     {
-            //         await new Promise(timeout => setTimeout(timeout, 1000));
-            //         usersArray = await useRequest('/matchmaking/getNormalGameQueue', {
-            //             method: 'GET',
-            //         })
-
-            //         numberOfIdlePlayers = 0;
-            //         for (let i = 0; i < usersArray.data.value.length; i++)
-            //         {
-            //             if (usersArray.data.value[i].profile.username != playerUsername && usersArray.data.value[i].confirmed === "idle")
-            //                 numberOfIdlePlayers++;
-            //         }
-            //         retries++;
-            //     }
-            //     if (retries >= 10)
-            //     {
-            //         await useRequest('/matchmaking/removePlayerFromQueue', {
-            //             method: 'POST',
-            //             body: {username: playerUsername}
-            //         })
-            //         return null
-            //     }
-            // }
-            //Else, match with the next player in the queue
             for (let i = 0; i < usersArray.data.value.length; i++)
             {
                 if (usersArray.data.value[i].profile.username != playerUsername && usersArray.data.value[i].confirmed === "idle")
