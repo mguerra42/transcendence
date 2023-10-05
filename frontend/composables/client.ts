@@ -71,8 +71,8 @@ interface AppClient {
     }
     chat: {
     // Channels
-        create: () => void // create channel
-        update: () => void // update channel
+        createChannel: () => void // create channel
+        updateChannel: () => void // update channel
         getOnlineUsers: () => any // get online users
         getAllUsers: () => any // get all users
         getOfflineUsers: () => any // get offline users
@@ -100,7 +100,6 @@ interface AppClient {
         chatMessages: globalThis.Ref<any>
         chatState: { select: string; receiver: any }
         newMessage: string
-        // messages: Ref<{ sender: string; text: string; time?: string; avatar?: string; user?: any }[]>
         messages: any[]
         showUserProfile: boolean
     }
@@ -120,6 +119,7 @@ export const useClient = defineStore('client', () => {
     const authStore = useAuth()
     const friendStore = useFriend()
     const socket = useSocket()
+    const channel = useChannel()
     /* ¯-_-¯-_-¯-_-¯-_-¯-_-¯-_-¯*\
 ¯-_-¯\_(ツ)_/¯-_-¯ AUTH
 \*¯-_-¯-_-¯-_-¯-_-¯-_-¯-_-¯ */
@@ -320,8 +320,6 @@ export const useClient = defineStore('client', () => {
                 },
             })
 
-            // console.log('in currentHistory (client.ts), data = ', data.value)
-
             if (error.value?.statusCode) {
                 authStore.error = error.value?.statusMessage as string
                 return null
@@ -337,8 +335,6 @@ export const useClient = defineStore('client', () => {
                 },
             })
 
-            //console.log('in currentHistory (client.ts), data = ', data.value)
-
             if (error.value?.statusCode) {
                 authStore.error = error.value?.statusMessage as string
                 return null
@@ -347,6 +343,37 @@ export const useClient = defineStore('client', () => {
             return data.value
         }
         return []
+    }
+
+    client.chat.createChannel = async () => {
+        const name = prompt('Enter channel name')
+        if (name === null || name === '')
+            return null
+
+        if (name.length > 20) {
+            alert('Channel name too long')
+            return null
+        }
+
+        const { data, error } = await useRequest('/socket/createchannel', {
+            method: 'POST',
+            body: {
+                name,
+            },
+        })
+        if (error.value?.statusCode || data.value === null) {
+            alert('Channel already exists')
+            authStore.error = error.value?.statusMessage as string
+            return null
+        }
+        client.chat.messages = []
+        client.chat.chatState.select = 'CHANNEL';
+        client.chat.chatState.receiver.id = data.value.id;
+        client.chat.chatState.receiver.name = data.value.name;
+        socket.emit('joinChannel', {
+            sender: authStore.session.username,
+            receiver: data.value.name,
+        })
     }
 
     const gameLobby: Ref<any[]> = ref([])

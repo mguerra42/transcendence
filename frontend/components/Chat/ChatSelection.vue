@@ -105,5 +105,9 @@ const chatWithUser = async (userToMessage : any) => {
             </button>
           </div>
         </div>
+        <button @click="client.chat.createChannel" class=" bg-zinc-800 hover:bg-zinc-700 text-white  py-1 mt-2 rounded flex ">
+          <div class="i-mdi-plus-box-multiple ml-2"></div>
+          <div class="text-sm ml-2">New</div>
+        </button>
       </div>
 </template>

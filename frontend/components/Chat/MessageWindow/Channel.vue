@@ -96,15 +96,6 @@
                       <p @click.stop="displayUserTooltip(message.user, $event)" class="text-xs text-zinc-400"> {{ message.user.username }} </p>
                       <!-- <p @click.stop="displayUserTooltip($event)" class="text-xs text-zinc-400"> {{ message.user.username }} </p> -->
                     </div>
-                      <!-- <div
-                        v-if="isTooltipVisible"
-                        class="tooltip w-30 h-40 shadow-md bg-zinc-800 px-2 py-1 rounded text-black"
-                        :style="{ top: `${tooltipY}px`, left: `${tooltipX}px`, 'z-index': 9999}"
-                        >
-                        <p @click="displayUserProfile($event)" class="text-center cursor-pointer text-zinc-200 px-2 py-1 m-1 bg-zinc-700 rounded hover:bg-zinc-600">
-                          {{indexMessage.username}}
-                        </p>
-                      </div> -->
                     <div class="flex flex-col justify-center" >
                        <p class="text-xs ml-1 text-zinc-400"> - {{ getDate() }} </p>
                     </div>

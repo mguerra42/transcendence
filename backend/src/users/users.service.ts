@@ -131,10 +131,10 @@ export class UsersService {
     addUserToQueue(playerUsername: string) {
         return this.db.queue.create({
             data: {
-              username: playerUsername,
+                username: playerUsername,
             },
-          });
-      }
+        });
+    }
 
     removeUserFromQueue(playerUsername: string) {
         return this.db.queue.delete({
@@ -226,7 +226,6 @@ export class UsersService {
     }
 
     getHistory(body: any) {
-        //console.log('in getHistory (user.service) -  body = ', body);
         const history = this.db.history.findFirst({
             where: {
                 AND: [
@@ -251,11 +250,8 @@ export class UsersService {
     }
 
     async findHistory(body: any) {
-        //body.userId = body.senderId;
-        console.log('in findHistory (user.service) - body = ', body);
         const history = await this.getHistory(body);
         if (history === null) {
-            console.log('in findHistory (user.service) - history is null');
             return [];
         }
         const messages = await this.db.message.findMany({
@@ -285,11 +281,8 @@ export class UsersService {
     }
 
     async addMessage(client: any, payload: any) {
-        //console.log('in addMessage (user.service) - payload = ', payload);
         const history = await this.getHistory(payload);
-        //console.log('in addMessage (user.service) - history = ', history);
         if (history === null) {
-            //console.log('in addMessage (user.service) - history is null');
             const newHistory = await this.db.history.create({
                 data: {
                     users: {
@@ -304,30 +297,24 @@ export class UsersService {
                     },
                 },
             });
-            //console.log('in addMessage (user.service) - newHistory = ',newHistory);
             const message = this.db.message.create({
                 data: {
                     content: payload.text,
-                    //senderId: payload.userId,
                     receiverId: newHistory.id,
                     senderId: payload.senderId,
                     channelId: null,
                 },
             });
-            //console.log('in addMessage (user.service) - message created : ',message,);
             return message;
         } else {
-            //console.log('in addMessage (user.service) - history is not null, id = ',history.id);
             const message = this.db.message.create({
                 data: {
                     content: payload.text,
                     receiverId: history.id,
                     senderId: payload.senderId,
                     channelId: null,
-                    //sender: { connect: { id: payload.userId } },
                 },
             });
-            //console.log('in addMessage (user.service) - message created : ',message);
             return message;
         }
     }
@@ -335,7 +322,7 @@ export class UsersService {
     async addMessageInChannel(client: any, payload: any) {
         //console.log('in addMessageInChannel (user.service) - payload = ', payload);
         const channel = await this.findChannelByName(payload.receiver);
-        if (channel !== null) {
+        if (channel !== null && channel !== undefined) {
             //console.log('in addMessageInChannel (user.service) - channel is not null, id = ',channel.id);
             const message = this.db.message.create({
                 data: {
@@ -349,5 +336,24 @@ export class UsersService {
             //console.log('in addMessageInChannel (user.service) - message created : ',message);
             return message;
         }
+    }
+
+    async createChannel(name: string) {
+        const channel = await this.db.channel.findUnique({
+            where: {
+                name,
+            },
+        });
+        if (channel !== null) {
+            throw new Error('Channel already exists');
+            return null;
+        }
+
+        return this.db.channel.create({
+            data: {
+                name,
+                access: 'PUBLIC',
+            },
+        });
     }
 }

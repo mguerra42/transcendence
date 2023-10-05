@@ -58,4 +58,10 @@ export class SocketController {
         //console.log('in getChannelHistory (socket.controller), history = ',history);
         return history;
     }
+
+    @Post('createchannel')
+    async CreateChannel(@Body() body: { name: string }) {
+        const channel = await this.userService.createChannel(body.name);
+        return channel;
+    }
 }

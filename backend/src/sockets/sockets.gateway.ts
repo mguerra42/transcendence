@@ -59,6 +59,7 @@ export class SocketsGateway {
     @SubscribeMessage('joinChannel')
     async handleJoinChannel(client: any, payload: any) {
         try {
+            // console.log('in  (socket.gateway) - payload = ',payload);
             const channelToJoin = await this.userService.findChannelByName(
                 payload.receiver,
             );
@@ -108,8 +109,7 @@ export class SocketsGateway {
     }
 
     @SubscribeMessage('matchmakingConfirm')
-    handleMatchmakingDecline(client:any, payload:any)
-    {
+    handleMatchmakingDecline(client: any, payload: any) {
         this.server.emit('matchmakingConfirmResponse', {
             player: payload.player,
             confirm: payload.confirm,
