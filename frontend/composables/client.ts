@@ -482,12 +482,21 @@ export const useClient = defineStore('client', () => {
             let usersArray: any = await useRequest('/matchmaking/getNormalGameQueue', {
                 method: 'GET',
             })
+            
+            let numberOfIdlePlayers = 0;
+            for (let i = 0; i < usersArray.data.value.length; i++)
+            {
+                if (usersArray.data.value[i].profile.username != playerUsername && usersArray.data.value[i].confirmed === 'idle')
+                    numberOfIdlePlayers++;
+            }
 
-            if (usersArray.data.value.length < 2) {
-                console.log('abon ?')
-                let retries = 0
-                while (retries < 10 && usersArray.data.value.length < 2) {
-                    await new Promise(timeout => setTimeout(timeout, 1000))
+            console.log(numberOfIdlePlayers);
+            if (numberOfIdlePlayers < 1)
+            {
+                let retries = 0;
+                while (retries < 10 && usersArray.data.value.length < 2)
+                {
+                    await new Promise(timeout => setTimeout(timeout, 1000));
                     usersArray = await useRequest('/matchmaking/getNormalGameQueue', {
                         method: 'GET',
                     })
@@ -501,16 +510,34 @@ export const useClient = defineStore('client', () => {
                     return null
                 }
             }
+            // else
+            //     console.log("busy queue", numberOfIdlePlayers)
 
-            for (let i = 0; i < usersArray.data.value.length; i++) {
-                if (usersArray.data.value[i].profile.username != playerUsername && usersArray.data.value[i].confirmed === 'idle') {
-                    console.log('found a match with ; ')
-                    console.log(usersArray.data.value[i])
-                    // await client.game.setQueueStatusToWaiting(playerUsername)
-                    await client.game.setQueueStatusToWaiting(usersArray.data.value[i].profile.username)
-                    return usersArray.data.value[i]
+            let retries = 0;
+            while (retries < 10)
+            {
+                for (let i = 0; i < usersArray.data.value.length; i++)
+                {
+                    if (usersArray.data.value[i].profile.username != playerUsername && usersArray.data.value[i].confirmed === "idle")
+                    {
+                        console.log("found a match with ; ")
+                        console.log(usersArray.data.value[i])
+                        // await client.game.setQueueStatusToWaiting(playerUsername)
+                        await client.game.setQueueStatusToWaiting(usersArray.data.value[i].profile.username)
+                        return usersArray.data.value[i]
+                    }
                 }
+                await new Promise(timeout => setTimeout(timeout, 1000));
+                usersArray = await useRequest('/matchmaking/getNormalGameQueue', {
+                    method: 'GET',
+                })
+
+                retries++;
             }
+            await useRequest('/matchmaking/removePlayerFromQueue', {
+                method: 'POST',
+                body: {username: playerUsername}
+            })
             return null
         },
         create: () => {
