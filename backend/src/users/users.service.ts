@@ -85,6 +85,18 @@ export class UsersService {
         return this.db.channel.findMany();
     }
 
+    findChannels(id: number) {
+        return this.db.channel.findMany({
+            where: {
+                userList: {
+                    some: {
+                        userId: id,
+                    },
+                },
+            },
+        });
+    }
+
     findChannelByName(name: string) {
         return this.db.channel.findFirst({
             where: {
@@ -355,5 +367,17 @@ export class UsersService {
                 access: 'PUBLIC',
             },
         });
+    }
+
+    async leaveChannel(channelId: number, userId: number) {
+        console.log('in leaveChannel (user.service)');
+        const channelUser = await this.db.channelUser.deleteMany({
+            where: {
+                userId: userId,
+                channelId: channelId,
+            },
+        });
+        return channelUser;
+        //supprimer le channel si plus personne dedans ???
     }
 }

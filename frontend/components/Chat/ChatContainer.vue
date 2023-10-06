@@ -50,7 +50,7 @@ import { createClientOnly } from 'nuxt/dist/app/components/client-only';
   const refreshUsers = async () => {
     client.chat.messages = await client.chat.currentHistory();
     client.chat.usersArray = await client.chat.getAllUsers();
-    client.chat.channelArray = await channel.getAllChannels();
+    client.chat.channelArray = await channel.getChannels();
   };
 
   const toggleChat = () => {

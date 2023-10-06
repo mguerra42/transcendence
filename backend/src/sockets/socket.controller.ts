@@ -39,10 +39,11 @@ export class SocketController {
         return channelsList;
     }
 
-    // export class HistoryDto {
-    //     channelName: string;
-    //     history: string;
-    // }
+    @Post('getchannels')
+    async GetChannels(@Body() body: any) {
+        const channelsList = await this.userService.findChannels(body.userId);
+        return channelsList;
+    }
 
     @Post('gethistory')
     async GetHistory(@Body() body: any) {
@@ -63,5 +64,24 @@ export class SocketController {
     async CreateChannel(@Body() body: { name: string }) {
         const channel = await this.userService.createChannel(body.name);
         return channel;
+    }
+
+    @Post('leavechannel')
+    async LeaveChannel(
+        @Body()
+        body: {
+            channelName: string;
+            channelId: number;
+            userId: number;
+            userName: string;
+        },
+    ) {
+        //console.log('in leaveChannel (socket.controller), body = ', body);
+        const channelUser = await this.userService.leaveChannel(
+            body.channelId,
+            body.userId,
+        );
+        //console.log('in leaveChannel (socket.controller), channelUser = ', channelUser);
+        return channelUser.count;
     }
 }

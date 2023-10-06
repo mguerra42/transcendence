@@ -33,7 +33,7 @@
 
   const refreshUsers = async () => {
     client.chat.usersArray = await client.chat.getAllUsers();
-    client.chat.channelArray = await channel.getAllChannels();
+    client.chat.channelArray = await channel.getChannels();
     client.chat.messages = await client.chat.currentHistory();
   };
 
@@ -50,6 +50,7 @@ const chatWithUser = async (userToMessage : any) => {
     //if (client.chat.chatState.receiver.id != userToMessage.id || client.chat.chatState.select != 'DM')
   };
   const chatWithChannel = async (channelToMessage : any) => {
+    console.log('chatWithChannel (ChatSelection.vue), channelToMessage = ', channelToMessage);
     client.chat.messages = [];
     client.chat.chatState.select = 'CHANNEL';
     client.chat.chatState.receiver.id = channelToMessage.id;
@@ -59,8 +60,16 @@ const chatWithUser = async (userToMessage : any) => {
       receiver: client.chat.chatState.receiver.name,
     });
     client.chat.messages = await client.chat.currentHistory();
+    client.chat.channelArray = await channel.getChannels()
     //if (client.chat.chatState.receiver.id != channelToMessage.id || client.chat.chatState.select != 'CHANNEL')
   };
+
+  onMounted(async () => {
+    //console.log('ChatSelection.vue mounted');
+    socket.on('hasToRefreshChannel', () => {
+      refreshUsers();
+    });
+  })
 </script>
 
 <template>

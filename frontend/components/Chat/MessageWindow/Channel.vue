@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { Socket } from 'socket.io-client';
+
   const client = useClient();
   const auth = useAuth();
+  const socket = useSocket();
   client.chat.showUserProfile = false;
   const isTooltipVisible = ref(false);
   const tooltipX = ref(0);
@@ -59,6 +62,10 @@
 
   onMounted(() => {
     document.addEventListener('click', hideTooltip);
+
+    // socket.on('hasToRefreshChannel', () => {
+    //   console.log('hasToRefreshChannel monted chatselection, chatState = ', client.chat.chatState);
+    // });
   });
 
   // Remove the click event listener when the component is unmounted
@@ -76,46 +83,47 @@
 
 <template>
 
-    <div v-if="client.chat.chatState.select === 'CHANNEL'" class="p-2 h-[1/5] w-full bg-zinc-600 hover:bg-zinc-500 rounded-lg flex mr-auto mb-2 cursor-pointer">
-          <div class="flex flex-col justify-center">
-            <!-- <img :src="client.chat.chatState.receiver.avatarPath" class="w-10 h-10 rounded-full" /> -->
-          </div>
-          <div class="flex flex-col justify-center">
-            <p class="ml-3 text-lg text-zinc-200 font-bold" >#{{ client.chat.chatState.receiver.name }}</p>
-            <p class="ml-3 text-xs text-zinc-400" >Subscribed : {{ client.chat.chatState.receiver.userCount }} users</p>
-            <p class="ml-3 text-xs text-zinc-400" >Online : {{ client.chat.chatState.receiver.onlineUsers }} users</p>
-          </div>
+    <div v-if="client.chat.chatState.select === 'CHANNEL'" class="p-2 h-[1/5] w-full bg-zinc-600 hover:bg-zinc-500 rounded-lg flex mr-auto mb-2  cursor-pointer justify-between">
+      <!-- <div class="flex flex-col justify-center"> -->
+        <!-- <img :src="client.chat.chatState.receiver.avatarPath" class="w-10 h-10 rounded-full" /> -->
+      <!-- </div> -->
+        <div class="flex flex-col justify-center">
+          <p class="ml-3 text-lg text-zinc-200 font-bold" >#{{ client.chat.chatState.receiver.name }}</p>
+          <p class="ml-3 text-xs text-zinc-400" >Subscribed : {{ client.chat.chatState.receiver.userCount }} users</p>
+          <p class="ml-3 text-xs text-zinc-400" >Online : {{ client.chat.chatState.receiver.onlineUsers }} users</p>
         </div>
-        <div id="chatMessages" ref="chatMessages" class="overflow-y-auto max-w-full scrollbar-w-2 h-[3/5] px-1 rounded-lg">
-          <div class="flex flex-col">
-            <div v-if="client.chat.chatState.select === 'CHANNEL'" v-for="message in client.chat.messages" class="mb-1">
-              <div class="text-left">
-                <div class="flex flex-col justify-center w-full hover:bg-zinc-600 rounded inline-block p-1">
-                  <div class="flex">
-                    <div class="flex flex-col justify-center cursor-pointer">
-                      <p @click.stop="displayUserTooltip(message.user, $event)" class="text-xs text-zinc-400"> {{ message.user.username }} </p>
-                      <!-- <p @click.stop="displayUserTooltip($event)" class="text-xs text-zinc-400"> {{ message.user.username }} </p> -->
-                    </div>
-                    <div class="flex flex-col justify-center" >
-                       <p class="text-xs ml-1 text-zinc-400"> - {{ getDate() }} </p>
-                    </div>
-                  </div>
-                  <p class="text-sm text-zinc-300 break-all">
-                    {{ message.content }}
-                  </p>
+        <div class="flex-end">
+          <button @click="client.chat.leaveChannel" class=" hover:bg-zinc-700 text-white py-1 px-1 rounded flex ">
+            <div class="i-mdi-close-box-multiple-outline"></div>
+          </button>
+        </div>
+    </div>
+    <div id="chatMessages" ref="chatMessages" class="overflow-y-auto max-w-full scrollbar-w-2 h-[3/5] px-1 rounded-lg">
+      <div class="flex flex-col">
+        <div v-if="client.chat.chatState.select === 'CHANNEL'" v-for="message in client.chat.messages" class="mb-1">
+          <div class="text-left">
+            <div class="flex flex-col justify-center w-full hover:bg-zinc-600 rounded inline-block p-1">
+              <div class="flex">
+                <div class="flex flex-col justify-center cursor-pointer w-full">
+                  <p @click.stop="displayUserTooltip(message.user, $event)" class="text-xs text-zinc-400"> {{ message.user.username }} </p>
+                  <!-- <p @click.stop="displayUserTooltip($event)" class="text-xs text-zinc-400"> {{ message.user.username }} </p> -->
+                </div>
+                <div class="flex flex-col justify-center" >
+                   <p class="text-xs ml-1 text-zinc-400">  {{ getDate() }} </p>
                 </div>
               </div>
+              <p class="text-sm text-zinc-300 break-all">
+                {{ message.content }}
+              </p>
             </div>
-            <div
-                        v-if="isTooltipVisible"
-                        class="tooltip w-30 h-30 shadow-md bg-zinc-800 px-2 py-1 rounded text-black"
-                        :style="{ top: `${tooltipY}px`, left: `${tooltipX}px`, 'z-index': 9999}"
-                        >
-                        <p @click="displayUserProfile($event)" class="text-center cursor-pointer text-zinc-200 px-2 py-1 m-1 bg-zinc-700 rounded hover:bg-zinc-600">
-                          {{indexMessage.username}}
-                        </p>
-                      </div>
-          </div> 
+          </div>
         </div>
+        <div v-if="isTooltipVisible" class="tooltip w-30 h-30 shadow-md bg-zinc-800 px-2 py-1 rounded text-black" :style="{ top: `${tooltipY}px`, left: `${tooltipX}px`, 'z-index': 9999}">
+          <p @click="displayUserProfile($event)" class="text-center cursor-pointer text-zinc-200 px-2 py-1 m-1 bg-zinc-700 rounded hover:bg-zinc-600">
+            {{indexMessage.username}}
+          </p>
+        </div>
+      </div> 
+    </div>
 </template>
 

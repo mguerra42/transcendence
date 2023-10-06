@@ -135,6 +135,12 @@ export class SocketsGateway {
         }
     }
 
+    @SubscribeMessage('refreshChannel')
+    async handleRefreshChannel(client: any, payload: any) {
+        const user = await this.userService.findByUsername(payload.sender);
+        this.server.to(user.socketId).emit('hasToRefreshChannel', {});
+    }
+
     async handleConnection(client) {
         // try {
         // Split all cookies and key/value pairs

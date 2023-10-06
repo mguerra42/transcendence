@@ -4,8 +4,8 @@
 // Cela nous permettra de tous bosser sur le même code sans avoir à se soucier des conflits de merge.
 // Merci d'ajouter des commentaires pour expliquer ce que fait chaque fonction ainsi que le typage des paramètres et du retour.
 import { defineStore } from 'pinia'
-import { useFetch } from '#app'
 import { RefSymbol } from '@vue/reactivity'
+import { useFetch } from '#app'
 
 export const useRequest: typeof useFetch = (path, options = {}) => {
     const config = useRuntimeConfig()
@@ -66,12 +66,13 @@ interface AppClient {
         list: () => void // get friends list
         inverselist: () => void
         pendinglist: () => void
-        add: (username : string) => void // add friend
-        remove: (friendName : string) => void // remove friend
+        add: (username: string) => void // add friend
+        remove: (friendName: string) => void // remove friend
     }
     chat: {
     // Channels
         createChannel: () => void // create channel
+        leaveChannel: () => void // leave channel
         updateChannel: () => void // update channel
         getOnlineUsers: () => any // get online users
         getAllUsers: () => any // get all users
@@ -90,7 +91,6 @@ interface AppClient {
         sendTo: () => void // send DM to user
         block: () => void // block user
         inviteGame: () => void // invite user to game
-        getAllChannels: () => any // get offline users
         clearChat: (div: any) => void
         scrollToBottom: (div: any) => void
         currentHistory: () => any // { sender: string; text: string; time?: string; avatar?: string; user?: any }[]
@@ -106,10 +106,10 @@ interface AppClient {
 
     game: {
 
-        addToGameQueue: (playerUsername:string) => any
-        removeFromGameQueue: (playerUsername:string) => any
-        setQueueStatusToWaiting: (playerUsername:string) => any
-        findAMatch: (playerUsername:string) => any
+        addToGameQueue: (playerUsername: string) => any
+        removeFromGameQueue: (playerUsername: string) => any
+        setQueueStatusToWaiting: (playerUsername: string) => any
+        findAMatch: (playerUsername: string) => any
         create: () => void // create game
     }
 }
@@ -339,7 +339,6 @@ export const useClient = defineStore('client', () => {
                 authStore.error = error.value?.statusMessage as string
                 return null
             }
-
             return data.value
         }
         return []
@@ -366,115 +365,146 @@ export const useClient = defineStore('client', () => {
             authStore.error = error.value?.statusMessage as string
             return null
         }
-        client.chat.messages = []
-        client.chat.chatState.select = 'CHANNEL';
-        client.chat.chatState.receiver.id = data.value.id;
-        client.chat.chatState.receiver.name = data.value.name;
-        socket.emit('joinChannel', {
+        if (data.value !== null && data.value !== undefined) {
+            client.chat.messages = []
+            client.chat.chatState.select = 'CHANNEL'
+            client.chat.chatState.receiver.id = data.value.id
+            client.chat.chatState.receiver.name = data.value.name
+            socket.emit('joinChannel', {
+                sender: authStore.session.username,
+                receiver: data.value.name,
+            })
+        }
+
+        socket.emit('refreshChannel', { sender: authStore.session.username })
+    }
+
+    client.chat.leaveChannel = async () => {
+        //console.log('name = ', client.chat.chatState.receiver.name, ' id = ', client.chat.chatState.receiver.id)
+        socket.emit('leaveChannel', {
             sender: authStore.session.username,
-            receiver: data.value.name,
+            receiver: client.chat.chatState.receiver.name,
         })
+
+        const { data, error } = await useRequest('/socket/leavechannel', {
+            method: 'POST',
+            body: {
+                channelName: client.chat.chatState.receiver.name,
+                channelId: client.chat.chatState.receiver.id,
+                userId: authStore.session.id,
+                userName: authStore.session.username,
+            },
+        })
+
+        if (data.value === '1') {
+            client.chat.chatState.select = 'EMPTY'
+            client.chat.chatState.receiver.id = null
+            client.chat.chatState.receiver.name = null
+            client.chat.messages = []
+        }
+
+        if (error.value?.statusCode) {
+            authStore.error = error.value?.statusMessage as string
+            return null
+        }
+
+        socket.emit('refreshChannel', { sender: authStore.session.username })
     }
 
     const gameLobby: Ref<any[]> = ref([])
-    
-    client.friend = {} as AppClient['friend'];
 
-    client.friend.add = async (newFriendName : string) => {
+    client.friend = {} as AppClient['friend']
+
+    client.friend.add = async (newFriendName: string) => {
         console.log('add a friend : ', newFriendName)
         const { data, error } = await useRequest('/friend/add', {
             method: 'POST',
             body: {
-                newFriendName
+                newFriendName,
             },
         })
     }
 
-    client.friend.remove = async (friendName : string) => {
+    client.friend.remove = async (friendName: string) => {
         console.log('remove a friend : ', friendName)
         const { data, error } = await useRequest('/friend/remove', {
             method: 'POST',
             body: {
-                friendName
+                friendName,
             },
         })
     }
 
     client.game = {
         addToGameQueue: async (playerUsername: string) => {
-            //If user is already in the game queue, return
-            const userExists:any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${playerUsername}`, {
+            // If user is already in the game queue, return
+            const userExists: any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${playerUsername}`, {
                 method: 'GET',
             })
-            if(userExists.data.value.profile !== undefined)
+            if (userExists.data.value.profile !== undefined)
                 return null
-            //Else add user in the game queue
-            const response:any = await useRequest('/matchmaking/addPlayerToQueue', {
+            // Else add user in the game queue
+            const response: any = await useRequest('/matchmaking/addPlayerToQueue', {
                 method: 'POST',
-                body: {username: playerUsername}
+                body: { username: playerUsername },
             })
-            return response.data.value;
+            return response.data.value
         },
 
         removeFromGameQueue: async (playerUsername: string) => {
-            const userExists:any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${playerUsername}`, {
+            const userExists: any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${playerUsername}`, {
                 method: 'GET',
             })
-            if(userExists.data.value.profile === undefined)
+            if (userExists.data.value.profile === undefined)
                 return null
-            const response:any = await useRequest('/matchmaking/removePlayerFromQueue', {
+            const response: any = await useRequest('/matchmaking/removePlayerFromQueue', {
                 method: 'POST',
-                body: {username: playerUsername}
+                body: { username: playerUsername },
             })
-            return response.data.value;
+            return response.data.value
         },
 
         setQueueStatusToWaiting: async (playerUsername: string) => {
-            const userExists:any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${playerUsername}`, {
+            const userExists: any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${playerUsername}`, {
                 method: 'GET',
             })
-            if(userExists.data.value.profile === undefined)
-                return null    
-            const response:any = await useRequest('/matchmaking/setUserToWaiting', {
+            if (userExists.data.value.profile === undefined)
+                return null
+            const response: any = await useRequest('/matchmaking/setUserToWaiting', {
                 method: 'POST',
-                body: {username: playerUsername}
+                body: { username: playerUsername },
             })
-            return response.data.value;
+            return response.data.value
         },
 
         findAMatch: async (playerUsername: string) => {
-            //Fetch users in the queue
-            let usersArray:any = await useRequest('/matchmaking/getNormalGameQueue', {
+            // Fetch users in the queue
+            let usersArray: any = await useRequest('/matchmaking/getNormalGameQueue', {
                 method: 'GET',
             })
-            
-            if (usersArray.data.value.length < 2)
-            {
+
+            if (usersArray.data.value.length < 2) {
                 console.log('abon ?')
-                let retries = 0;
-                while (retries < 10 && usersArray.data.value.length < 2)
-                {
-                    await new Promise(timeout => setTimeout(timeout, 1000));
+                let retries = 0
+                while (retries < 10 && usersArray.data.value.length < 2) {
+                    await new Promise(timeout => setTimeout(timeout, 1000))
                     usersArray = await useRequest('/matchmaking/getNormalGameQueue', {
                         method: 'GET',
                     })
-                    retries++;
+                    retries++
                 }
-                if (retries >= 10)
-                {
+                if (retries >= 10) {
                     await useRequest('/matchmaking/removePlayerFromQueue', {
                         method: 'POST',
-                        body: {username: playerUsername}
+                        body: { username: playerUsername },
                     })
                     return null
                 }
             }
 
-            for (let i = 0; i < usersArray.data.value.length; i++)
-            {
-                if (usersArray.data.value[i].profile.username != playerUsername && usersArray.data.value[i].confirmed === "idle")
-                {
-                    console.log("found a match with ; ")
+            for (let i = 0; i < usersArray.data.value.length; i++) {
+                if (usersArray.data.value[i].profile.username != playerUsername && usersArray.data.value[i].confirmed === 'idle') {
+                    console.log('found a match with ; ')
                     console.log(usersArray.data.value[i])
                     // await client.game.setQueueStatusToWaiting(playerUsername)
                     await client.game.setQueueStatusToWaiting(usersArray.data.value[i].profile.username)
