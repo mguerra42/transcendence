@@ -10,6 +10,7 @@ const auth = useAuth();
         <!-- Messages -->
         <ChatMessageWindowDM/>
 
+        <ChatChannelList v-if="client.chat.chatState.select === 'ChannelList'"/>
         <!-- Channel -->
         <ChatMessageWindowChannel/>
       

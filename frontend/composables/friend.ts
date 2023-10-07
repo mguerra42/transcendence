@@ -3,7 +3,6 @@ import { defineStore } from 'pinia'
 // import { useRuntimeConfig } from '@nuxt/use-runtime-config';
 
 export const useFriend = defineStore('friend', () => {
-  let showFriend = ref(false);
   let mutualfriends = ref<any[]>([]);
   let inversefriends = ref<any[]>([]);
   let currentCategory = ref<any[]>([]);
@@ -82,7 +81,6 @@ export const useFriend = defineStore('friend', () => {
 
 
     return { 
-      showFriend,
       currentCategory,
       toggleCategory,
       fetchMutualFriendList,

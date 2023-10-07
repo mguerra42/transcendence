@@ -7,8 +7,10 @@
 
   const toggleFriends = () => {
     client.chat.chatState.select = 'Amis';
-    if (friend.showFriend === false)
-      friend.showFriend = true
+  }
+
+  const toggleChannelList = () => {
+    client.chat.chatState.select = 'ChannelList';
   }
 
   const toggleChat = () => {
@@ -50,7 +52,7 @@ const chatWithUser = async (userToMessage : any) => {
     //if (client.chat.chatState.receiver.id != userToMessage.id || client.chat.chatState.select != 'DM')
   };
   const chatWithChannel = async (channelToMessage : any) => {
-    console.log('chatWithChannel (ChatSelection.vue), channelToMessage = ', channelToMessage);
+    //console.log('chatWithChannel (ChatSelection.vue), channelToMessage = ', channelToMessage);
     client.chat.messages = [];
     client.chat.chatState.select = 'CHANNEL';
     client.chat.chatState.receiver.id = channelToMessage.id;
@@ -102,7 +104,7 @@ const chatWithUser = async (userToMessage : any) => {
           </div>
         </div>
         <!-- Channel -->
-        <button class="text-sm mb-2 mt-2 text-left text-zinc-200 hover:text-zinc-400 font-semi-bold px-2 py-2">
+        <button @click="toggleChannelList" class="text-sm mb-2 mt-2 text-left text-zinc-200 hover:text-zinc-400 font-semi-bold px-2 py-2">
           Channels
         </button>
         <div v-for="channelList in client.chat.channelArray" :class="{ 'bg-zinc-700 text-zinc-200 cursor-pointer rounded flex': (client.chat.chatState.receiver.id === channelList.id && client.chat.chatState.select === 'CHANNEL'),
