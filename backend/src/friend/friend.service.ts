@@ -20,6 +20,22 @@ export class FriendService {
       throw new Error(`L'ami avec le nom d'utilisateur ${newFriendUsername} n'a pas été trouvé.`);
     }
 
+    if (friend.id === currentUserId) {
+        throw new Error(`Erreur : vous ne pouvez pas vous ajouter vous même en ami.`);
+      }
+    
+    // Vérifier si une relation "friend" existe déjà entre les deux utilisateurs pour l'utilisateur actuel
+    const existingFriendship = await this.prisma.friend.findFirst({
+        where: {
+          userOneId: currentUserId,
+          userTwoId: friend.id,
+        },
+      });
+      
+      if (existingFriendship) {
+        throw new Error(`Vous avez déjà ajouté l'utilisateur ${newFriendUsername} en tant qu'ami précédemment.`);
+      }
+
     // Créez une nouvelle entrée dans le modèle Friend
     await this.prisma.friend.create({
       data: {
@@ -27,10 +43,6 @@ export class FriendService {
         userTwoId : friend.id,
       },
     });
-
-    // // Mettez à jour la liste d'amis des deux utilisateurs
-    // await this.updateUserFriends(userOneId, userTwoId);
-    // await this.updateUserFriends(userTwoId, userOneId);
   }
   
   async getMutualFriends(userId: number): Promise<User[]> {
@@ -70,27 +82,6 @@ export class FriendService {
         throw error;
     }
 }
-
-  // async getFriendList(userId: number): Promise<{ id: number; username: string }[]> {
-  //   try {
-  //     const user = await this.prisma.user.findUnique({
-  //       where: { id: userId },
-  //       include: { friends: { include: { userTwo: true } } },
-  //     });
-  
-  //     if (!user) {
-  //       throw new Error('Utilisateur non trouvé');
-  //     }
-  
-  //     // Utilisez map pour extraire les amis userTwo avec uniquement id et username
-  //     const friendsUserTwo = user.friends.map(friend => friend.userTwo);
-  
-  //     return friendsUserTwo;
-  //   } catch (error) {
-  //     // Gérer les erreurs (par exemple, l'utilisateur n'a pas été trouvé)
-  //     throw error;
-  //   }
-  // }
 
   async getPendingFriendRequests(userId: number): Promise<User[]> {
     try {

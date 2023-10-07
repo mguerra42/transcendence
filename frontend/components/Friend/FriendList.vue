@@ -24,11 +24,11 @@
     }
     };
 
-    const addFriend = async (newFriendName: string) => {
-      console.log('add a friend : ', newFriendName);
-      await client.friend.add(newFriendName);
+    const addFriend = async (newFriendUsername: string) => {
+      console.log('add a friend : ', newFriendUsername);
+      await client.friend.add(newFriendUsername);
       await fetchFriendlist(categoryTab);
-      newFriendName.value = ''
+      newFriendName.value = '';
   };
 
   const removeFriend = async (friendName: string) => {

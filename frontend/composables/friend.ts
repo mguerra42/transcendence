@@ -81,18 +81,12 @@ export const useFriend = defineStore('friend', () => {
     };
 
 
-    const refreshCategory = async () => {
-      console.log('refreshcategory :')
-      await friendListVue.fetchFriendlist(friendListVue.categoryTab)
-    };
-  
     return { 
       showFriend,
       currentCategory,
       toggleCategory,
       fetchMutualFriendList,
       fetchInverseFriendList,
-      fetchPendingFriendList,
-      refreshCategory
+      fetchPendingFriendList
     }
   })
