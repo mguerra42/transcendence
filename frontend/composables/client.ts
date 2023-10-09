@@ -105,11 +105,12 @@ interface AppClient {
     }
 
     game: {
-
-        addToGameQueue: (playerUsername: string) => any
-        removeFromGameQueue: (playerUsername: string) => any
-        setQueueStatusToWaiting: (playerUsername: string) => any
-        findAMatch: (playerUsername: string) => any
+        getNormalQueuePlayers: () => Promise<any>
+        getNumberOfIdlePlayers: () => Promise<number>
+        addToGameQueue: (playerUsername: string) => Promise<any>
+        removeFromGameQueue: (playerUsername: string) => Promise<any>
+        setQueueStatusToWaiting: (playerUsername: string) => Promise<any>
+        findAMatch: (playerUsername: string) => Promise<any>
         create: () => void // create game
     }
 }
@@ -436,7 +437,7 @@ export const useClient = defineStore('client', () => {
     }
 
     client.game = {
-        addToGameQueue: async (playerUsername: string) => {
+        addToGameQueue: async (playerUsername: string):Promise<any> => {
             // If user is already in the game queue, return
             const userExists: any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${playerUsername}`, {
                 method: 'GET',
@@ -451,7 +452,7 @@ export const useClient = defineStore('client', () => {
             return response.data.value
         },
 
-        removeFromGameQueue: async (playerUsername: string) => {
+        removeFromGameQueue: async (playerUsername: string):Promise<any> => {
             const userExists: any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${playerUsername}`, {
                 method: 'GET',
             })
@@ -464,7 +465,7 @@ export const useClient = defineStore('client', () => {
             return response.data.value
         },
 
-        setQueueStatusToWaiting: async (playerUsername: string) => {
+        setQueueStatusToWaiting: async (playerUsername: string):Promise<any> => {
             const userExists: any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${playerUsername}`, {
                 method: 'GET',
             })
@@ -477,8 +478,7 @@ export const useClient = defineStore('client', () => {
             return response.data.value
         },
 
-        findAMatch: async (playerUsername: string) => {
-            // Fetch users in the queue
+        getNormalQueuePlayers: async ():Promise<number> => {
             let usersArray: any = await useRequest('/matchmaking/getNormalGameQueue', {
                 method: 'GET',
             })
@@ -486,60 +486,55 @@ export const useClient = defineStore('client', () => {
             let numberOfIdlePlayers = 0;
             for (let i = 0; i < usersArray.data.value.length; i++)
             {
-                if (usersArray.data.value[i].profile.username != playerUsername && usersArray.data.value[i].confirmed === 'idle')
+                if (usersArray.data.value[i].confirmed === 'idle')
                     numberOfIdlePlayers++;
             }
+            return usersArray.data.value;
+        },
 
-            console.log(numberOfIdlePlayers);
-            if (numberOfIdlePlayers < 1)
+        getNumberOfIdlePlayers: async ():Promise<number> => {
+            let usersArray: any = await useRequest('/matchmaking/getNormalGameQueue', {
+                method: 'GET',
+            })
+            
+            let numberOfIdlePlayers = 0;
+            for (let i = 0; i < usersArray.data.value.length; i++)
             {
-                let retries = 0;
-                while (retries < 10 && usersArray.data.value.length < 2)
-                {
-                    await new Promise(timeout => setTimeout(timeout, 1000));
-                    usersArray = await useRequest('/matchmaking/getNormalGameQueue', {
-                        method: 'GET',
-                    })
-                    retries++
-                }
-                if (retries >= 10) {
-                    await useRequest('/matchmaking/removePlayerFromQueue', {
-                        method: 'POST',
-                        body: { username: playerUsername },
-                    })
-                    return null
-                }
+                if (usersArray.data.value[i].confirmed === 'idle')
+                    numberOfIdlePlayers++;
             }
-            // else
-            //     console.log("busy queue", numberOfIdlePlayers)
+            return numberOfIdlePlayers;
+        },
 
-            let retries = 0;
-            while (retries < 10)
+        findAMatch: async (playerUsername: string) => {
+            let numberOfIdlePlayers = await client.game.getNumberOfIdlePlayers() - 1;
+            let usersArray = await client.game.getNormalQueuePlayers()
+            let retryAttempts = 10;
+
+            //wait for enough players to find a match
+            while (retryAttempts > 0)
             {
-                for (let i = 0; i < usersArray.data.value.length; i++)
+                for (let i = 0; i < usersArray.length; i++)
                 {
-                    if (usersArray.data.value[i].profile.username != playerUsername && usersArray.data.value[i].confirmed === "idle")
+                    if (usersArray[i].profile.username != playerUsername && usersArray[i].confirmed === "idle")
                     {
-                        console.log("found a match with ; ")
-                        console.log(usersArray.data.value[i])
-                        // await client.game.setQueueStatusToWaiting(playerUsername)
-                        await client.game.setQueueStatusToWaiting(usersArray.data.value[i].profile.username)
-                        return usersArray.data.value[i]
+                        //client A will set the status of client B to waiting and vice-versa
+                        await client.game.setQueueStatusToWaiting(usersArray[i].profile.username)
+                        return usersArray[i]
                     }
                 }
+                //retry every 1 sec
                 await new Promise(timeout => setTimeout(timeout, 1000));
-                usersArray = await useRequest('/matchmaking/getNormalGameQueue', {
-                    method: 'GET',
-                })
-
-                retries++;
+                //refresh queue
+                usersArray = await client.game.getNormalQueuePlayers()
+                retryAttempts--;
             }
-            await useRequest('/matchmaking/removePlayerFromQueue', {
-                method: 'POST',
-                body: {username: playerUsername}
-            })
+
+            //remove from queue if match wasnt found
+            await client.game.removeFromGameQueue(playerUsername)
             return null
         },
+    
         create: () => {
         },
     }
