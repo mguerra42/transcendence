@@ -507,7 +507,6 @@ export const useClient = defineStore('client', () => {
         },
 
         findAMatch: async (playerUsername: string) => {
-            let numberOfIdlePlayers = await client.game.getNumberOfIdlePlayers() - 1;
             let usersArray = await client.game.getNormalQueuePlayers()
             let retryAttempts = 10;
 

@@ -64,7 +64,7 @@
 
 <script setup lang="ts">
 
-    const opponentProfile : Ref<{ username?: string; avatar?: string;}> = ref({});
+    const opponentProfile : Ref<{ username?: string; avatarPath?: string;}> = ref({});
     const opponentDeclined = ref(false);
     const opponentAccepted = ref(false);
     const showMatchmakingError = ref(false);
@@ -104,25 +104,39 @@
     }
 
     const waitForMatch = async () => {
+        //hide play button when waiting for match
         showPlayButton.value = false;
+
+        //show loading screen when waiting for match
         showLoader.value = true;
+
+        //update time count every second
         const timeElapsedInterval = setInterval(() => {
         timeElapsed.value++;
         }, 1000);
 
+        //add in game queue
         await client.game.addToGameQueue(auth.session.username)
+        
+        //wait for match to be found
         const matchOpponent:any = await client.game.findAMatch(auth.session.username);
         if (matchOpponent === null)
         {
+            //if match isn't found, return null and show error
             MatchmakingError.value = 'No players available.'
+            //reset time count
             clearInterval(timeElapsedInterval);
             timeElapsed.value = 0;
             return null;
         }
-        opponentProfile.value.username = matchOpponent.profile?.username;
-        opponentProfile.value.avatarPath = matchOpponent.profile?.avatarPath;
-        clearInterval(timeElapsedInterval);
-        timeElapsed.value = 0;
+        else
+        {
+            //update the opponent profile if match is found
+            opponentProfile.value.username = matchOpponent.profile?.username;
+            opponentProfile.value.avatarPath = matchOpponent.profile?.avatarPath;
+            clearInterval(timeElapsedInterval);
+            timeElapsed.value = 0;
+        }
         return matchOpponent;
     }
 
@@ -139,18 +153,15 @@
                 const checkMatchAccepted = () => {
                     if (matchAccepted.value === true && opponentAccepted.value === true)
                     {
-                        console.log('both accepted')
                         resolve();
                     }
                     else if (opponentDeclined.value === true && matchDeclined.value === false)
                     {
-                        console.log('bro declined')
                         resolve();
                         opponentDeclined.value = false;
                     }
                     else if (matchDeclined.value === true && opponentDeclined.value === false)
                     {
-                        console.log('í decline bro')
                         resolve();
                     }
                     else
@@ -160,6 +171,15 @@
             }),   
         ]);
         clearInterval(timeElapsedInterval);
+        timeElapsed.value = 0;
+    }
+
+    const resetMatchmakingWindow = async () => {
+        matchFound.value = false;
+        matchAccepted.value = false;
+        matchDeclined.value = false;
+        opponentAccepted.value = false;
+        opponentDeclined.value = false;
     }
 
     const startGame = async () => {
@@ -168,50 +188,37 @@
             const ret = await waitForMatch();
             if (ret === null)
             {
+                showLoader.value = false;
                 await client.game.removeFromGameQueue(auth.session.username)
                 showMatchmakingError.value = true;
                 await new Promise(timeout => setTimeout(timeout, 2000));
-                showLoader.value = false;
                 showMatchmakingError.value = false;
-                matchFound.value = false;
-                matchAccepted.value = false;
-                matchDeclined.value = false;
+                resetMatchmakingWindow()
                 showPlayButton.value = true;
-                timeElapsed.value = 0;
                 return ;
             }
+
             await waitForConfirm();
             if (matchAccepted.value === true && opponentAccepted.value === true)
             {
                 showPong.value = true;
-                matchFound.value = false;
-                matchAccepted.value = false;
-                matchDeclined.value = false;
                 showPlayButton.value = true;
-                opponentAccepted.value = false;
-                timeElapsed.value = 0;
+                resetMatchmakingWindow()
                 await client.game.removeFromGameQueue(auth.session.username)
                 gameLoop();
             }
-            matchFound.value = false;
-            matchAccepted.value = false;
-            matchDeclined.value = false;
             showPlayButton.value = true;
-            opponentAccepted.value = false;
-            opponentDeclined.value = false;
-            timeElapsed.value = 0;
+            resetMatchmakingWindow()
+            //remove from queue 
             await client.game.removeFromGameQueue(auth.session.username)
-        } else {
+        }
+        else 
+        {
             resetGame();
             cancelAnimationFrame(animationFrameId.value);
-            matchFound.value = false;
-            matchAccepted.value = false;
-            matchDeclined.value = false;
             showPong.value = false;
             showPlayButton.value = true;
-            opponentAccepted.value = false;
-            opponentDeclined.value = false;
-            timeElapsed.value = 0;
+            resetMatchmakingWindow()
         }
     }
 
