@@ -55,11 +55,11 @@
             {{ timeElapsed }}
         </p>
     </div>
-    <!-- <div v-if="matchFound" @click="declineMatch" class="bg-zinc-600 w-40 hover:bg-zinc-700 px-2 py-1 m-2 cursor-pointer rounded-lg">
+    <div v-if="matchFound" @click="declineMatch" class="bg-zinc-600 w-40 hover:bg-zinc-700 px-2 py-1 m-2 cursor-pointer rounded-lg">
         <p class="text-zinc-200 text-center">
             Decline
         </p>
-    </div> -->
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -158,7 +158,6 @@
                     else if (opponentDeclined.value === true && matchDeclined.value === false)
                     {
                         resolve();
-                        opponentDeclined.value = false;
                     }
                     else if (matchDeclined.value === true && opponentDeclined.value === false)
                     {
@@ -398,46 +397,3 @@
         });
     });
 </script>
-
-        <!-- findAMatch: async (playerUsername: string):Promise<any> => {
-            let numberOfIdlePlayers = await client.game.getNumberOfIdlePlayers()
-            let usersArray = await client.game.getNormalQueuePlayers()
-            let retryAttempts = 10
-    
-            //remove current user from the total number of idle players
-            numberOfIdlePlayers -= 1;
-            //If there are less than 2 idle players in the queue
-            if (numberOfIdlePlayers < 1)
-            {
-                //while there are less than 2 idle players in queue, wait for a new player
-                //check every second
-                while (retryAttempts > 0 && numberOfIdlePlayers < 1)
-                {
-                    await new Promise(timeout => setTimeout(timeout, 1000));
-                    usersArray = await client.game.getNormalQueuePlayers()
-                    retryAttempts--
-                }
-                if (retryAttempts == 0) {
-                    await client.game.removeFromGameQueue(playerUsername)
-                    return null
-                }
-            }
-
-            retryAttempts = 10;
-            while (retryAttempts > 0)
-            {
-                for (let i = 0; i < usersArray.length; i++)
-                {
-                    if (usersArray[i].profile.username != playerUsername && usersArray[i].confirmed === "idle")
-                    {
-                        await client.game.setQueueStatusToWaiting(usersArray[i].profile.username)
-                        return usersArray[i]
-                    }
-                }
-                await new Promise(timeout => setTimeout(timeout, 1000));
-                usersArray = await client.game.getNormalQueuePlayers()
-                retryAttempts--;
-            }
-            await client.game.removeFromGameQueue(playerUsername)
-            return null
-        }, -->
