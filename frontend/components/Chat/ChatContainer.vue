@@ -96,7 +96,7 @@ import { createClientOnly } from 'nuxt/dist/app/components/client-only';
     });
     socket.on('receiveMessageFromChannel', async (data: any) => {
       const currentTime = new Date();
-      const timeOptions = { hour: '2-digit', minute: '2-digit' };
+      const timeOptions:any = { hour: '2-digit', minute: '2-digit' };
       const formattedTime = currentTime.toLocaleTimeString(undefined, timeOptions);
       setInterval(() => {}, 50);
       client.chat.messages = await client.chat.currentHistory();
