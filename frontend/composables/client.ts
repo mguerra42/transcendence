@@ -16,13 +16,7 @@ export const useRequest: typeof useFetch = (path, options = {}) => {
 
 interface AppClient {
 
-    // Gardez un seul niveau de hierarchie, ex: group.functionname = implementation
-    // group: {
-    //    functionname: () => void
-    // }
-
     auth: {
-        authMethod: string
         login: ({
             email,
             password,
@@ -30,6 +24,7 @@ interface AppClient {
             email: string
             password: string
         }) => void // login
+
         signup: ({
             username,
             email,
@@ -39,21 +34,21 @@ interface AppClient {
             email: string
             password: string
         }) => void // login
-        update: (
-            {
-                username,
-                email,
-                password,
-                newPassword,
-                newPasswordConfirmation,
-            }: {
-                username: string
-                email: string
-                password: string
-                newPassword: string
-                newPasswordConfirmation: string
-            },
-        ) => void // update user data
+    
+        update: ({
+            username,
+            email,
+            password,
+            newPassword,
+            newPasswordConfirmation,
+        }: {
+            username: string
+            email: string
+            password: string
+            newPassword: string
+            newPasswordConfirmation: string
+        },) => void // update user data
+        
         onFileSelected: (event: any) => void // upload avatar
         avatarFile: Ref<File | undefined> // avatar file
         loginWithGoogle: () => void // login with google
@@ -61,6 +56,7 @@ interface AppClient {
         logout: () => void // logout
         session: () => any // get user data
     }
+
     friend: {
         profile: () => void // get user profile
         list: () => void // get friends list
@@ -69,8 +65,9 @@ interface AppClient {
         add: (username: string) => void // add friend
         remove: (friendName: string) => void // remove friend
     }
+
     chat: {
-    // Channels
+        // Channels
         createChannel: () => void // create channel
         leaveChannel: () => void // leave channel
         updateChannel: () => void // update channel
@@ -78,11 +75,12 @@ interface AppClient {
         getAllUsers: () => any // get all users
         getOfflineUsers: () => any // get offline users
         setAdmin: (userId: string, status: boolean) => void // set moderator
+
         // Admin
         kick: (userId: string) => void // kick user
         ban: (userId: string) => void // ban user
         mute: (userId: string) => void // mute user
-
+        
         // User
         list: () => void // get channels list
         join: () => void // join channel
@@ -94,6 +92,7 @@ interface AppClient {
         clearChat: (div: any) => void
         scrollToBottom: (div: any) => void
         currentHistory: () => any // { sender: string; text: string; time?: string; avatar?: string; user?: any }[]
+        
         usersArray: globalThis.Ref<any[]>
         channelArray: globalThis.Ref<any[]>
         chatVisible: boolean
@@ -115,36 +114,23 @@ interface AppClient {
     }
 }
 
+//client store
 export const useClient = defineStore('client', () => {
     const client: AppClient = {} as AppClient
     const authStore = useAuth()
-    const friendStore = useFriend()
     const socket = useSocket()
-    const channel = useChannel()
-    /* ¯-_-¯-_-¯-_-¯-_-¯-_-¯-_-¯*\
-¯-_-¯\_(ツ)_/¯-_-¯ AUTH
-\*¯-_-¯-_-¯-_-¯-_-¯-_-¯-_-¯ */
 
-    // Authentification
     client.auth = {} as AppClient['auth']
     client.chat = {} as AppClient['chat']
     client.game = {} as AppClient['game']
+    client.friend = {} as AppClient['friend']
 
-    // This variable is used to determine which auth method is used at the time of signin
-    client.auth.authMethod = 'default'
-
-    // This function is called to log the user in.
-    // It takes an email and a password as parameters
-    // and returns a token if the login is successful.
-    // Token will also be stored in the cookies, so nothing else is needed after this to keep the session alive.
-    // It returns an error if the login is not successful.
-    // Finally, we call the auth.refreshSession() function to refresh the session. (see auth.ts)
+    //AUTH FUNCTIONS
     client.auth.login = async ({
         email,
         password,
-    }) => {
-        console.log('login', email, password)
-        // data.value.access_token, but not needed here, we use cookies.
+    }) =>
+    {
         const { data, error } = await useRequest('/auth/login', {
             method: 'POST',
             body: {
@@ -169,15 +155,12 @@ export const useClient = defineStore('client', () => {
         location.href = 'https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-a8654d5f52c9f6fd539181d269f4c72d07954f0f6ac7409ca17d77eee7ac7822&redirect_uri=http%3A%2F%2Flocalhost%3A3001%2Fapi%2Fv0%2Fauth%2F42%2Fcallback&response_type=code'
     }
 
-    // This function is called to register a new user
-    // It takes an email and a password as parameters
-    // It automatically logs the user in after registration.
     client.auth.signup = async ({
         username,
         email,
         password,
-    }) => {
-    // data.value.access_token, but not needed here, we use cookies.
+    }) =>
+    {
         const { data, error } = await useRequest('/auth/signup', {
             method: 'POST',
             body: {
@@ -190,32 +173,22 @@ export const useClient = defineStore('client', () => {
             authStore.error = error.value?.statusMessage as string
             return
         }
-        // Auto login after registration
         await client.auth.login({
             email,
             password,
         })
     }
-    client.auth.logout = async () => {
-        if (client.auth.authMethod === 'google') {
-            const { data, error } = await useRequest('/auth/google/logout', {
-                method: 'POST',
-            })
-        }
-        else if (client.auth.authMethod === '42') {
-            const { data, error } = await useRequest('/auth/42/logout', {
-                method: 'POST',
-            })
-        }
-        else {
-            const { data, error } = await useRequest('/auth/logout', {
-                method: 'POST',
-            })
-        }
+
+    client.auth.logout = async () =>
+    {
+        const { data, error } = await useRequest('/auth/logout', {
+            method: 'POST',
+        })
     }
 
-    client.auth.session = async () => {
-    // using $fetch here because nuxt SSR fucks up with cookies
+    client.auth.session = async () =>
+    {
+        // using $fetch here because nuxt SSR fucks up with cookies
         const data = await $fetch(`${useRuntimeConfig().public.baseURL}/auth/session`, {
             method: 'GET',
             credentials: 'include',
@@ -226,7 +199,6 @@ export const useClient = defineStore('client', () => {
     }
 
     client.auth.avatarFile = ref<File>()
-
     client.auth.update = async ({
         username,
         email,
@@ -234,7 +206,8 @@ export const useClient = defineStore('client', () => {
         newPassword,
         newPasswordConfirmation,
 
-    }) => {
+    }) =>
+    {
         const formData = new FormData()
         formData.append('username', username) // la ref de ton input username
         formData.append('email', email)
@@ -243,8 +216,6 @@ export const useClient = defineStore('client', () => {
         formData.append('newPasswordConfirmation', newPasswordConfirmation)
         if (client.auth.avatarFile.value)
             formData.append('avatar', client.auth.avatarFile.value) // la ref de ton input file
-
-        // console.log(client.auth.avatarFile.value)
 
         const { data, error } = await useRequest('/auth/update', {
             method: 'POST',
@@ -255,7 +226,6 @@ export const useClient = defineStore('client', () => {
             authStore.error = error.value?.statusMessage as string
             return
         }
-
         authStore.showUserForm = false
         await authStore.refreshSession()
     }
@@ -264,7 +234,9 @@ export const useClient = defineStore('client', () => {
         client.auth.avatarFile.value = event.target.files[0]
     }
 
-    client.chat.getOnlineUsers = async () => {
+    //CHAT FUNCTIONS
+    client.chat.getOnlineUsers = async () =>
+    {
         const { data, error } = await useRequest('/socket/getonlineusers', {
             method: 'GET',
         })
@@ -276,7 +248,8 @@ export const useClient = defineStore('client', () => {
         return data.value
     }
 
-    client.chat.getAllUsers = async () => {
+    client.chat.getAllUsers = async () =>
+    {
         const { data, error } = await useRequest('/socket/getallusers', {
             method: 'GET',
         })
@@ -288,7 +261,8 @@ export const useClient = defineStore('client', () => {
         return data.value
     }
 
-    client.chat.getOfflineUsers = async () => {
+    client.chat.getOfflineUsers = async () =>
+    {
         const { data, error } = await useRequest('/socket/getofflineusers', {
             method: 'GET',
         })
@@ -300,18 +274,21 @@ export const useClient = defineStore('client', () => {
         return data.value
     }
 
-    client.chat.clearChat = async (div: any) => {
+    client.chat.clearChat = async (div: any) =>
+    {
         client.chat.messages = await client.chat.currentHistory()
         client.chat.scrollToBottom(div)
     }
 
-    client.chat.scrollToBottom = (div: any) => {
+    client.chat.scrollToBottom = (div: any) =>
+    {
         if (div.value === undefined)
             return
         div.value = div.value.scrollHeight
     }
 
-    client.chat.currentHistory = async () => {
+    client.chat.currentHistory = async () =>
+    {
         if (client.chat.chatState !== undefined && client.chat.chatState.select === 'DM') {
             const { data, error } = await useRequest('/socket/gethistory', {
                 method: 'POST',
@@ -345,7 +322,8 @@ export const useClient = defineStore('client', () => {
         return []
     }
 
-    client.chat.createChannel = async () => {
+    client.chat.createChannel = async () =>
+    {
         const name = prompt('Enter channel name')
         if (name === null || name === '')
             return null
@@ -380,8 +358,8 @@ export const useClient = defineStore('client', () => {
         socket.emit('refreshChannel', { sender: authStore.session.username })
     }
 
-    client.chat.leaveChannel = async () => {
-        //console.log('name = ', client.chat.chatState.receiver.name, ' id = ', client.chat.chatState.receiver.id)
+    client.chat.leaveChannel = async () =>
+    {
         socket.emit('leaveChannel', {
             sender: authStore.session.username,
             receiver: client.chat.chatState.receiver.name,
@@ -408,14 +386,10 @@ export const useClient = defineStore('client', () => {
             authStore.error = error.value?.statusMessage as string
             return null
         }
-
         socket.emit('refreshChannel', { sender: authStore.session.username })
     }
 
-    const gameLobby: Ref<any[]> = ref([])
-
-    client.friend = {} as AppClient['friend']
-
+    //FRIEND FUNCTIONS    
     client.friend.add = async (newFriendName: string) => {
         console.log('add a friend : ', newFriendName)
         const { data, error } = await useRequest('/friend/add', {
@@ -425,7 +399,7 @@ export const useClient = defineStore('client', () => {
             },
         })
     }
-
+    
     client.friend.remove = async (friendName: string) => {
         console.log('remove a friend : ', friendName)
         const { data, error } = await useRequest('/friend/remove', {
@@ -436,6 +410,8 @@ export const useClient = defineStore('client', () => {
         })
     }
 
+    //GAME FUNCTIONS
+    const gameLobby: Ref<any[]> = ref([])
     client.game = {
         addToGameQueue: async (playerUsername: string):Promise<any> => {
             // If user is already in the game queue, return
