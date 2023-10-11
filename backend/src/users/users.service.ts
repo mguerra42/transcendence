@@ -381,12 +381,31 @@ export class UsersService {
         //supprimer le channel si plus personne dedans ???
     }
 
-    async createGameLobby(queueTypeString: string, lobbyIDString: string){
+    async getGameLobby() {
+        return this.db.gameLobby.findMany({
+
+        });
+    }
+    
+    async createGameLobby(queueTypeString: string, lobbyIDString: string, userId1: number, userId2: number) {
+        const user1 = await this.db.user.findUnique({ where: { id: userId1 } });
+        const user2 = await this.db.user.findUnique({ where: { id: userId2 } });
+        console.log('je suis dans creatrea game lobby')
+        if (!user1 || !user2) {
+            throw new Error("One or both users do not exist.");
+        }
+    
         return await this.db.gameLobby.create({
             data: {
                 lobbyName: lobbyIDString,
-                queueType: queueTypeString
+                queueType: queueTypeString,
+                players: {
+                    connect: [
+                        { id: userId1 },
+                        { id: userId2 }
+                    ]
+                }
             }
-        })
+        });
     }
 }

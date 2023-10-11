@@ -38,4 +38,15 @@ export class MatchmakingController {
             return null
         return this.userService.setUserToWaitingMatch(req.username);
     }
+
+    @Get ('getGameLobby')
+    getUserGameLobby(){
+        return this.userService.getGameLobby();
+    }
+
+    @Post ('createGameLobby')
+    createNewGameLobby(@Body() req:any){
+        return  this.userService.createGameLobby(req.queueTypeString, req.lobbyIDString, req.userId1, req.userId2);
+    }
+    
 }

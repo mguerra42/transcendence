@@ -110,6 +110,7 @@ interface AppClient {
         removeFromGameQueue: (playerUsername: string) => Promise<any>
         setQueueStatusToWaiting: (playerUsername: string) => Promise<any>
         findAMatch: (playerUsername: string) => Promise<any>
+        joinGameLobby:(userId1: number, userId2 : number)=> Promise<any>
         create: () => void // create game
     }
 }
@@ -138,7 +139,9 @@ export const useClient = defineStore('client', () => {
                 password,
             },
         })
-
+            ////////////////////////
+            await client.game.joinGameLobby(3 ,4)
+            /////////////////////////////////
         if (error.value?.statusCode) {
             authStore.error = error.value?.statusMessage as string
             return
@@ -146,7 +149,7 @@ export const useClient = defineStore('client', () => {
         authStore.showForm = false
         await authStore.refreshSession()
     }
-
+    
     client.auth.loginWithGoogle = async () => {
         location.href = 'https://accounts.google.com/o/oauth2/v2/auth?response_type=code&redirect_uri=http://localhost:3001/api/v0/auth/google/callback&scope=email%20profile&client_id=535545866334-87k5bo4t0sbf05v3i8lgf0c0ea8fkcsb.apps.googleusercontent.com'
     }
@@ -511,9 +514,33 @@ export const useClient = defineStore('client', () => {
             await client.game.removeFromGameQueue(playerUsername)
             return null
         },
-    
+        joinGameLobby: async(userId1: number, userId2 : number) => {
+            console.log('joingamelobby start')
+            const gameLobbyExists: any = await useRequest(`/matchmaking/getGameLobby`, {
+                method: 'GET',
+            })
+            console.log(gameLobbyExists)
+            if (gameLobbyExists.data[0] !== undefined)
+                return null
+            let queueTypeString = 'norfeokgoemal'
+            let lobbyIDString = 'efifejifejip'
+            
+            const test:any = await useRequest('/matchmaking/createGameLobby', {
+                method: 'POST',
+                body: {
+                    queueTypeString,
+                    lobbyIDString,
+                    userId1,
+                    userId2
+                },
+            })
+            
+            console.log('joingamelobby end')
+            console.log( test.data)
+        },
         create: () => {
         },
+
     }
     return client
 })
