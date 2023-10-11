@@ -398,6 +398,8 @@ export const useClient = defineStore('client', () => {
                 newFriendName,
             },
         })
+
+        console.log(data.value)
     }
     
     client.friend.remove = async (friendName: string) => {

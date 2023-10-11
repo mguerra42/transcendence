@@ -105,6 +105,7 @@ export class SocketsGateway {
         this.server.emit('playerMovementResponse', {
             player: payload.player,
             move: payload.move,
+            //gamelobby
         });
     }
 
@@ -113,6 +114,7 @@ export class SocketsGateway {
         this.server.emit('matchmakingConfirmResponse', {
             player: payload.player,
             confirm: payload.confirm,
+            //gamelobby
         });
     }
 

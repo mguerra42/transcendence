@@ -64,6 +64,8 @@
                 //update the opponent profile if match is found
                 componentProps.opponentProfile.value.username = matchOpponent.profile?.username;
                 componentProps.opponentProfile.value.avatarPath = matchOpponent.profile?.avatarPath;
+                //addtogamelobby
+                //return game lobby
                 clearInterval(timeElapsedInterval);
                 componentProps.timeElapsed.value = 0;
             }

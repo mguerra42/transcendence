@@ -10,6 +10,7 @@
         const player = containerProps.auth.session;
         if (containerProps.showPong.value === false) {
             const ret = await containerProps.waitForMatch();
+            //Couldnt find a match
             if (ret === null)
             {
                 containerProps.showLoader.value = false;
@@ -31,11 +32,13 @@
                 await containerProps.client.game.removeFromGameQueue(containerProps.auth.session.username)
                 gameLoop();
             }
+            //Match non confirmed
             containerProps.showPlayButton.value = true;
             containerProps.resetMatchmakingWindow()
             //remove from queue 
             await containerProps.client.game.removeFromGameQueue(containerProps.auth.session.username)
         }
+        //Exit running game
         else 
         {
             resetGame();
