@@ -28,10 +28,18 @@ model User {
   lostGames      Game[]        @relation("loser")
   channels       ChannelUser[] //channels the user is in
   history        history[]    //history of DMs, and maybe channels soon
+  gameLobby      GameLobby[]   
   messages       Message[]     @relation("sender")
   socketId       String        @default("") //socket id for the user
   queue          Queue?        // Define the Queue relation here
 
+}
+
+model GameLobby {
+  id         Int       @id @default(autoincrement())
+  lobbyName  String    @unique
+  queueType  String   
+  players    User[]    
 }
 
 model Queue {

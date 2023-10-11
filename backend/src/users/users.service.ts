@@ -380,4 +380,13 @@ export class UsersService {
         return channelUser;
         //supprimer le channel si plus personne dedans ???
     }
+
+    async createGameLobby(queueTypeString: string, lobbyIDString: string){
+        return await this.db.gameLobby.create({
+            data: {
+                lobbyName: lobbyIDString,
+                queueType: queueTypeString
+            }
+        })
+    }
 }
