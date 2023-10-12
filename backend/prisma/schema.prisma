@@ -36,9 +36,8 @@ model User {
 }
 
 model GameLobby {
-  id         Int       @id @default(autoincrement())
-  lobbyName  String    @unique
-  queueType  String   
+  id         Int      @id @default(autoincrement())
+  lobbyId    String   @unique
   players    User[]    
 }
 

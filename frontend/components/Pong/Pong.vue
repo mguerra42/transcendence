@@ -197,8 +197,6 @@
     }>();
     
     onMounted(() => {
-        
-        console.log(containerProps.showPlayButton)
         containerProps.canvas.value = document.getElementById("canvas");
         containerProps.context.value = containerProps.canvas.value.getContext("2d");
         

@@ -4,7 +4,9 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { DBService } from 'src/db/db.service';
 import { User, Prisma, Role } from '@prisma/client';
 
+
 import * as bcrypt from 'bcryptjs';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class UsersService {
@@ -383,29 +385,36 @@ export class UsersService {
 
     async getGameLobby() {
         return this.db.gameLobby.findMany({
-
         });
     }
     
-    async createGameLobby(queueTypeString: string, lobbyIDString: string, userId1: number, userId2: number) {
-        const user1 = await this.db.user.findUnique({ where: { id: userId1 } });
-        const user2 = await this.db.user.findUnique({ where: { id: userId2 } });
-        console.log('je suis dans creatrea game lobby')
-        if (!user1 || !user2) {
-            throw new Error("One or both users do not exist.");
-        }
-    
+    async createGameLobby(playerOneId: number, playerTwoId: number) {
+        let newGameLobbyId = uuidv4();
         return await this.db.gameLobby.create({
             data: {
-                lobbyName: lobbyIDString,
-                queueType: queueTypeString,
+                lobbyId: newGameLobbyId,
                 players: {
                     connect: [
-                        { id: userId1 },
-                        { id: userId2 }
+                        { id: playerOneId },
+                        { id: playerTwoId }
                     ]
                 }
             }
         });
+    }
+
+    async getLobbiesForUser(userId: number) {
+        const user = await this.db.user.findUnique({
+          where: { id: userId },
+          include: {
+            gameLobby: {
+              include: {
+                players: true, // If you want to load player details
+              },
+            },
+          },
+        });
+
+        return user?.gameLobby || [];
     }
 }

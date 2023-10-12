@@ -33,7 +33,6 @@ export class MatchmakingController {
 
     @Post ('setUserToWaiting')
     setPlayerToWaiting(@Body() req:any){
-        console.log('update')
         if (req.username === undefined)
             return null
         return this.userService.setUserToWaitingMatch(req.username);
@@ -46,7 +45,11 @@ export class MatchmakingController {
 
     @Post ('createGameLobby')
     createNewGameLobby(@Body() req:any){
-        return  this.userService.createGameLobby(req.queueTypeString, req.lobbyIDString, req.userId1, req.userId2);
+        return  this.userService.createGameLobby(req.playerOneId, req.playerTwoId);
     }
-    
+ 
+    @Get ('getLobbiesForPlayer')
+    getLobbiesForPlayer(@Query('playerId') playerId:string){
+        return this.userService.getLobbiesForUser(parseInt(playerId, 10)); 
+    }
 }
