@@ -111,6 +111,10 @@ interface AppClient {
         setQueueStatusToWaiting: (playerUsername: string) => Promise<any>
         findAMatch: (playerUsername: string) => Promise<any>
         joinGameLobby:(playerOneId: number, playerTwoId : number)=> Promise<any>
+        getLobbiesForPlayer: (playerId: number) => Promise<any>
+        getLobbyById: (lobbyId: string) => Promise<any>
+        deleteLobbyById: (lobbyId: string) => Promise<any>
+        getAllLobbies: () => Promise<any>
         create: () => void // create game
     }
 }
@@ -514,17 +518,44 @@ export const useClient = defineStore('client', () => {
             await client.game.removeFromGameQueue(playerUsername)
             return null
         },
+        
+        getLobbiesForPlayer: async(playerId: number) => {            
+            const lobbyArray: any = await useRequest(`/matchmaking/getLobbiesForPlayer?playerId=${playerId}`, {
+                method: 'GET',
+            })
+            return lobbyArray
+        },
+
+        getAllLobbies: async() => {            
+            const lobbyArray: any = await useRequest('/matchmaking/getAllGameLobbies', {
+                method: 'GET',
+            })
+            return lobbyArray
+        },
+
+        getLobbyById: async(lobbyId:string) => {            
+            const gameLobby: any = await useRequest(`/matchmaking/getLobbyById?lobbyId=${lobbyId}`, {
+                method: 'GET',
+            })
+            return gameLobby
+        },
+
+        deleteLobbyById: async(lobbyId:string) => {            
+            const gameLobby: any = await useRequest('/matchmaking/deleteLobbyById', {
+                method: 'POST',
+                body: {
+                    lobbyId
+                }
+            })
+            return gameLobby
+        },
 
         joinGameLobby: async(playerOneId: number, playerTwoId : number) => {            
             const userExists: any = await useRequest(`/matchmaking/getLobbiesForPlayer?playerId=${playerOneId}`, {
                 method: 'GET',
             })
             if(userExists.data.value.length != 0)
-            {
-                console.log("This player is already in a lobby")
                 return null
-            }
-            console.log(userExists.data.value.length)
             const gameLobby:any = await useRequest('/matchmaking/createGameLobby', {
                 method: 'POST',
                 body: {
@@ -532,8 +563,6 @@ export const useClient = defineStore('client', () => {
                     playerTwoId
                 },
             })
-
-            console.log('Player has been added to lobby :', gameLobby.data.value.lobbyId)
             return gameLobby.data.value.lobbyId
         },
 

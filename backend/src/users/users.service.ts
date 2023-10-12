@@ -383,11 +383,27 @@ export class UsersService {
         //supprimer le channel si plus personne dedans ???
     }
 
-    async getGameLobby() {
+    async getAllGameLobbies() {
         return this.db.gameLobby.findMany({
         });
     }
+
+    async getLobbyById(lobbyId: string) {
+        return this.db.gameLobby.findUnique({
+            where: {
+                lobbyId: lobbyId,
+            },
+        });
+    }
     
+    async deleteLobbyById(lobbyId: string) {
+        return this.db.gameLobby.delete({
+            where: {
+                lobbyId: lobbyId,
+            },
+        });
+    }
+
     async createGameLobby(playerOneId: number, playerTwoId: number) {
         let newGameLobbyId = uuidv4();
         return await this.db.gameLobby.create({

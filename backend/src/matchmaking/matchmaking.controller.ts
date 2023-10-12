@@ -38,9 +38,9 @@ export class MatchmakingController {
         return this.userService.setUserToWaitingMatch(req.username);
     }
 
-    @Get ('getGameLobby')
-    getUserGameLobby(){
-        return this.userService.getGameLobby();
+    @Get ('getAllGameLobbies')
+    getAllGameLobbies(){
+        return this.userService.getAllGameLobbies();
     }
 
     @Post ('createGameLobby')
@@ -51,5 +51,15 @@ export class MatchmakingController {
     @Get ('getLobbiesForPlayer')
     getLobbiesForPlayer(@Query('playerId') playerId:string){
         return this.userService.getLobbiesForUser(parseInt(playerId, 10)); 
+    }
+
+    @Get ('getLobbyById')
+    getLobbyById(@Query('lobbyId') lobbyId:string){
+        return this.userService.getLobbyById(lobbyId); 
+    }
+
+    @Post ('deleteLobbyById')
+    deleteLobbyById(@Body() req:any){
+        return  this.userService.deleteLobbyById(req.lobbyId);
     }
 }
