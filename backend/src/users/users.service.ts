@@ -396,26 +396,11 @@ export class UsersService {
         });
     }
     
-    async deleteLobbyById(lobbyId: string) {
+    async deleteLobbyById(gameLobbyId: string) {
         return this.db.gameLobby.delete({
             where: {
-                lobbyId: lobbyId,
+                lobbyId: gameLobbyId,
             },
-        });
-    }
-
-    async createGameLobby(playerOneId: number, playerTwoId: number) {
-        let newGameLobbyId = uuidv4();
-        return await this.db.gameLobby.create({
-            data: {
-                lobbyId: newGameLobbyId,
-                players: {
-                    connect: [
-                        { id: playerOneId },
-                        { id: playerTwoId }
-                    ]
-                }
-            }
         });
     }
 
@@ -433,4 +418,25 @@ export class UsersService {
 
         return user?.gameLobby || [];
     }
+
+    async createGameLobby(playerOneId: number, playerTwoId: number) {
+        let newGameLobbyId = uuidv4();
+
+        const test:any = await this.getLobbiesForUser(playerTwoId)
+
+        console.log('hi hi')
+        console.log(test)
+        return await this.db.gameLobby.create({
+            data: {
+                lobbyId: newGameLobbyId,
+                players: {
+                    connect: [
+                        { id: playerOneId },
+                        { id: playerTwoId }
+                    ]
+                }
+            }
+        });
+    }
+
 }

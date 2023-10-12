@@ -27,7 +27,7 @@
             if (containerProps.matchAccepted.value === true && containerProps.opponentAccepted.value === true)
             {
                 containerProps.gameLobbyId.value = await containerProps.client.game.joinGameLobby(containerProps.auth.session.id, containerProps.opponentProfile.value.id)
-                console.log(containerProps.gameLobby.value)
+                console.log(containerProps.gameLobbyId.value)
                 //createagamelobby
                 //usethegamelobby id for socket communication
                 containerProps.showPong.value = true;
@@ -48,6 +48,7 @@
             resetGame();
             containerProps.client.game.removeFromGameQueue(containerProps.gameLobbyId.value)
             cancelAnimationFrame(containerProps.animationFrameId.value);
+            containerProps.client.game.deleteLobbyById(containerProps.gameLobbyId.value)
             containerProps.showPong.value = false;
             containerProps.showPlayButton.value = true;
             containerProps.resetMatchmakingWindow()
