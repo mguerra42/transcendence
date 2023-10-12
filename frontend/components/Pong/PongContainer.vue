@@ -26,11 +26,12 @@
         showMatchFound: ref(false),
 
         //MATCH CONFIRM
+        gameLobbyId: ref(""),
         matchAccepted: ref(false),
         matchDeclined: ref(false),
         opponentDeclined: ref(false),
         opponentAccepted: ref(false),
-        opponentProfile: ref<{ username?: string; avatarPath?: string; }>({}),
+        opponentProfile: ref<{ username?: string; id?: string; socketId?: string; avatarPath?: string; }>({}),
         
         //MATCHMAKING FUNCTIONS
         waitForMatch: async() => {
@@ -64,6 +65,8 @@
                 //update the opponent profile if match is found
                 componentProps.opponentProfile.value.username = matchOpponent.profile?.username;
                 componentProps.opponentProfile.value.avatarPath = matchOpponent.profile?.avatarPath;
+                componentProps.opponentProfile.value.id = matchOpponent.profile?.id;
+                componentProps.opponentProfile.value.socketId = matchOpponent.profile?.socketId;
                 //addtogamelobby
                 //return game lobby
                 clearInterval(timeElapsedInterval);

@@ -143,9 +143,6 @@ export const useClient = defineStore('client', () => {
                 password,
             },
         })
-            ////////////////////////
-            await client.game.joinGameLobby(5 ,6)
-            /////////////////////////////////
         if (error.value?.statusCode) {
             authStore.error = error.value?.statusMessage as string
             return
