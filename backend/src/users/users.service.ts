@@ -409,6 +409,23 @@ export class UsersService {
     }
     
     async deleteLobbyById(gameLobbyId: string) {
+        if (!gameLobbyId || typeof gameLobbyId !== 'string') {
+            console.error("Invalid gameLobbyId"); 
+            return null; // or throw an error, or handle it according to your use case
+        }
+
+        const existingLobby = await this.db.gameLobby.findUnique({
+            where: {
+                lobbyId: gameLobbyId,
+            },
+        });
+
+        if (!existingLobby) {
+            console.error(`GameLobby with ID ${gameLobbyId} not found.`);
+            return null; // or throw an error, or handle it according to your use case
+        }
+
+        // If the lobby exists, proceed with deletion
         return this.db.gameLobby.delete({
             where: {
                 lobbyId: gameLobbyId,
