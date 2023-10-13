@@ -108,7 +108,7 @@ interface AppClient {
         getNumberOfIdlePlayers: () => Promise<number>
         addToGameQueue: (playerUsername: string) => Promise<any>
         removeFromGameQueue: (playerUsername: string) => Promise<any>
-        setQueueStatusToWaiting: (playerUsername: string) => Promise<any>
+        setQueueStatus: (playerUsername: string, queueStatus: string) => Promise<any>
         findAMatch: (playerUsername: string) => Promise<any>
         joinGameLobby:(playerOneId: number, playerTwoId : number)=> Promise<any>
         getLobbiesForPlayer: (playerId: number) => Promise<any>
@@ -447,15 +447,18 @@ export const useClient = defineStore('client', () => {
             return response.data.value
         },
 
-        setQueueStatusToWaiting: async (playerUsername: string):Promise<any> => {
+        setQueueStatus: async (playerUsername: string, queueStatus: string):Promise<any> => {
             const userExists: any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${playerUsername}`, {
                 method: 'GET',
             })
             if (userExists.data.value.profile === undefined)
                 return null
-            const response: any = await useRequest('/matchmaking/setUserToWaiting', {
+            const response: any = await useRequest('/matchmaking/setUserQueueStatus', {
                 method: 'POST',
-                body: { username: playerUsername },
+                body: { 
+                    username: playerUsername,
+                    status : queueStatus
+                },
             })
             return response.data.value
         },
@@ -500,7 +503,7 @@ export const useClient = defineStore('client', () => {
                     if (usersArray[i].profile.username != playerUsername && usersArray[i].confirmed === "idle")
                     {
                         //client A will set the status of client B to waiting and vice-versa
-                        await client.game.setQueueStatusToWaiting(usersArray[i].profile.username)
+                        await client.game.setQueueStatus(usersArray[i].profile.username, 'waiting')
                         return usersArray[i]
                     }
                 }
@@ -520,31 +523,34 @@ export const useClient = defineStore('client', () => {
             const lobbyArray: any = await useRequest(`/matchmaking/getLobbiesForPlayer?playerId=${playerId}`, {
                 method: 'GET',
             })
-            return lobbyArray
+            return lobbyArray.data.value
         },
 
         getAllLobbies: async() => {            
             const lobbyArray: any = await useRequest('/matchmaking/getAllGameLobbies', {
                 method: 'GET',
             })
-            return lobbyArray
+            return lobbyArray.data.value
         },
 
         getLobbyById: async(lobbyId:string) => {            
             const gameLobby: any = await useRequest(`/matchmaking/getLobbyById?lobbyId=${lobbyId}`, {
                 method: 'GET',
             })
-            return gameLobby
+            return gameLobby.data.value
         },
 
-        deleteLobbyById: async(lobbyId:string) => {            
+        deleteLobbyById: async(lobbyId:string) => {
+            const lobbyExists:any = await client.game.getLobbyById(lobbyId)
+            if (lobbyExists.length === 0)
+                return null
             const gameLobby: any = await useRequest('/matchmaking/deleteLobbyById', {
                 method: 'POST',
                 body: {
                     lobbyId
                 }
             })
-            return gameLobby
+            return gameLobby.data.value
         },
 
         joinGameLobby: async(playerOneId: number, playerTwoId : number) => {            

@@ -158,13 +158,25 @@ export class UsersService {
         });
     }
 
-    setUserToWaitingMatch(playerUsername: string){
+    setUserQueueStatus(playerUsername: string, status: string){
         return this.db.queue.update({
             where: {
               username: playerUsername,
             },
             data: {
-              confirmed: 'waiting',
+              confirmed: status,
+            },
+        });
+    }
+
+
+    setUserToConfirmMatch(playerUsername: string){
+        return this.db.queue.update({
+            where: {
+              username: playerUsername,
+            },
+            data: {
+              confirmed: 'confirmed',
             },
         });
     }
@@ -423,9 +435,6 @@ export class UsersService {
         let newGameLobbyId = uuidv4();
 
         const test:any = await this.getLobbiesForUser(playerTwoId)
-
-        console.log('hi hi')
-        console.log(test)
         return await this.db.gameLobby.create({
             data: {
                 lobbyId: newGameLobbyId,

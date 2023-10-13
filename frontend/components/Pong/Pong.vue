@@ -26,14 +26,17 @@
             await containerProps.waitForConfirm();
             if (containerProps.matchAccepted.value === true && containerProps.opponentAccepted.value === true)
             {
+                await containerProps.client.game.setQueueStatus(containerProps.auth.session.username, 'confirmed')
                 containerProps.gameLobbyId.value = await containerProps.client.game.joinGameLobby(containerProps.auth.session.id, containerProps.opponentProfile.value.id)
+                
+
                 console.log(containerProps.gameLobbyId.value)
                 //createagamelobby
                 //usethegamelobby id for socket communication
                 containerProps.showPong.value = true;
                 containerProps.showPlayButton.value = true;
                 containerProps.resetMatchmakingWindow()
-                await containerProps.client.game.removeFromGameQueue(containerProps.auth.session.username)
+                // await containerProps.client.game.removeFromGameQueue(containerProps.auth.session.username)
                 gameLoop();
             }
             //Match non confirmed

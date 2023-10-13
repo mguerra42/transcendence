@@ -31,11 +31,11 @@ export class MatchmakingController {
         return this.userService.removeUserFromQueue(req.username); 
     }
 
-    @Post ('setUserToWaiting')
-    setPlayerToWaiting(@Body() req:any){
+    @Post ('setUserQueueStatus')
+    setUserQueueStatus(@Body() req:any){
         if (req.username === undefined)
             return null
-        return this.userService.setUserToWaitingMatch(req.username);
+        return this.userService.setUserQueueStatus(req.username, req.status);
     }
 
     @Get ('getAllGameLobbies')
@@ -44,7 +44,10 @@ export class MatchmakingController {
     }
 
     @Post ('createGameLobby')
-    createNewGameLobby(@Body() req:any){
+    async createNewGameLobby(@Body() req:any){
+        const alreadyInLobby:any = await this.userService.getLobbiesForUser(req.playerTwoId)
+        console.log("bro ?")
+        console.log(alreadyInLobby)
         return  this.userService.createGameLobby(req.playerOneId, req.playerTwoId);
     }
  
