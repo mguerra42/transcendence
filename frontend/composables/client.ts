@@ -498,6 +498,16 @@ export const useClient = defineStore('client', () => {
             //wait for enough players to find a match
             while (retryAttempts > 0)
             {
+                console.log('player username ', playerUsername)
+                const lookingForGame: any = await useRequest(`/matchmaking/findAnOpponent?playerLFG=${playerUsername}`, {
+                    method: 'GET',
+                })
+                console.log('what the helllllll oooooo ma ga no wayyyeeeeaaaayyyywywyaywa')
+                console.log(lookingForGame.data.value)
+                if (lookingForGame.data.value === "")
+                    console.log('no one to play with')
+                else
+                    console.log('match possible with ', lookingForGame.data.value.username)
                 for (let i = 0; i < usersArray.length; i++)
                 {
                     if (usersArray[i].profile.username != playerUsername && usersArray[i].confirmed === "idle")
@@ -553,7 +563,7 @@ export const useClient = defineStore('client', () => {
             return gameLobby.data.value
         },
 
-        joinGameLobby: async(playerOneId: number, playerTwoId : number) => {            
+        joinGameLobby: async(playerOneId: number, playerTwoId : number) => {
             const userExists: any = await useRequest(`/matchmaking/getLobbiesForPlayer?playerId=${playerOneId}`, {
                 method: 'GET',
             })

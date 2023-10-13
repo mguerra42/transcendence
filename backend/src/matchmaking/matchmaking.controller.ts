@@ -8,61 +8,89 @@ export class MatchmakingController {
     ) {}
 
     @Get ('getNormalGameQueue')
-    getNormalGameQueue(){
-        return this.userService.getUsersFromQueue();
+    async getNormalGameQueue(){        
+        const res:any = await this.userService.getUsersFromQueue();
+        console.log('players waiting for a game:')
+        for(let i = 0; i < res.length; i++)
+        {
+            if(res[i].confirmed === 'waiting')
+                console.log(res[i].username)
+        }
+
+        return res
+    }
+
+    @Get ('findAnOpponent')
+    async findAnOpponent(@Query('playerLFG') playerLFG:string){        
+        const res:any = await this.userService.getUsersFromQueue();
+        for(let i = 0; i < res.length; i++)
+        {
+            if(res[i].confirmed === 'idle' && res[i].username != playerLFG)
+            {
+                console.log(res[i].username)
+                return res[i]
+            }
+        }
+
+        return null
     }
 
     @Get ('getUserFromQueue')
-    getUserfromQueue(@Query('playerUsername') playerUsername:string){
-        return this.userService.getUserFromQueue(playerUsername); 
+    async getUserfromQueue(@Query('playerUsername') playerUsername:string){
+        return await this.userService.getUserFromQueue(playerUsername); 
     }
 
     @Post ('addPlayerToQueue')
-    addPlayerToQueue(@Body() req:any){
+    async addPlayerToQueue(@Body() req:any){
         if (req.username === undefined)
             return null
-        return this.userService.addUserToQueue(req.username); 
+        return await this.userService.addUserToQueue(req.username); 
     }
     
     @Post ('removePlayerFromQueue')
-    removePlayerToQueue(@Body() req:any){
+    async removePlayerToQueue(@Body() req:any){
         if (req.username === undefined)
             return null
-        return this.userService.removeUserFromQueue(req.username); 
+        return await this.userService.removeUserFromQueue(req.username); 
     }
 
     @Post ('setUserQueueStatus')
-    setUserQueueStatus(@Body() req:any){
+    async setUserQueueStatus(@Body() req:any){
         if (req.username === undefined)
             return null
-        return this.userService.setUserQueueStatus(req.username, req.status);
+        return await this.userService.setUserQueueStatus(req.username, req.status);
     }
 
     @Get ('getAllGameLobbies')
-    getAllGameLobbies(){
-        return this.userService.getAllGameLobbies();
+    async getAllGameLobbies(){
+        return await this.userService.getAllGameLobbies();
     }
 
     @Post ('createGameLobby')
     async createNewGameLobby(@Body() req:any){
-        const alreadyInLobby:any = await this.userService.getLobbiesForUser(req.playerTwoId)
-        console.log("bro ?")
-        console.log(alreadyInLobby)
-        return  this.userService.createGameLobby(req.playerOneId, req.playerTwoId);
+        // const hasLobby:any = await this.getLobbiesForPlayer(req.playerOneId)
+        // console.log(hasLobby)
+        // console.log(hasLobby.length)
+        // if (hasLobby.length > 0)
+        // {
+        //     console.log('ur already in a lobby')
+        //     return null
+        // }
+        return await this.userService.createGameLobby(req.playerOneId, req.playerTwoId);
     }
  
     @Get ('getLobbiesForPlayer')
-    getLobbiesForPlayer(@Query('playerId') playerId:string){
-        return this.userService.getLobbiesForUser(parseInt(playerId, 10)); 
+    async getLobbiesForPlayer(@Query('playerId') playerId:string){
+        return await this.userService.getLobbiesForUser(parseInt(playerId, 10)); 
     }
 
     @Get ('getLobbyById')
-    getLobbyById(@Query('lobbyId') lobbyId:string){
-        return this.userService.getLobbyById(lobbyId); 
+    async getLobbyById(@Query('lobbyId') lobbyId:string){
+        return await this.userService.getLobbyById(lobbyId); 
     }
 
     @Post ('deleteLobbyById')
-    deleteLobbyById(@Body() req:any){
-        return  this.userService.deleteLobbyById(req.lobbyId);
+    async deleteLobbyById(@Body() req:any){
+        return  await this.userService.deleteLobbyById(req.lobbyId);
     }
 }

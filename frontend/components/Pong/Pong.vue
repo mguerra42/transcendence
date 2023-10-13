@@ -26,38 +26,49 @@
             await containerProps.waitForConfirm();
             if (containerProps.matchAccepted.value === true && containerProps.opponentAccepted.value === true)
             {
-                await containerProps.client.game.setQueueStatus(containerProps.auth.session.username, 'confirmed')
                 containerProps.gameLobbyId.value = await containerProps.client.game.joinGameLobby(containerProps.auth.session.id, containerProps.opponentProfile.value.id)
-                
-
                 console.log(containerProps.gameLobbyId.value)
                 //createagamelobby
+                await containerProps.client.game.getNormalQueuePlayers()
+                
                 //usethegamelobby id for socket communication
                 containerProps.showPong.value = true;
                 containerProps.showPlayButton.value = true;
                 containerProps.resetMatchmakingWindow()
                 // await containerProps.client.game.removeFromGameQueue(containerProps.auth.session.username)
                 gameLoop();
+                await containerProps.client.game.setQueueStatus(containerProps.auth.session.username, 'in-game')
+            }
+            else
+            {
+                containerProps.showPlayButton.value = true;
+                containerProps.resetMatchmakingWindow()
+                await containerProps.client.game.removeFromGameQueue(containerProps.auth.session.username)
             }
             //Match non confirmed
-            containerProps.showPlayButton.value = true;
-            containerProps.resetMatchmakingWindow()
-            //remove from queue 
-            await containerProps.client.game.removeFromGameQueue(containerProps.auth.session.username)
         }
         //Exit running game
         else 
         {
             resetGame();
-            containerProps.client.game.removeFromGameQueue(containerProps.gameLobbyId.value)
             cancelAnimationFrame(containerProps.animationFrameId.value);
-            containerProps.client.game.deleteLobbyById(containerProps.gameLobbyId.value)
+            await containerProps.client.game.removeFromGameQueue(containerProps.auth.session.username)
+            await containerProps.client.game.deleteLobbyById(containerProps.gameLobbyId.value)
             containerProps.showPong.value = false;
             containerProps.showPlayButton.value = true;
             containerProps.resetMatchmakingWindow()
         }
     }
 
+    //new matchmaking stratgy
+    //client sends match request
+
+    //backend stores it
+    //client asks did you find someone every 100ms
+    //backend checks if someone is available, if yes, create a gamelobby and send it by socket to both users, return yes
+    //client confirms and starts game
+
+    //
     //PONG CODE
 
     let Player1 = ref({

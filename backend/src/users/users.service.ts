@@ -450,8 +450,6 @@ export class UsersService {
 
     async createGameLobby(playerOneId: number, playerTwoId: number) {
         let newGameLobbyId = uuidv4();
-
-        const test:any = await this.getLobbiesForUser(playerTwoId)
         return await this.db.gameLobby.create({
             data: {
                 lobbyId: newGameLobbyId,
