@@ -8,8 +8,8 @@ import {
 import { UsersService } from '../users/users.service';
 import { AuthService } from '../auth/auth.service';
 import { Server } from 'socket.io';
-import { channel } from 'diagnostics_channel';
 import { UpdateUserDto } from '../users/dto/update-user.dto';
+import { ChannelService } from '../channel/channel.service';
 
 @WebSocketGateway({
     cors: {
@@ -21,6 +21,7 @@ export class SocketsGateway {
     constructor(
         private authService: AuthService,
         private userService: UsersService,
+        private channelService: ChannelService,
     ) {}
 
     @WebSocketServer()
@@ -47,7 +48,7 @@ export class SocketsGateway {
     async handleChannelMessage(client: any, payload: any) {
         //const userProfile = await this.userService.findByUsername(payload.sender);
         try {
-            await this.userService.addMessageInChannel(client, payload);
+            await this.channelService.addMessageInChannel(client, payload);
             this.server
                 .to(payload.receiver)
                 .emit('receiveMessageFromChannel', {});
@@ -59,8 +60,7 @@ export class SocketsGateway {
     @SubscribeMessage('joinChannel')
     async handleJoinChannel(client: any, payload: any) {
         try {
-            // console.log('in  (socket.gateway) - payload = ',payload);
-            const channelToJoin = await this.userService.findChannelByName(
+            const channelToJoin = await this.channelService.findChannelByName(
                 payload.receiver,
             );
             if (channelToJoin === null) {
@@ -72,29 +72,21 @@ export class SocketsGateway {
             if (userToSubscribe === null) {
                 throw new Error('User not found in database');
             }
-            let onlineUsersInChannel = 0;
             let userIsInChannel = false;
             for (let i = 0; i < channelToJoin.userList.length; i++) {
-                const res = await this.userService.getUserInChannelUser(
-                    channelToJoin.userList[i].userId,
-                );
-                if (res.user.status === 'ONLINE') onlineUsersInChannel++;
                 if (channelToJoin.userList[i].userId === userToSubscribe.id) {
                     userIsInChannel = true;
                 }
             }
             if (!userIsInChannel) {
-                await this.userService.addChannelUser(
+                await this.channelService.addChannelUser(
                     channelToJoin.id,
                     userToSubscribe.id,
                     'USER',
                 );
             }
             client.join(payload.receiver);
-            this.server.to(payload.receiver).emit('joinChannelResponse', {
-                userCount: channelToJoin.userList.length,
-                onlineUsersInChannel: onlineUsersInChannel,
-            });
+            this.server.to(payload.receiver).emit('joinChannelResponse', {});
         } catch (e) {
             throw new WsException((e as Error).message);
         }
@@ -137,10 +129,19 @@ export class SocketsGateway {
         }
     }
 
-    @SubscribeMessage('refreshChannel')
-    async handleRefreshChannel(client: any, payload: any) {
-        const user = await this.userService.findByUsername(payload.sender);
-        this.server.to(user.socketId).emit('hasToRefreshChannel', {});
+    @SubscribeMessage('refresh')
+    async handleRefresh(client: any, payload: any) {
+        const channelUserList = await this.channelService.findChannelUserList(
+            payload.channelId,
+        );
+        console.log('refresh in socket gateway')
+        for (let i = 0; i < channelUserList.length; i++) {
+            const user = await this.userService.findOne(
+                channelUserList[i].userId,
+            );
+            console.log('refresh for user = ', user.username)
+            this.server.to(user.socketId).emit('hasToRefresh', {});
+        }
     }
 
     async handleConnection(client) {

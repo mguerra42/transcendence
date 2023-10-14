@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Post, Body } from '@nestjs/common';
 //import { channelService } from './channel.service';
 import { UsersService } from '../users/users.service';
 
@@ -7,13 +7,4 @@ export class ChannelController {
     //constructor(private readonly channelService: channelService) {}
     constructor(private readonly userService: UsersService) {}
 
-    @Get('getallchannels')
-    async GetOnlineChannels() {
-        console.log(
-            '------------------------enter in channel.controller !------------------------------',
-        );
-        const channelsList = await this.userService.findAllChannels();
-        console.log('channel List = ', channelsList);
-        return channelsList;
-    }
 }

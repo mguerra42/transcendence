@@ -47,12 +47,6 @@ import { createClientOnly } from 'nuxt/dist/app/components/client-only';
   client.chat.messages = [];
   client.chat.chatState= {select: 'EMPTY', receiver:[] };
 
-  const refreshUsers = async () => {
-    client.chat.messages = await client.chat.currentHistory();
-    client.chat.usersArray = await client.chat.getAllUsers();
-    client.chat.channelArray = await channel.getChannels();
-  };
-
   const toggleChat = () => {
     client.chat.chatVisible = !client.chat.chatVisible;
     if (client.chat.chatVisible === false)
@@ -82,17 +76,17 @@ import { createClientOnly } from 'nuxt/dist/app/components/client-only';
     await socket.connect();
 
     isLoading.value = false;
-    refreshUsers();
-    socket.on('afkResponse', () => {
-      refreshUsers();
+    await channel.refresh();
+    socket.on('afkResponse', async () => {
+      await channel.refresh();
     });
     socket.on('receivePrivateMessage', async (data: any) => {
       setInterval(() => {}, 50);
       client.chat.messages = await client.chat.currentHistory();
     });
     socket.on('joinChannelResponse', (data: any) => {
-      client.chat.chatState.receiver.userCount = data.userCount;
-      client.chat.chatState.receiver.onlineUsers = data.onlineUsersInChannel;
+      // client.chat.chatState.receiver.userCount = data.userCount;
+      // client.chat.chatState.receiver.onlineUsers = data.onlineUsersInChannel;
     });
     socket.on('receiveMessageFromChannel', async (data: any) => {
       const currentTime = new Date();

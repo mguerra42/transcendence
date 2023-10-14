@@ -4,6 +4,7 @@ import { Socket } from 'socket.io-client';
   const client = useClient();
   const auth = useAuth();
   const socket = useSocket();
+  const channel = useChannel();
   client.chat.showUserProfile = false;
   const isTooltipVisible = ref(false);
   const tooltipX = ref(0);
@@ -63,9 +64,6 @@ import { Socket } from 'socket.io-client';
   onMounted(() => {
     document.addEventListener('click', hideTooltip);
 
-    // socket.on('hasToRefreshChannel', () => {
-    //   console.log('hasToRefreshChannel monted chatselection, chatState = ', client.chat.chatState);
-    // });
   });
 
   // Remove the click event listener when the component is unmounted
@@ -93,7 +91,7 @@ import { Socket } from 'socket.io-client';
           <p class="ml-3 text-xs text-zinc-400" >Online : {{ client.chat.chatState.receiver.onlineUsers }} users</p>
         </div>
         <div class="flex-end">
-          <button @click="client.chat.leaveChannel" class=" hover:bg-zinc-700 text-white py-1 px-1 rounded flex ">
+          <button @click="channel.leaveChannel" class=" hover:bg-zinc-700 text-white py-1 px-1 rounded flex ">
             <div class="i-mdi-close-box-multiple-outline"></div>
           </button>
         </div>
