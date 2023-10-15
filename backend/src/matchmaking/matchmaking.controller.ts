@@ -27,11 +27,21 @@ export class MatchmakingController {
         {
             if(res[i].confirmed === 'idle' && res[i].username != playerLFG)
             {
-                console.log(res[i].username)
-                return res[i]
+                const test = {
+                    playerOneId: 4,
+                    playerTwoId: 5
+                }
+                const lobby = await this.createNewGameLobby(test)
+                console.log(playerLFG)
+                console.log('wesh?')
+                console.log(lobby.lobbyId)
+                const ret = {
+                    username: res[i].username,
+                    lobbyId: lobby.lobbyId
+                }
+                return ret
             }
         }
-
         return null
     }
 

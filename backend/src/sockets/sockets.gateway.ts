@@ -111,11 +111,34 @@ export class SocketsGateway {
 
     @SubscribeMessage('matchmakingConfirm')
     handleMatchmakingDecline(client: any, payload: any) {
+        console.log("we been here : ", payload.senderSocketId, payload.receiverSocketId)
         this.server.emit('matchmakingConfirmResponse', {
             player: payload.player,
             confirm: payload.confirm,
             //gamelobby
         });
+    }
+
+    @SubscribeMessage('challengePlayer')
+    handleChallengePlayer(client: any, payload: any) {
+        this.server.emit('challengePlayerResponse', {
+            challenger: payload.challenger,
+            lobbyId: payload.lobbyId,
+            //gamelobby
+        });
+    }
+
+    @SubscribeMessage('abortMatch')
+    handleAbortMatch(client: any, payload: any) {
+        this.server.emit('abortMatchResponse', {
+            player: payload.player,
+            //gamelobby
+        });
+    }
+    
+    @SubscribeMessage('updateBallPosition')
+    handleUpdateBallPosition(client: any, payload: any) {
+        this.server.emit('updateBallPositionResponse', payload);
     }
 
     @SubscribeMessage('afk')

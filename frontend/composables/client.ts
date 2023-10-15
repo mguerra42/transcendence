@@ -498,16 +498,18 @@ export const useClient = defineStore('client', () => {
             //wait for enough players to find a match
             while (retryAttempts > 0)
             {
-                console.log('player username ', playerUsername)
                 const lookingForGame: any = await useRequest(`/matchmaking/findAnOpponent?playerLFG=${playerUsername}`, {
                     method: 'GET',
                 })
-                console.log('what the helllllll oooooo ma ga no wayyyeeeeaaaayyyywywyaywa')
-                console.log(lookingForGame.data.value)
-                if (lookingForGame.data.value === "")
-                    console.log('no one to play with')
-                else
-                    console.log('match possible with ', lookingForGame.data.value.username)
+                if (lookingForGame.data.value !== "")
+                {
+                    //make sure both players have access to lobbyId during the game
+                    console.log('match possible with ', lookingForGame.data.value.username, 'in lobby ', lookingForGame.data.value.lobbyId)
+                    socket.emit('challengePlayer', {
+                        challenger: lookingForGame.data.value.username,
+                        lobbyId: lookingForGame.data.value.lobbyId
+                    })
+                }
                 for (let i = 0; i < usersArray.length; i++)
                 {
                     if (usersArray[i].profile.username != playerUsername && usersArray[i].confirmed === "idle")
@@ -519,12 +521,9 @@ export const useClient = defineStore('client', () => {
                 }
                 //retry every 1 sec
                 await new Promise(timeout => setTimeout(timeout, 1000));
-                //refresh queue
                 usersArray = await client.game.getNormalQueuePlayers()
                 retryAttempts--;
             }
-
-            //remove from queue if match wasnt found
             await client.game.removeFromGameQueue(playerUsername)
             return null
         },

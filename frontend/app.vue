@@ -1,18 +1,21 @@
 <script setup lang="ts">
   import { appName } from '~/constants'
 
-  const isLoading = ref(true);
+  const isLoading = ref(true);  
+  //Global Prop Test
+  // const test = {
+  //   printTest: () => {
+  //     console.log('test');
+  //   },
+  // }
 
   useHead({
     title: appName,
   })
-
   // Display the loader before the component is mounted
   onBeforeMount(() => {
     isLoading.value = true;
   });
-
-  //Let
   onMounted(() => {
     isLoading.value = false;
   });
@@ -30,8 +33,9 @@
       </div>
     </transition>
     <div v-if="!isLoading" key="content">
+      <!-- <NuxtLayout :test="test"> -->
       <NuxtLayout>
-        <NuxtPage />
+        <NuxtPage/>
       </NuxtLayout>
     </div>
   </div>

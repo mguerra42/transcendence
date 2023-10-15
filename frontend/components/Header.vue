@@ -1,9 +1,9 @@
 <script setup lang="ts">
-// const client = useClient()
 const auth = useAuth()
 const friend = useFriend()
 const socket = useSocket()
 const client = useClient()
+
 onMounted(async () => {
     await auth.refreshSession()
 })
@@ -16,7 +16,13 @@ onMounted(async () => {
             <div v-if="auth.logged === true" class="flex gap-5 items-center">
                 <div class="text-orange-400">
                    Welcome <i> {{ auth.session.username }}  </i>
-                </div> 
+                </div>
+                <button  class="bg-zinc-700 px-3 py-1 m-1 text-zinc-200 rounded-lg">
+                    Play 
+                </button>
+                <!-- <button @click="startGame()" v-if="stateProps.showPlayButton.value" class="bg-zinc-700 px-3 py-1 m-1 text-zinc-200 rounded-lg">
+                    {{ stateProps.showPong.value ? 'Quit' : 'Play' }} 
+                </button> -->
                 <div>
                     <div  class="b-1 rounded bg-blue-500 px-2 py-1 b-blue-700 cursor-pointer hover:bg-blue-600" @click="auth.logout">Logout</div>
                 </div>
