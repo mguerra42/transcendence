@@ -7,7 +7,6 @@ const channel = useChannel()
 channel.allChannelArray = [];
 
 const joinChannel = async (channelList : any) => {
-    //console.log('joinChannel (ChannelList.vue), channelList = ', channelList);
     client.chat.messages = [];
     client.chat.chatState.select = 'CHANNEL';
     client.chat.chatState.receiver.id = channelList.id;
@@ -17,8 +16,8 @@ const joinChannel = async (channelList : any) => {
       receiver: client.chat.chatState.receiver.name,
     });
     client.chat.messages = await client.chat.currentHistory();
-    socket.emit('refreshChannel', { sender: auth.session.username })
-    //channel.allChannelArray =  await channel.getAllChannels();
+    socket.emit('refresh', { channelId: client.chat.chatState.receiver.id }) 
+    channel.refresh();
   };
 
   onMounted(async () => {

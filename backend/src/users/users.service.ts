@@ -4,13 +4,12 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { DBService } from 'src/db/db.service';
 import { User, Prisma, Role } from '@prisma/client';
 
-
 import * as bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class UsersService {
-    constructor(private db: DBService) {}
+    constructor(private db: DBService) { }
     async create(data: CreateUserDto) {
         const hash = bcrypt.hashSync(data.password, 10);
         data.password = hash;
@@ -83,61 +82,10 @@ export class UsersService {
         });
     }
 
-    findAllChannels() {
-        return this.db.channel.findMany();
-    }
-
-    findChannels(id: number) {
-        return this.db.channel.findMany({
-            where: {
-                userList: {
-                    some: {
-                        userId: id,
-                    },
-                },
-            },
-        });
-    }
-
-    findChannelByName(name: string) {
-        return this.db.channel.findFirst({
-            where: {
-                name,
-            },
-            select: {
-                id: true,
-                name: true,
-                creationDate: true,
-                userList: true,
-            },
-        });
-    }
-
     findChannelById(id: number) {
         return this.db.channel.findFirst({
             where: {
                 id: id,
-            },
-        });
-    }
-
-    addChannelUser(channelId: number, userId: number, role: Role) {
-        return this.db.channelUser.create({
-            data: {
-                role,
-                user: { connect: { id: userId } }, // Connect the user by ID
-                channel: { connect: { id: channelId } }, // Connect the channel by ID
-            },
-        });
-    }
-
-    getUserInChannelUser(id: number) {
-        return this.db.channelUser.findFirst({
-            where: {
-                userId: id,
-            },
-            select: {
-                user: true,
             },
         });
     }
@@ -152,28 +100,27 @@ export class UsersService {
 
     removeUserFromQueue(playerUsername: string) {
         return this.db.queue.delete({
-                where: {
-                    username: playerUsername,
-                },
+            where: {
+                username: playerUsername,
+            },
         });
     }
 
-    setUserQueueStatus(playerUsername: string, status: string){
+    setUserQueueStatus(playerUsername: string, status: string) {
         return this.db.queue.update({
             where: {
-              username: playerUsername,
+                username: playerUsername,
             },
             data: {
-              confirmed: status,
+                confirmed: status,
             },
         });
     }
 
-
-    setUserToConfirmMatch(playerUsername: string){
+    setUserToConfirmMatch(playerUsername: string) {
         return this.db.queue.update({
             where: {
-              username: playerUsername,
+                username: playerUsername,
             },
             data: {
               confirmed: 'confirmed',
@@ -191,7 +138,7 @@ export class UsersService {
         });
     }
 
-    getUserFromQueue(playerUsername:string) {
+    getUserFromQueue(playerUsername: string) {
         return this.db.queue.findFirst({
             where: {
                 username: playerUsername,
@@ -288,24 +235,6 @@ export class UsersService {
         return messages;
     }
 
-    async findChannelHistory(body: any) {
-        const messages = await this.db.message.findMany({
-            where: {
-                channelId: body.channelId,
-            },
-        });
-        const ret = [];
-        for (let i = 0; i < messages.length; i++) {
-            ret[i] = messages[i];
-            ret[i].user = await this.db.user.findUnique({
-                where: {
-                    id: messages[i].senderId,
-                },
-            });
-        }
-        return ret;
-    }
-
     async addMessage(client: any, payload: any) {
         const history = await this.getHistory(payload);
         if (history === null) {
@@ -345,59 +274,8 @@ export class UsersService {
         }
     }
 
-    async addMessageInChannel(client: any, payload: any) {
-        //console.log('in addMessageInChannel (user.service) - payload = ', payload);
-        const channel = await this.findChannelByName(payload.receiver);
-        if (channel !== null && channel !== undefined) {
-            //console.log('in addMessageInChannel (user.service) - channel is not null, id = ',channel.id);
-            const message = this.db.message.create({
-                data: {
-                    content: payload.text,
-                    receiverId: null,
-                    senderId: payload.senderId,
-                    channelId: channel.id,
-                    //sender: { connect: { id: payload.userId } },
-                },
-            });
-            //console.log('in addMessageInChannel (user.service) - message created : ',message);
-            return message;
-        }
-    }
-
-    async createChannel(name: string) {
-        const channel = await this.db.channel.findUnique({
-            where: {
-                name,
-            },
-        });
-        if (channel !== null) {
-            throw new Error('Channel already exists');
-            return null;
-        }
-
-        return this.db.channel.create({
-            data: {
-                name,
-                access: 'PUBLIC',
-            },
-        });
-    }
-
-    async leaveChannel(channelId: number, userId: number) {
-        console.log('in leaveChannel (user.service)');
-        const channelUser = await this.db.channelUser.deleteMany({
-            where: {
-                userId: userId,
-                channelId: channelId,
-            },
-        });
-        return channelUser;
-        //supprimer le channel si plus personne dedans ???
-    }
-
     async getAllGameLobbies() {
-        return this.db.gameLobby.findMany({
-        });
+        return this.db.gameLobby.findMany({});
     }
 
     async getLobbyById(lobbyId: string) {
@@ -407,10 +285,10 @@ export class UsersService {
             },
         });
     }
-    
+
     async deleteLobbyById(gameLobbyId: string) {
         if (!gameLobbyId || typeof gameLobbyId !== 'string') {
-            console.error("Invalid gameLobbyId"); 
+            console.error('Invalid gameLobbyId');
             return null; // or throw an error, or handle it according to your use case
         }
 
@@ -435,32 +313,28 @@ export class UsersService {
 
     async getLobbiesForUser(userId: number) {
         const user = await this.db.user.findUnique({
-          where: { id: userId },
-          include: {
-            gameLobby: {
-              include: {
-                players: true, // If you want to load player details
-              },
+            where: { id: userId },
+            include: {
+                gameLobby: {
+                    include: {
+                        players: true, // If you want to load player details
+                    },
+                },
             },
-          },
         });
 
         return user?.gameLobby || [];
     }
 
     async createGameLobby(playerOneId: number, playerTwoId: number) {
-        let newGameLobbyId = uuidv4();
+        const newGameLobbyId = uuidv4();
         return await this.db.gameLobby.create({
             data: {
                 lobbyId: newGameLobbyId,
                 players: {
-                    connect: [
-                        { id: playerOneId },
-                        { id: playerTwoId }
-                    ]
-                }
-            }
+                    connect: [{ id: playerOneId }, { id: playerTwoId }],
+                },
+            },
         });
     }
-
 }

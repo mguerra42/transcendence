@@ -33,43 +33,41 @@
       });
   };  
 
-  const refreshUsers = async () => {
-    client.chat.usersArray = await client.chat.getAllUsers();
-    client.chat.channelArray = await channel.getChannels();
-    client.chat.messages = await client.chat.currentHistory();
-  };
-
-const chatWithUser = async (userToMessage : any) => {
-    client.chat.messages = [];
-    client.chat.chatState.select = 'DM';
-    client.chat.chatState.receiver.id = userToMessage.id;
-    client.chat.chatState.receiver.username = userToMessage.username;
-    client.chat.messages = await client.chat.currentHistory();
-    client.chat.chatState.receiver.avatarPath = userToMessage.avatarPath;
-    client.chat.chatState.receiver.victories = userToMessage.victories;
-    client.chat.chatState.receiver.defeats = userToMessage.defeats;
-    client.chat.chatState.receiver.ladderPoint = userToMessage.ladderPoint;
-    //if (client.chat.chatState.receiver.id != userToMessage.id || client.chat.chatState.select != 'DM')
+  const chatWithUser = async (userToMessage : any) => {
+    if (client.chat.chatState.receiver.id != userToMessage.id || client.chat.chatState.select != 'DM')
+    {
+      client.chat.messages = [];
+      client.chat.chatState.select = 'DM';
+      client.chat.chatState.receiver.id = userToMessage.id;
+      client.chat.chatState.receiver.username = userToMessage.username;
+      client.chat.messages = await client.chat.currentHistory();
+      client.chat.chatState.receiver.avatarPath = userToMessage.avatarPath;
+      client.chat.chatState.receiver.victories = userToMessage.victories;
+      client.chat.chatState.receiver.defeats = userToMessage.defeats;
+      client.chat.chatState.receiver.ladderPoint = userToMessage.ladderPoint;
+    }
   };
   const chatWithChannel = async (channelToMessage : any) => {
-    //console.log('chatWithChannel (ChatSelection.vue), channelToMessage = ', channelToMessage);
-    client.chat.messages = [];
-    client.chat.chatState.select = 'CHANNEL';
-    client.chat.chatState.receiver.id = channelToMessage.id;
-    client.chat.chatState.receiver.name = channelToMessage.name;
-    socket.emit('joinChannel', {
-      sender: auth.session.username,
-      receiver: client.chat.chatState.receiver.name,
-    });
-    client.chat.messages = await client.chat.currentHistory();
-    client.chat.channelArray = await channel.getChannels()
-    //if (client.chat.chatState.receiver.id != channelToMessage.id || client.chat.chatState.select != 'CHANNEL')
+    if (client.chat.chatState.receiver.id != channelToMessage.id || client.chat.chatState.select != 'CHANNEL')
+    {
+      client.chat.messages = [];
+      client.chat.chatState.select = 'CHANNEL';
+      client.chat.chatState.receiver.id = channelToMessage.id;
+      client.chat.chatState.receiver.name = channelToMessage.name;
+      client.chat.chatState.receiver.userCount = channelToMessage.userCount;
+      client.chat.chatState.receiver.onlineUsers = channelToMessage.onlineUsers;
+      socket.emit('joinChannel', {
+        sender: auth.session.username,
+        receiver: client.chat.chatState.receiver.name,
+      });
+      client.chat.messages = await client.chat.currentHistory();
+      client.chat.channelArray = await channel.getChannels()
+    }
   };
 
   onMounted(async () => {
-    //console.log('ChatSelection.vue mounted');
-    socket.on('hasToRefreshChannel', () => {
-      refreshUsers();
+    socket.on('hasToRefresh', async () => {
+      await channel.refresh();
     });
   })
 </script>
@@ -84,7 +82,7 @@ const chatWithUser = async (userToMessage : any) => {
         <button @click="toggleFriends" class="text-sm mb-2 mt-2 text-left text-zinc-200 hover:text-zinc-400 font-semi-bold px-2 py-2">
           Amis
         </button>
-        <button @click="refreshUsers" class="text-sm mb-2 text-left text-zinc-200 hover:text-zinc-400 font-semi-bold px-2 py-2">
+        <button @click="channel.refresh" class="text-sm mb-2 text-left text-zinc-200 hover:text-zinc-400 font-semi-bold px-2 py-2">
           Messages privés
         </button>
         <div v-for="user in client.chat.usersArray" @click="chatWithUser(user)" class="mb-1 flex w-full hover:bg-zinc-700 cursor-pointer rounded">
@@ -108,15 +106,15 @@ const chatWithUser = async (userToMessage : any) => {
           Channels
         </button>
         <div v-for="channelList in client.chat.channelArray" :class="{ 'bg-zinc-700 text-zinc-200 cursor-pointer rounded flex': (client.chat.chatState.receiver.id === channelList.id && client.chat.chatState.select === 'CHANNEL'),
-                                                                        'bg-zinc-800 cursor-pointer hover:bg-zinc-700 rounded flex': (client.chat.chatState.receiver.id !== channelList.id || client.chat.chatState.select !== 'CHANNEL') }" >
+                                                                        'bg-zinc-800 cursor-pointer hover:bg-zinc-700 rounded flex': (client.chat.chatState.receiver.id !== channelList.id || client.chat.chatState.select !== 'CHANNEL') }" @click="chatWithChannel(channelList)" >
           <div class="{'bg-zinc-700 text-zinc-200 cursor-pointer rounded-lg': client.chat.receiver === user.username,
                         'bg-zinc-800 cursor-pointer hover:bg-zinc-700 rounded-lg flex': client.chat.receiver !== user.username}" >
-            <button @click="chatWithChannel(channelList)" class="px-2 py-2 w-full text-sm text-left text-zinc-300 cursor-pointer':user.status">
+            <button class="px-2 py-2 w-full text-sm text-left text-zinc-300 cursor-pointer':user.status">
               #{{ channelList.name }}
             </button>
           </div>
         </div>
-        <button @click="client.chat.createChannel" class=" bg-zinc-800 hover:bg-zinc-700 text-white  py-1 mt-2 rounded flex ">
+        <button @click="channel.createChannel" class=" bg-zinc-800 hover:bg-zinc-700 text-white  py-1 mt-2 rounded flex ">
           <div class="i-mdi-plus-box-multiple ml-2"></div>
           <div class="text-sm ml-2">New</div>
         </button>
