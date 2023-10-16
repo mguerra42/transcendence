@@ -32,9 +32,6 @@
             {
                 stateProps.showLoader.value = false;
                 await client.game.removeFromGameQueue(auth.session.username)
-                stateProps.showMatchmakingError.value = true;
-                await new Promise(timeout => setTimeout(timeout, 2000));
-                stateProps. showMatchmakingError.value = false;
                 stateProps.resetMatchmakingWindow()
                 stateProps.showPlayButton.value = true;
                 return ;
@@ -43,8 +40,7 @@
             await stateProps.waitForConfirm();
             if (stateProps.matchAccepted.value === true && stateProps.opponentAccepted.value === true)
             {
-                await new Promise(timeout => setTimeout(timeout, 1000));
-                console.log("gamelobby : ", gameLobby.value)
+                console.log("gamelobby : ", stateProps.gameLobbyId.value)
                 await client.game.getNormalQueuePlayers()
                 
                 stateProps.showPong.value = true;
@@ -68,7 +64,7 @@
             gameProps.resetGame();
             cancelAnimationFrame(stateProps.animationFrameId.value);
             await client.game.removeFromGameQueue(auth.session.username)
-            await client.game.deleteLobbyById(gameLobby.value)
+            await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
             stateProps.showPong.value = false;
             stateProps.showPlayButton.value = true;
             stateProps.resetMatchmakingWindow()
@@ -104,19 +100,8 @@
         });
         
         socket.on('challengePlayerResponse', async (data: any) => {
-            await new Promise(timeout => setTimeout(timeout, 500));
-            console.log('refactor match logic')
-            console.log('response from back, gamelobby : ', data.lobbyId)
-            console.log('challenger : ', data.challenger, 'current opponent : ', stateProps.opponentProfile.value.username)
             if (data.challenger === stateProps.opponentProfile.value.username)
-            {
-                if (gameLobby.value != "")
-                {
-                    client.game.deleteLobbyById(gameLobby.value)
-                }
-                gameLobby.value = data.lobbyId
-                console.log('gamelobby id updated from :', gameLobby.value, 'to ', data.lobbyId)
-            }
+                stateProps.gameLobbyId.value = data.lobbyId
         })
 
         socket.on('matchmakingConfirmResponse', (data: any) => {
@@ -136,7 +121,7 @@
                 cancelAnimationFrame(stateProps.animationFrameId.value);
                 await client.game.removeFromGameQueue(auth.session.username)
                 // lobby is deleted by initiator of the abortMatch
-                // await client.game.deleteLobbyById(gameLobby.value)
+                // await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
                 stateProps.showPong.value = false;
                 stateProps.showPlayButton.value = true;
                 stateProps.resetMatchmakingWindow()

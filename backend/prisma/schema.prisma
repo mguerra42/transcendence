@@ -43,6 +43,21 @@ model GameLobby {
   playerTwoScore  String
 }
 
+//Client 1 -> Server (joinLobby : user1, user2) -> user2 hasLobby(user1) -> cancel
+//Client 2 -> Server (joinLobby : user1, user2) -> user1 hasLobby(user2) -> cancel
+
+//Timing
+
+
+//Match
+//Define leader
+//if not leader wait ping
+//if leader create lobby and send socket to follower
+
+//Loop database for match in queues
+
+
+
 model Queue {
   id         Int      @id @default(autoincrement())
   confirmed  String   @default("idle")

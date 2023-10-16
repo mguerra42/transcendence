@@ -17,6 +17,7 @@
         MatchmakingError: ref('Matchmaking : An error occured.'),
 
         //COMPONENTS
+        showCancelButton: ref(false),
         showMatchmakingError: ref(false),
         showPlayButton: ref(true),
         showPong: ref(false),
@@ -25,6 +26,7 @@
 
         //MATCH CONFIRM
         gameLobbyId: ref(""),
+        cancelMatch: ref(false),
         matchAccepted: ref(false),
         matchDeclined: ref(false),
         opponentDeclined: ref(false),
@@ -39,6 +41,9 @@
             //show loading screen when waiting for match
             stateProps.showLoader.value = true;
 
+            //show loading screen when waiting for match
+            stateProps.showCancelButton.value = true;
+
             //update time count every second
             const timeElapsedInterval = setInterval(() => {
             stateProps.timeElapsed.value++;
@@ -46,13 +51,26 @@
 
             //add in game queue
             await client.game.addToGameQueue(auth.session.username)
-
+            let matchOpponent:any = null;
+            let retryAttempts = 0;
             //wait for match to be found
-            const matchOpponent:any = await client.game.findAMatch(auth.session.username);
-            if (matchOpponent === null)
+            while (retryAttempts < 100 && matchOpponent === null && stateProps.cancelMatch.value === false)
             {
-                //if match isn't found, return null and show error
-                stateProps.MatchmakingError.value = 'No players available.'
+                matchOpponent = await client.game.findAMatch(auth.session.username);
+                await new Promise(timeout => setTimeout(timeout, 100));
+                retryAttempts++;
+            }
+            
+            if (matchOpponent === null || stateProps.cancelMatch.value === true)
+            {
+                if (stateProps.cancelMatch.value === true)
+                    stateProps.MatchmakingError.value = 'You have left the queue.'
+                else
+                    stateProps.MatchmakingError.value = 'No players available.'
+                stateProps.showCancelButton.value = false
+                stateProps.showMatchmakingError.value = true
+                await new Promise(timeout => setTimeout(timeout, 2000));
+                stateProps.showMatchmakingError.value = false
                 //reset time count
                 clearInterval(timeElapsedInterval);
                 stateProps.timeElapsed.value = 0;
@@ -60,11 +78,19 @@
             }
             else
             {
+                console.log("match found !")
+                await client.game.setQueueStatus(auth.session.username, 'waiting')
+                console.log(matchOpponent)
                 //update the opponent profile if match is found
-                stateProps.opponentProfile.value.username = matchOpponent.profile?.username;
-                stateProps.opponentProfile.value.avatarPath = matchOpponent.profile?.avatarPath;
-                stateProps.opponentProfile.value.id = matchOpponent.profile?.id;
-                stateProps.opponentProfile.value.socketId = matchOpponent.profile?.socketId;
+                stateProps.opponentProfile.value.username = matchOpponent.username;
+                stateProps.opponentProfile.value.avatarPath = matchOpponent.avatarPath;
+                stateProps.opponentProfile.value.id = matchOpponent.id;
+                stateProps.opponentProfile.value.socketId = matchOpponent.socketId;
+                socket.emit('challengePlayer', {
+                    challenger: auth.session.username,
+                    lobbyId: matchOpponent.lobbyId
+                })
+                stateProps.gameLobbyId.value = matchOpponent.lobbyId
                 //addtogamelobby
                 //return game lobby
                 clearInterval(timeElapsedInterval);
@@ -110,6 +136,7 @@
             stateProps.showMatchFound.value = false;
             stateProps.matchAccepted.value = false;
             stateProps.matchDeclined.value = false;
+            stateProps.cancelMatch.value = false;
             stateProps.opponentAccepted.value = false;
             stateProps.opponentDeclined.value = false;
         },
