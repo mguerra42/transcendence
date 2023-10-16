@@ -20,6 +20,9 @@ onMounted(async () => {
                 <button  class="bg-zinc-700 px-3 py-1 m-1 text-zinc-200 rounded-lg">
                     Play 
                 </button>
+                <div>
+                    <div  class="b-1 rounded bg-blue-500 px-2 py-1 b-blue-700 cursor-pointer hover:bg-blue-600" @click="auth.onOff2FA">2FA</div>
+                </div>
                 <!-- <button @click="startGame()" v-if="stateProps.showPlayButton.value" class="bg-zinc-700 px-3 py-1 m-1 text-zinc-200 rounded-lg">
                     {{ stateProps.showPong.value ? 'Quit' : 'Play' }} 
                 </button> -->

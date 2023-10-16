@@ -229,7 +229,9 @@ export const useClient = defineStore('client', () => {
     client.auth.onFileSelected = async (event: any) => {
         client.auth.avatarFile.value = event.target.files[0]
     }
-
+    client.auth.onOff2FA = async () => {
+        
+    }
     // CHAT FUNCTIONS
     client.chat.getOnlineUsers = async () => {
         const { data, error } = await useRequest('/socket/getonlineusers', {
