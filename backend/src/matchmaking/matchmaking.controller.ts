@@ -21,23 +21,27 @@ export class MatchmakingController {
     }
 
     @Get ('findAnOpponent')
-    async findAnOpponent(@Query('playerLFG') playerLFG:string){        
+    async findAnOpponent(@Query('playerLFG') playerLFG:string){
         const res:any = await this.userService.getUsersFromQueue();
+        let playerLfgId = 0
+        for (let j = 0; j < res.length; j++)
+        {
+            if (res[j].username === playerLFG)
+                playerLfgId = res[j].profile.id
+        }
         for(let i = 0; i < res.length; i++)
         {
             if(res[i].confirmed === 'idle' && res[i].username != playerLFG)
             {
-                const test = {
-                    playerOneId: 4,
-                    playerTwoId: 5
+                const match = {
+                    playerOneId: playerLfgId,
+                    playerTwoId: res[i].profile.id
                 }
-                const lobby = await this.createNewGameLobby(test)
-                console.log(playerLFG)
-                console.log('wesh?')
-                console.log(lobby.lobbyId)
+                const lobby = await this.createNewGameLobby(match)
                 const ret = {
                     username: res[i].username,
-                    lobbyId: lobby.lobbyId
+                    lobbyId: lobby.lobbyId,
+                    profile: res[i]
                 }
                 return ret
             }

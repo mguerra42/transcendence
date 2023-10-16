@@ -334,6 +334,8 @@ export class UsersService {
                 players: {
                     connect: [{ id: playerOneId }, { id: playerTwoId }],
                 },
+                playerOneScore: '0',
+                playerTwoScore: '0',
             },
         });
     }

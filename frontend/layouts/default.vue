@@ -20,11 +20,11 @@
 <script setup lang="ts">
 const auth = useAuth()
 
-const { test } = defineProps<{
-  test: any
-}>();
+// const { test } = defineProps<{
+//   test: any
+// }>();
 
 onMounted(() => {
-  test.printTest()
+  // test.printTest()
 })
 </script>

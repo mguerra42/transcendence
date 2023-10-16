@@ -103,7 +103,6 @@ export class SocketsGateway {
 
     @SubscribeMessage('matchmakingConfirm')
     handleMatchmakingDecline(client: any, payload: any) {
-        console.log("we been here : ", payload.senderSocketId, payload.receiverSocketId)
         this.server.emit('matchmakingConfirmResponse', {
             player: payload.player,
             confirm: payload.confirm,
@@ -118,6 +117,7 @@ export class SocketsGateway {
             lobbyId: payload.lobbyId,
             //gamelobby
         });
+        console.log('gamelobby : ', payload.lobbyId)
     }
 
     @SubscribeMessage('abortMatch')
