@@ -422,9 +422,8 @@ export const useClient = defineStore('client', () => {
                 {
                     //make sure both players have access to lobbyId during the game
                     console.log('match possible with ', lookingForGame.data.value.username, 'in lobby ', lookingForGame.data.value.lobbyId)
-                    await new Promise(timeout => setTimeout(timeout, 500));
                     socket.emit('challengePlayer', {
-                        challenger: lookingForGame.data.value.username,
+                        challenger: playerUsername,
                         lobbyId: lookingForGame.data.value.lobbyId
                     })
                 }

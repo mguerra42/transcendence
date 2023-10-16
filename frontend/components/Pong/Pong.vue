@@ -43,7 +43,7 @@
             await stateProps.waitForConfirm();
             if (stateProps.matchAccepted.value === true && stateProps.opponentAccepted.value === true)
             {
-                await new Promise(timeout => setTimeout(timeout, 500));
+                await new Promise(timeout => setTimeout(timeout, 1000));
                 console.log("gamelobby : ", gameLobby.value)
                 await client.game.getNormalQueuePlayers()
                 
@@ -102,15 +102,15 @@
                     gameProps.player2MoveDown();
             }
         });
-
+        
         socket.on('challengePlayerResponse', async (data: any) => {
+            await new Promise(timeout => setTimeout(timeout, 500));
             console.log('response from back, gamelobby : ', data.lobbyId)
             console.log('challenger : ', data.challenger, 'current opponent : ', stateProps.opponentProfile.value.username)
             if (data.challenger === stateProps.opponentProfile.value.username)
             {
                 if (gameLobby.value != "")
                 {
-                    await new Promise(timeout => setTimeout(timeout, 500));
                     client.game.deleteLobbyById(gameLobby.value)
                 }
                 gameLobby.value = data.lobbyId
