@@ -105,6 +105,7 @@
         
         socket.on('challengePlayerResponse', async (data: any) => {
             await new Promise(timeout => setTimeout(timeout, 500));
+            console.log('refactor match logic')
             console.log('response from back, gamelobby : ', data.lobbyId)
             console.log('challenger : ', data.challenger, 'current opponent : ', stateProps.opponentProfile.value.username)
             if (data.challenger === stateProps.opponentProfile.value.username)
