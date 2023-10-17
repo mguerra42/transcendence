@@ -15,10 +15,12 @@
                 <p class="text-xs text-zinc-200 text-center">{{ stateProps.MatchmakingError.value }}</p>
             </div>
         </div>
-        <div @click="declineMatch" class="bg-zinc-600 w-40 hover:bg-zinc-700 px-2 py-1 m-2 cursor-pointer rounded-lg">
-            <p class="text-zinc-200 text-center">
-                Decline
-            </p> 
+        <div class="flex justify-center">
+            <div @click="cancelMatch" v-if="stateProps.showCancelButton.value" class="bg-zinc-600 w-60 hover:bg-zinc-700 px-2 py-1 m-2 cursor-pointer rounded-lg">
+                <p class="text-zinc-200 text-center">
+                    Cancel
+                </p> 
+            </div>
         </div>
     </div>
     <!-- Accept match window-->
@@ -69,6 +71,10 @@
     const auth = useAuth()
     const client = useClient()
     const socket = useSocket()
+
+    const cancelMatch = async () => {
+        stateProps.cancelMatch.value = true;
+    }
 
     const acceptMatch = () => {
         stateProps.matchAccepted.value = true;

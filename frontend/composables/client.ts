@@ -409,39 +409,19 @@ export const useClient = defineStore('client', () => {
         },
 
         findAMatch: async (playerUsername: string) => {
-            let usersArray = await client.game.getNormalQueuePlayers()
-            let retryAttempts = 10
-
-            //wait for enough players to find a match
-            while (retryAttempts > 0)
-            {
-                const lookingForGame: any = await useRequest(`/matchmaking/findAnOpponent?playerLFG=${playerUsername}`, {
-                    method: 'GET',
-                })
-                if (lookingForGame.data.value !== "")
-                {
-                    //make sure both players have access to lobbyId during the game
-                    console.log('match possible with ', lookingForGame.data.value.username, 'in lobby ', lookingForGame.data.value.lobbyId)
-                    socket.emit('challengePlayer', {
-                        challenger: playerUsername,
-                        lobbyId: lookingForGame.data.value.lobbyId
-                    })
+            const lookingForGame: any = await useRequest(`/matchmaking/findAnOpponent?playerLFG=${playerUsername}`, {
+                method: 'GET',
+            })
+            if (lookingForGame.data.value !== "")
+            {  
+                return {
+                    id: lookingForGame.data.value.profile.id,
+                    socketId: lookingForGame.data.value.profile.socketId,
+                    username: lookingForGame.data.value.username,
+                    avatarPath: lookingForGame.data.value.profile.avatarPath,
+                    lobbyId: lookingForGame.data.value.lobbyId,
                 }
-                for (let i = 0; i < usersArray.length; i++)
-                {
-                    if (usersArray[i].profile.username != playerUsername && usersArray[i].confirmed === "idle")
-                    {
-                        //client A will set the status of client B to waiting and vice-versa
-                        await client.game.setQueueStatus(usersArray[i].profile.username, 'waiting')
-                        return usersArray[i]
-                    }
-                }
-                //retry every 1 sec
-                await new Promise(timeout => setTimeout(timeout, 1000));
-                usersArray = await client.game.getNormalQueuePlayers()
-                retryAttempts--
             }
-            await client.game.removeFromGameQueue(playerUsername)
             return null
         },
 
