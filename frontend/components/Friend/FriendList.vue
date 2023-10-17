@@ -2,10 +2,28 @@
   import { ref, onMounted, watch } from 'vue';
   const friend = useFriend()
   const client = useClient()
+  const socket = useSocket();
+  const channel = useChannel();
   let categoryTab = 'amis';
   const newFriendName = ref('')
   const selectedItem = ref<any | null>(null);
   let currentCategory : Ref<any[]|undefined> = ref([]);
+  client.chat.showUserProfile = false;
+
+
+  const displayUserProfile = async (userToMessage : any) => {
+    client.chat.messages = [];
+    client.chat.chatState.receiver.id = userToMessage.id;
+    client.chat.chatState.receiver.username = userToMessage.username;
+    client.chat.messages = await client.chat.currentHistory();
+    client.chat.chatState.receiver.avatarPath = userToMessage.avatarPath;
+    client.chat.chatState.receiver.victories = userToMessage.victories;
+    client.chat.chatState.receiver.defeats = userToMessage.defeats;
+    client.chat.chatState.receiver.ladderPoint = userToMessage.ladderPoint;
+
+    client.chat.showUserProfile = !client.chat.showUserProfile;
+    client.chat.showAdd = await client.friend.existingFriendship(client.chat.chatState.receiver.id);
+  }
 
   const fetchFriendlist = async (category:string) => {
     if (category === 'amis') {
@@ -84,7 +102,7 @@
                   <img :src="item.avatarPath" class="w-6 h-6 rounded-full" />
                 </div>
                 <div class="flex flex-col justify-center">
-                  <p class="ml-2">  {{ item.username }} </p>
+                  <button @click="displayUserProfile(item)" class="ml-2">  {{ item.username }} </button>
                 </div>
               </div>
               <div v-if="categoryTab === 'demandes'" class="flex">

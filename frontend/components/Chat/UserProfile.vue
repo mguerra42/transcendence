@@ -1,6 +1,21 @@
 <script setup lang="ts">
 const client = useClient();
 
+const chatWithUser = async (userToMessage : any) => {
+    if (client.chat.chatState.receiver.id != userToMessage.id || client.chat.chatState.select != 'DM')
+    {
+      client.chat.messages = [];
+      client.chat.chatState.select = 'DM';
+      client.chat.chatState.receiver.id = userToMessage.id;
+      client.chat.chatState.receiver.username = userToMessage.username;
+      client.chat.messages = await client.chat.currentHistory();
+      client.chat.chatState.receiver.avatarPath = userToMessage.avatarPath;
+      client.chat.chatState.receiver.victories = userToMessage.victories;
+      client.chat.chatState.receiver.defeats = userToMessage.defeats;
+      client.chat.chatState.receiver.ladderPoint = userToMessage.ladderPoint;
+    }
+  };
+
 </script>
 
 <template>
@@ -20,7 +35,11 @@ const client = useClient();
             <!-- div bouton -->
             <div class=" p-2 ">
                 <div v-if="client.chat.showAdd === 'false'" class=" p-2">
+                    <button class="i-material-symbols:chat-add-on" @click="chatWithUser(client.chat.chatState.receiver)">Start a chat</button>
                     <button class="i-mdi:account-multiple-plus" @click="client.friend.add(auth.session.username)">Add a friend</button>
+                </div>
+                <div v-else="client.chat.showAdd === 'true'" class=" p-2">
+                    <button class="i-material-symbols:person-remove-rounded" @click="client.friend.remove(auth.session.username)">Delete a friend</button>
                 </div>
             </div>
         </div>
