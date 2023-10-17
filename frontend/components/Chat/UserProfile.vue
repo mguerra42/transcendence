@@ -21,12 +21,14 @@ const chatWithUser = async (userToMessage : any) => {
   const addFriend = async (newFriendUsername: string) => {
     await client.friend.add(newFriendUsername);
     friend.toggleCategory(client.friend.categoryName);
+    client.chat.showAdd = 'true';
     channel.refresh();
   };
 
   const removeFriend = async (newFriendUsername: string) => {
     await client.friend.remove(newFriendUsername);
     friend.toggleCategory(client.friend.categoryName);
+    client.chat.showAdd = 'false';
     channel.refresh();
   };
 
