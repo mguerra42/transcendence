@@ -64,6 +64,9 @@ interface AppClient {
         pendinglist: () => void
         add: (username: string) => void // add friend
         remove: (friendName: string) => void // remove friend
+
+        categoryArray: any[]
+        categoryName: string
     }
 
     chat: {

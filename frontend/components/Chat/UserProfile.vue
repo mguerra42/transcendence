@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const client = useClient();
 const channel = useChannel();
+const friend = useFriend();
 
 const chatWithUser = async (userToMessage : any) => {
     if (client.chat.chatState.receiver.id != userToMessage.id || client.chat.chatState.select != 'DM')
@@ -18,13 +19,15 @@ const chatWithUser = async (userToMessage : any) => {
   };
 
   const addFriend = async (newFriendUsername: string) => {
-      await client.friend.add(newFriendUsername);
-      channel.refresh();
+    await client.friend.add(newFriendUsername);
+    friend.toggleCategory(client.friend.categoryName);
+    channel.refresh();
   };
 
   const removeFriend = async (newFriendUsername: string) => {
-      await client.friend.remove(newFriendUsername);
-      channel.refresh();
+    await client.friend.remove(newFriendUsername);
+    friend.toggleCategory(client.friend.categoryName);
+    channel.refresh();
   };
 
 </script>

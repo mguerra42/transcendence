@@ -1,12 +1,11 @@
 import friendListVue from '../components/Friend/FriendList.vue';
 import { defineStore } from 'pinia'
-// import { useRuntimeConfig } from '@nuxt/use-runtime-config';
 
 export const useFriend = defineStore('friend', () => {
   let mutualfriends = ref<any[]>([]);
   let inversefriends = ref<any[]>([]);
-  let currentCategory = ref<any[]>([]);
   let pendingfriends = ref<any[]>([]);
+  const client = useClient();
 
     const fetchMutualFriendList = async () => {
       try {
@@ -74,19 +73,34 @@ export const useFriend = defineStore('friend', () => {
     const toggleCategory= async (category:string) => {
       if (category === 'amis') {
         await fetchMutualFriendList();
-        return mutualfriends.value;
+        client.friend.categoryArray = mutualfriends.value;
+        client.friend.categoryName = 'amis';
       } else if (category === 'enAttente') {
         await fetchPendingFriendList();
-        return pendingfriends.value;
+        client.friend.categoryArray = pendingfriends.value;
+        client.friend.categoryName = 'enAttente';
       } else if (category === 'demandes') {
         await fetchInverseFriendList();
-        return inversefriends.value;
+        client.friend.categoryArray = inversefriends.value;
+        client.friend.categoryName = 'demandes';
       }
     };
 
+    // const fetchFriendlist = async (category:string) => {
+    //   if (category === 'amis') {
+    //     currentCategory.value = await friend.toggleCategory(category)
+    //     categoryTab = 'amis';
+    //   } else if (category === 'enAttente') {
+    //     currentCategory.value = await friend.toggleCategory(category)
+    //     categoryTab = 'enAttente';
+    //   } else if (category === 'demandes') {
+    //     currentCategory.value = await friend.toggleCategory(category)
+    //     categoryTab = 'demandes';
+    //   }
+    //   };
+
 
     return { 
-      currentCategory,
       toggleCategory,
       fetchMutualFriendList,
       fetchInverseFriendList,
