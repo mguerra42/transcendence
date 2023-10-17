@@ -7,7 +7,7 @@ export const useAuth = defineStore('auth', () => {
         email: '',
         username: '',
         avatarPath: '',
-        socketId: ''
+        socketId: '',
     })
 
     const showForm = ref(false)
@@ -15,6 +15,7 @@ export const useAuth = defineStore('auth', () => {
     const logged = ref<boolean | null>(null)
     const mode = ref('login')
     const error = ref('')
+    const refresh = ref(false)
 
     // Get auth user data
     const refreshSession = async () => {
@@ -30,7 +31,7 @@ export const useAuth = defineStore('auth', () => {
                 email: '',
                 username: '',
                 avatarPath: '',
-                socketId: ''
+                socketId: '',
             }
         }
     }
@@ -49,5 +50,6 @@ export const useAuth = defineStore('auth', () => {
         logged,
         refreshSession,
         logout,
+        refresh,
     }
 })

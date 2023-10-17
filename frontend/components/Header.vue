@@ -4,6 +4,14 @@ const friend = useFriend()
 const socket = useSocket()
 const client = useClient()
 
+// onBeforeMount(async() => {
+//     console.log('HEADER.VUE, before refresh')
+//     await auth.refreshSession()
+//     console.log('HEADER.VUE, auth.refresh = ', auth.refresh)
+// })
+
+
+
 onMounted(async () => {
     await auth.refreshSession()
 })

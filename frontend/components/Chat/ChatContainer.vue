@@ -72,7 +72,7 @@ import { createClientOnly } from 'nuxt/dist/app/components/client-only';
   })
 
   onMounted(async () => {
-    await auth.refreshSession();
+    //await auth.refreshSession();
     await socket.connect();
 
     isLoading.value = false;
