@@ -36,10 +36,10 @@ const chatWithUser = async (userToMessage : any) => {
             <div class=" p-2 ">
                 <div v-if="client.chat.showAdd === 'false'" class=" p-2">
                     <button class="i-material-symbols:chat-add-on" @click="chatWithUser(client.chat.chatState.receiver)">Start a chat</button>
-                    <button class="i-mdi:account-multiple-plus" @click="client.friend.add(auth.session.username)">Add a friend</button>
+                    <button class="i-mdi:account-multiple-plus" @click="client.friend.add(client.chat.chatState.receiver.username)">Add a friend</button>
                 </div>
                 <div v-else="client.chat.showAdd === 'true'" class=" p-2">
-                    <button class="i-material-symbols:person-remove-rounded" @click="client.friend.remove(auth.session.username)">Delete a friend</button>
+                    <button class="i-material-symbols:person-remove-rounded" @click="client.friend.remove(client.chat.chatState.receiver.username)">Delete a friend</button>
                 </div>
             </div>
         </div>
