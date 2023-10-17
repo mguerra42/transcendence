@@ -14,7 +14,17 @@
         gameProps: any;
     }>();
 
-    onMounted(() => {
+    const hasRefresh = async() => {
+
+        const userExists: any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${auth.session.username}`, {
+            method: 'GET',
+        })
+        if (userExists.data.value.profile !== undefined) {
+            auth.refresh = true
+        }
+    }
+
+    onMounted( async () => {
         stateProps.canvas.value = document.getElementById("canvas");
         stateProps.context.value = stateProps.canvas.value.getContext("2d");
  
@@ -25,7 +35,7 @@
         stateProps.context.value.fillRect(gameProps.Player1.value.x, gameProps.Player1.value.y, gameProps.Player1.value.width, gameProps.Player1.value.height)
         stateProps.context.value.fillRect(gameProps.Player2.value.x, gameProps.Player2.value.y, gameProps.Player2.value.width, gameProps.Player2.value.height)
         stateProps.context.value.fillRect(gameProps.Ball.value.x, gameProps.Ball.value.y, gameProps.Ball.value.width, gameProps.Ball.value.height)
-        
+
         socket.on('playerMovementResponse', (data: any) => {
             if (data.player === stateProps.opponentProfile.value.username)
             {
@@ -65,5 +75,17 @@
             }
         });
 
+        //await auth.refreshSession();
+        await hasRefresh();
+
+        //setTimeout(() => {
+            if (auth.refresh === true) {
+                stateProps.showPong.value = true;
+                stateProps.showPlayButton.value = true;
+                auth.refresh = false;
+                console.log('refreshed')
+                gameProps.gameLoop();    
+            }
+        //}, 100);
     });
 </script>

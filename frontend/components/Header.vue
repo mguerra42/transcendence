@@ -69,6 +69,7 @@ const startGame = async () => {
     }
 }
 
+
 onMounted(async () => {
     await auth.refreshSession()
 })
