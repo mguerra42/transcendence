@@ -1,6 +1,6 @@
 <template>
   <main class="h-full">
-    <Header/>
+    <Header :gameProps="gameProps" :stateProps="stateProps" />
     <div class="h-[calc(100vh-80px)] b-1 flex">
         <div class="b-r flex flex-col max-h-[70vh] overflow-y-auto">
           Sidebar Left
@@ -20,9 +20,10 @@
 <script setup lang="ts">
 const auth = useAuth()
 
-// const { test } = defineProps<{
-//   test: any
-// }>();
+const { stateProps, gameProps } = defineProps<{
+    stateProps: any,
+    gameProps: any
+}>();
 
 onMounted(() => {
   // test.printTest()
