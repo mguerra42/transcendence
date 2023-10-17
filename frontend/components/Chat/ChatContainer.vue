@@ -7,7 +7,7 @@
   </div>
   
   <!-- Chat window -->
-  <div v-if="client.chat.chatVisible" class="fixed bottom-3 left-3 lg:w-1/3 md:w-1/3 sm:w-2/5 ">
+  <div v-if="client.chat.chatVisible" class="fixed bottom-3 left-3 lg:w-1/3 md:w-1/3 sm:w-2/5">
     <div v-if="!isLoading" class="max-h-[70vh] flex bg-zinc-700 rounded-lg">
       <ChatSelection/>
       <ChatConversationWindow/>
