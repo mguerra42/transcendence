@@ -27,6 +27,11 @@ export const useFriend = defineStore('friend', () => {
       }
     };
 
+    const getFriends = async () => {
+      await fetchMutualFriendList();
+      return (mutualfriends.value);
+    };
+
     
     const fetchPendingFriendList = async () => {
       try {
@@ -85,6 +90,7 @@ export const useFriend = defineStore('friend', () => {
       toggleCategory,
       fetchMutualFriendList,
       fetchInverseFriendList,
-      fetchPendingFriendList
+      fetchPendingFriendList,
+      getFriends
     }
   })

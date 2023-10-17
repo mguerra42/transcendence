@@ -21,6 +21,7 @@ export const useChannel = defineStore('channel', () => {
     const authStore = useAuth()
     const client = useClient()
     const socket = useSocket()
+    const friend = useFriend()
 
     channel.getAllChannels = async () => {
         const { data, error } = await useRequest('/socket/getallchannels', {
@@ -140,7 +141,7 @@ export const useChannel = defineStore('channel', () => {
 
     channel.refresh = async () => {
         client.chat.messages = await client.chat.currentHistory()
-        client.chat.usersArray = await client.chat.getAllUsers()
+        client.chat.usersArray = await friend.getFriends()
         client.chat.channelArray = await channel.getChannels()
         if (client.chat.chatState.select === 'CHANNEL') {
             client.chat.chatState.receiver.onlineUsers = await channel.getOnlineUsers()

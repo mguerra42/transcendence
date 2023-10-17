@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const client = useClient();
+const channel = useChannel();
 
 const chatWithUser = async (userToMessage : any) => {
     if (client.chat.chatState.receiver.id != userToMessage.id || client.chat.chatState.select != 'DM')
@@ -14,6 +15,16 @@ const chatWithUser = async (userToMessage : any) => {
       client.chat.chatState.receiver.defeats = userToMessage.defeats;
       client.chat.chatState.receiver.ladderPoint = userToMessage.ladderPoint;
     }
+  };
+
+  const addFriend = async (newFriendUsername: string) => {
+      await client.friend.add(newFriendUsername);
+      channel.refresh();
+  };
+
+  const removeFriend = async (newFriendUsername: string) => {
+      await client.friend.remove(newFriendUsername);
+      channel.refresh();
   };
 
 </script>
@@ -35,11 +46,11 @@ const chatWithUser = async (userToMessage : any) => {
             <!-- div bouton -->
             <div class=" p-2 ">
                 <div v-if="client.chat.showAdd === 'false'" class=" p-2">
-                    <button class="i-mdi:account-multiple-plus" @click="client.friend.add(client.chat.chatState.receiver.username)">Add a friend</button>
+                    <button class="i-mdi:account-multiple-plus" @click="addFriend(client.chat.chatState.receiver.username)">Add a friend</button>
                 </div>
                 <div v-else="client.chat.showAdd === 'true'" class=" p-2">
                     <button class="i-material-symbols:chat-add-on" @click="chatWithUser(client.chat.chatState.receiver)">Start a chat</button>
-                    <button class="i-material-symbols:person-remove-rounded" @click="client.friend.remove(client.chat.chatState.receiver.username)">Delete a friend</button>
+                    <button class="i-material-symbols:person-remove-rounded" @click="removeFriend(client.chat.chatState.receiver.username)">Delete a friend</button>
                 </div>
             </div>
         </div>

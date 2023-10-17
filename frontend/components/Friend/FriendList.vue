@@ -47,12 +47,14 @@
       await client.friend.add(newFriendUsername);
       await fetchFriendlist(categoryTab);
       newFriendName.value = '';
+      channel.refresh();
   };
 
   const removeFriend = async (friendName: string) => {
     console.log('remove a friend : ', friendName);
     await client.friend.remove(friendName);
     await fetchFriendlist(categoryTab);
+    channel.refresh();
   };
 
   onMounted(() => {
