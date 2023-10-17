@@ -11,9 +11,10 @@ const scrollToBottom = () => {
     chatMessages.value.scrollTop = chatMessages.value.scrollHeight;
   };
 
-const displayUserProfile = () => {
+const displayUserProfile = async () => {
     client.chat.showUserProfile = !client.chat.showUserProfile;
-}
+    client.chat.showAdd = await client.friend.existingFriendship(client.chat.chatState.receiver.id);
+  }
 
 onUpdated(() => {
   scrollToBottom();

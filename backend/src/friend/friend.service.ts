@@ -178,4 +178,17 @@ async removeFriendship(currentId: number, friendUsername: string): Promise<void>
       throw error;
     }
   }
+
+  async isFriendship(currentId: number, friendId: number): Promise<Boolean> {
+    const existingFriendship = await this.prisma.friend.findFirst({
+      where: {
+        userOneId: currentId,
+        userTwoId: friendId,
+      },
+    });
+    
+    if (existingFriendship)
+      return true;
+    return false;
+    }
 }

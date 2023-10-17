@@ -53,4 +53,13 @@ export class FriendController {
   
     return { friends: friendList }; // Renvoyez la liste d'amis sous la clé "friends"
   }
+
+  @Post('existingFriendship')
+  @UseGuards(JwtAuthGuard)
+  async isFriend(@Request() req, @Body() friendIdObj) {
+    const currentUserId = req.user.id;
+    const result = await this.friendService.isFriendship(currentUserId, friendIdObj.friendId);
+
+    return { Boolean: result };
+  }
 }

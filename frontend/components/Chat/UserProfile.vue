@@ -19,12 +19,9 @@ const client = useClient();
             </div>
             <!-- div bouton -->
             <div class=" p-2 ">
-                <button class="bg-zinc-600 hover:bg-zinc-500 rounded-lg text-zinc-200 text-sm px-4 py-2 mt-2">
-                    <div class="flex">
-                        <div class="i-mdi:account-multiple-plus"></div>
-                        <p class=" text-md text-zinc-200 pl-3" >Add friend</p>
-                    </div>
-                </button>
+                <div v-if="client.chat.showAdd === 'false'" class=" p-2">
+                    <button class="i-mdi:account-multiple-plus" @click="client.friend.add(auth.session.username)">Add a friend</button>
+                </div>
             </div>
         </div>
 

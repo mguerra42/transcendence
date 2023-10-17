@@ -98,6 +98,7 @@ interface AppClient {
         newMessage: string
         messages: any[]
         showUserProfile: boolean
+        showAdd: string
     }
 
     game: {
@@ -333,6 +334,19 @@ export const useClient = defineStore('client', () => {
                 friendName,
             },
         })
+    }
+
+    client.friend.existingFriendship = async (friendId: number) : Promise<string> => {
+        const { data } = await useRequest('/friend/existingFriendship', {
+            method: 'POST',
+            body: {
+                friendId,
+            },
+        })
+        if (data.value.Boolean === true)
+            return ("true");
+        else
+            return ("false");
     }
 
     // GAME FUNCTIONS
