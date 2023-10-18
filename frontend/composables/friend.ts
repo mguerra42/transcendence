@@ -19,7 +19,6 @@ export const useFriend = defineStore('friend', () => {
         }
     
         const data = await response.json();
-        console.log('Données d\'amis mutuels reçues :', data.friends); 
         mutualfriends.value = data.friends; // Mettez à jour mutualfriends avec la liste d'amis
       } catch (error) {
         console.error('Erreur lors de la récupération de la liste d\'amis :', error);
@@ -44,7 +43,6 @@ export const useFriend = defineStore('friend', () => {
         }
         
         const data = await response.json();
-        console.log('Données d\'amis en attente reçues :', data.friends); 
         pendingfriends.value = data.friends;
       } catch (error) {
         console.error('Erreur lors de la récupération de la liste de demandes d\'amis :', error);
@@ -63,7 +61,6 @@ export const useFriend = defineStore('friend', () => {
         }
     
         const data = await response.json();
-        console.log('Données de demandes d\'amis reçues :', data.friends); 
         inversefriends.value = data.friends;
       } catch (error) {
         console.error('Erreur lors de la récupération de la liste de demandes d\'amis :', error);

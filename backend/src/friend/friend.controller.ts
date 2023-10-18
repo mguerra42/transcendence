@@ -9,7 +9,7 @@ export class FriendController {
   @Post('add')
   @UseGuards(JwtAuthGuard)
   async addFriend(@Request() req, @Body() friendUsername) {
-    const currentUserId = req.user.id; // Récupérez l'ID de l'utilisateur à partir de req.user.id
+    const currentUserId = req.user.id;
     console.log(`Current User ID: ${currentUserId}`);
     console.log('Friendadd : ', friendUsername);
 
@@ -21,37 +21,37 @@ export class FriendController {
   @Get('amis')
   @UseGuards(JwtAuthGuard)
   async getFriendList(@Request() req) {
-    const currentUserId = req.user.id; // Récupérez l'ID de l'utilisateur à partir de req.user.id
-    const friendList = await this.friendService.getMutualFriends(currentUserId); // Remplacez getFriendList par la méthode réelle de votre service
+    const currentUserId = req.user.id;
+    const friendList = await this.friendService.getMutualFriends(currentUserId);
   
-    return { friends: friendList }; // Renvoyez la liste d'amis sous la clé "friends"
+    return { friends: friendList };
   }
 
   @Get('enAttente')
   @UseGuards(JwtAuthGuard)
   async inverseList(@Request() req) {
-    const currentUserId = req.user.id; // Récupérez l'ID de l'utilisateur à partir de req.user.id
+    const currentUserId = req.user.id;
     const friendList = await this.friendService.getFriendRequestsReceived(currentUserId);
   
-    return { friends: friendList }; // Renvoyez la liste d'amis sous la clé "friends"
+    return { friends: friendList };
   }
 
   @Get('demandes')
   @UseGuards(JwtAuthGuard)
   async pendingList(@Request() req) {
-    const currentUserId = req.user.id; // Récupérez l'ID de l'utilisateur à partir de req.user.id
+    const currentUserId = req.user.id;
     const friendList = await this.friendService.getPendingFriendRequests(currentUserId);
   
-    return { friends: friendList }; // Renvoyez la liste d'amis sous la clé "friends"
+    return { friends: friendList };
   }
 
   @Post('remove')
   @UseGuards(JwtAuthGuard)
   async removeFriend(@Request() req, @Body() friendNameObj) {
-    const currentUserId = req.user.id; // Récupérez l'ID de l'utilisateur à partir de req.user.id
+    const currentUserId = req.user.id;
     const friendList = await this.friendService.removeFriendship(currentUserId, friendNameObj.friendName);
   
-    return { friends: friendList }; // Renvoyez la liste d'amis sous la clé "friends"
+    return { friends: friendList };
   }
 
   @Post('isJustFriend')

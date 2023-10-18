@@ -11,14 +11,17 @@
 
 
   const displayUserProfile = async (userToMessage : any) => {
-    client.chat.messages = [];
-    client.chat.chatState.receiver.id = userToMessage.id;
-    client.chat.chatState.receiver.username = userToMessage.username;
-    client.chat.messages = await client.chat.currentHistory();
-    client.chat.chatState.receiver.avatarPath = userToMessage.avatarPath;
-    client.chat.chatState.receiver.victories = userToMessage.victories;
-    client.chat.chatState.receiver.defeats = userToMessage.defeats;
-    client.chat.chatState.receiver.ladderPoint = userToMessage.ladderPoint;
+    if (client.chat.chatState.receiver.id != userToMessage.id || client.chat.chatState.select != 'DM')
+    {
+      client.chat.messages = [];
+      client.chat.chatState.receiver.id = userToMessage.id;
+      client.chat.chatState.receiver.username = userToMessage.username;
+      client.chat.messages = await client.chat.currentHistory();
+      client.chat.chatState.receiver.avatarPath = userToMessage.avatarPath;
+      client.chat.chatState.receiver.victories = userToMessage.victories;
+      client.chat.chatState.receiver.defeats = userToMessage.defeats;
+      client.chat.chatState.receiver.ladderPoint = userToMessage.ladderPoint;
+    }
 
     client.chat.showUserProfile = !client.chat.showUserProfile;
     client.chat.showAdd = await friend.showAddOption(client.chat.chatState.receiver.username);

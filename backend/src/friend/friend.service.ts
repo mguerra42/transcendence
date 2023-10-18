@@ -172,7 +172,7 @@ async removeFriendship(currentId: number, friendUsername: string): Promise<void>
         },
       });
   
-      console.log(`Relation d'amitié entre les utilisateurs avec les IDs ${currentId} et ${friendId} supprimée.`);
+      console.log(`Relation d'amitié entre les utilisateurs avec les IDs ${currentId} et ${friendUsername} supprimée.`);
     } catch (error) {
       console.error('Une erreur s\'est produite lors de la suppression d\'ami:', error);
       throw error;

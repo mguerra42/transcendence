@@ -34,8 +34,12 @@
   };  
 
   const chatWithUser = async (userToMessage : any) => {
+    console.log("before if of chatWithUser");
+    console.log(client.chat.chatState.receiver.id);
+    console.log(userToMessage.id);
     if (client.chat.chatState.receiver.id != userToMessage.id || client.chat.chatState.select != 'DM')
     {
+      console.log("if of chatWithUser");
       client.chat.messages = [];
       client.chat.chatState.select = 'DM';
       client.chat.chatState.receiver.id = userToMessage.id;
@@ -47,6 +51,7 @@
       client.chat.chatState.receiver.ladderPoint = userToMessage.ladderPoint;
     }
   };
+
   const chatWithChannel = async (channelToMessage : any) => {
     if (client.chat.chatState.receiver.id != channelToMessage.id || client.chat.chatState.select != 'CHANNEL')
     {
