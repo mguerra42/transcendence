@@ -21,21 +21,8 @@
     client.chat.chatState.receiver.ladderPoint = userToMessage.ladderPoint;
 
     client.chat.showUserProfile = !client.chat.showUserProfile;
-    client.chat.showAdd = await client.friend.existingFriendship(client.chat.chatState.receiver.id);
+    client.chat.showAdd = await friend.showAddOption(client.chat.chatState.receiver.username);
   }
-
-  // const fetchFriendlist = async (category:string) => {
-  //   if (category === 'amis') {
-  //     currentCategory.value = await friend.toggleCategory(category)
-  //     client.friend.categoryName = 'amis';
-  //   } else if (category === 'enAttente') {
-  //     currentCategory.value = await friend.toggleCategory(category)
-  //     client.friend.categoryName = 'enAttente';
-  //   } else if (category === 'demandes') {
-  //     currentCategory.value = await friend.toggleCategory(category)
-  //     client.friend.categoryName = 'demandes';
-  //   }
-  //   };
 
     const addFriend = async (newFriendUsername: string) => {
       console.log('add a friend : ', newFriendUsername);

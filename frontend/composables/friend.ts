@@ -86,18 +86,16 @@ export const useFriend = defineStore('friend', () => {
       }
     };
 
-    // const fetchFriendlist = async (category:string) => {
-    //   if (category === 'amis') {
-    //     currentCategory.value = await friend.toggleCategory(category)
-    //     categoryTab = 'amis';
-    //   } else if (category === 'enAttente') {
-    //     currentCategory.value = await friend.toggleCategory(category)
-    //     categoryTab = 'enAttente';
-    //   } else if (category === 'demandes') {
-    //     currentCategory.value = await friend.toggleCategory(category)
-    //     categoryTab = 'demandes';
-    //   }
-    //   };
+    const showAddOption = async (friendName : string) : Promise<string> => {
+      let mutual = await client.friend.areMutualFriends(friendName);
+      let justFriend = await client.friend.isJustFriend(friendName);
+
+      if (mutual === 'true')
+        return ('mutual');
+      else if (justFriend === 'true')
+        return ('justFriend');
+      return ('none');
+    }
 
 
     return { 
@@ -105,6 +103,7 @@ export const useFriend = defineStore('friend', () => {
       fetchMutualFriendList,
       fetchInverseFriendList,
       fetchPendingFriendList,
-      getFriends
+      getFriends,
+      showAddOption
     }
   })

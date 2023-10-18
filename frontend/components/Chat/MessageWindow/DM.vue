@@ -1,9 +1,11 @@
 <script setup lang="ts">
 const client = useClient();
 const auth = useAuth();
+const friend = useFriend();
 client.chat.showUserProfile = false;
 
 const chatMessages = ref();
+client.chat.showAdd = await friend.showAddOption(client.chat.chatState.receiver.username);
 
 const scrollToBottom = () => {
     if (chatMessages.value === undefined)
@@ -13,7 +15,7 @@ const scrollToBottom = () => {
 
 const displayUserProfile = async () => {
     client.chat.showUserProfile = !client.chat.showUserProfile;
-    client.chat.showAdd = await client.friend.existingFriendship(client.chat.chatState.receiver.id);
+    client.chat.showAdd = await friend.showAddOption(client.chat.chatState.receiver.username);
   }
 
 onUpdated(() => {

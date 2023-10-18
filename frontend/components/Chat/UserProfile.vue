@@ -21,14 +21,14 @@ const chatWithUser = async (userToMessage : any) => {
   const addFriend = async (newFriendUsername: string) => {
     await client.friend.add(newFriendUsername);
     friend.toggleCategory(client.friend.categoryName);
-    client.chat.showAdd = 'true';
+    client.chat.showAdd = await friend.showAddOption(newFriendUsername);
     channel.refresh();
   };
 
   const removeFriend = async (newFriendUsername: string) => {
     await client.friend.remove(newFriendUsername);
     friend.toggleCategory(client.friend.categoryName);
-    client.chat.showAdd = 'false';
+    client.chat.showAdd = await friend.showAddOption(newFriendUsername);
     channel.refresh();
   };
 
@@ -50,11 +50,14 @@ const chatWithUser = async (userToMessage : any) => {
             </div>
             <!-- div bouton -->
             <div class=" p-2 ">
-                <div v-if="client.chat.showAdd === 'false'" class=" p-2">
+                <div v-if="client.chat.showAdd === 'none'" class=" p-2">
                     <button class="i-mdi:account-multiple-plus" @click="addFriend(client.chat.chatState.receiver.username)">Add a friend</button>
                 </div>
-                <div v-else="client.chat.showAdd === 'true'" class=" p-2">
+                <div v-else-if="client.chat.showAdd === 'mutual'" class=" p-2">
                     <button class="i-material-symbols:chat-add-on" @click="chatWithUser(client.chat.chatState.receiver)">Start a chat</button>
+                    <button class="i-material-symbols:person-remove-rounded" @click="removeFriend(client.chat.chatState.receiver.username)">Delete a friend</button>
+                </div>
+                <div v-else-if="client.chat.showAdd === 'justFriend'" class=" p-2">
                     <button class="i-material-symbols:person-remove-rounded" @click="removeFriend(client.chat.chatState.receiver.username)">Delete a friend</button>
                 </div>
             </div>

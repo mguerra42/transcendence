@@ -47,18 +47,27 @@ export class FriendController {
 
   @Post('remove')
   @UseGuards(JwtAuthGuard)
-  async removeFriend(@Request() req, @Body() friendUsername) {
+  async removeFriend(@Request() req, @Body() friendNameObj) {
     const currentUserId = req.user.id; // Récupérez l'ID de l'utilisateur à partir de req.user.id
-    const friendList = await this.friendService.removeFriendship(currentUserId, friendUsername.friendName);
+    const friendList = await this.friendService.removeFriendship(currentUserId, friendNameObj.friendName);
   
     return { friends: friendList }; // Renvoyez la liste d'amis sous la clé "friends"
   }
 
-  @Post('existingFriendship')
+  @Post('isJustFriend')
   @UseGuards(JwtAuthGuard)
-  async isFriend(@Request() req, @Body() friendIdObj) {
+  async isFriend(@Request() req, @Body() friendNameObj) {
     const currentUserId = req.user.id;
-    const result = await this.friendService.isFriendship(currentUserId, friendIdObj.friendId);
+    const result = await this.friendService.isJustFriend(currentUserId, friendNameObj.friendName);
+
+    return { Boolean: result };
+  }
+
+  @Post('areMutualFriends')
+  @UseGuards(JwtAuthGuard)
+  async isMutualFriend(@Request() req, @Body() friendNameObj) {
+    const currentUserId = req.user.id;
+    const result = await this.friendService.areMutualFriends(currentUserId, friendNameObj.friendName);
 
     return { Boolean: result };
   }

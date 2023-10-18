@@ -64,6 +64,8 @@ interface AppClient {
         pendinglist: () => void
         add: (username: string) => void // add friend
         remove: (friendName: string) => void // remove friend
+        isJustFriend: (friendName : string) => Promise<string>
+        areMutualFriends: (friendName: string) => Promise<string>
 
         categoryArray: any[]
         categoryName: string
@@ -318,19 +320,15 @@ export const useClient = defineStore('client', () => {
 
     // FRIEND FUNCTIONS
     client.friend.add = async (newFriendName: string) => {
-        console.log('add a friend : ', newFriendName)
         const { data, error } = await useRequest('/friend/add', {
             method: 'POST',
             body: {
                 newFriendName,
             },
         })
-
-        console.log(data.value)
     }
 
     client.friend.remove = async (friendName: string) => {
-        console.log('remove a friend : ', friendName)
         const { data, error } = await useRequest('/friend/remove', {
             method: 'POST',
             body: {
@@ -339,11 +337,24 @@ export const useClient = defineStore('client', () => {
         })
     }
 
-    client.friend.existingFriendship = async (friendId: number) : Promise<string> => {
-        const { data } = await useRequest('/friend/existingFriendship', {
+    client.friend.isJustFriend = async (friendName: string) : Promise<string> => {
+        const { data } = await useRequest('/friend/isJustFriend', {
             method: 'POST',
             body: {
-                friendId,
+                friendName,
+            },
+        })
+        if (data.value.Boolean === true)
+            return ("true");
+        else
+            return ("false");
+    }
+
+    client.friend.areMutualFriends = async (friendName: string) : Promise<string> => {
+        const { data } = await useRequest('/friend/areMutualFriends', {
+            method: 'POST',
+            body: {
+                friendName,
             },
         })
         if (data.value.Boolean === true)
