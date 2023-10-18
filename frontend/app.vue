@@ -295,8 +295,11 @@
     isLoading.value = true;
   });
 
-  onMounted(() => {
+  onMounted(async() => {
     isLoading.value = false;
+    await auth.refreshSession();
+    await socket.connect()
+
   });
 </script>
 

@@ -76,13 +76,12 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div class="h-62px b-b-1">
+    <div class="h-62px">
         <div class="container mx-auto justify-between h-full flex items-center px-5">
-            <div>Ft_transcendence</div>
+            <div>
+                Ft_transcendence
+            </div>
             <div v-if="auth.logged === true" class="flex gap-5 items-center">
-                <div class="text-orange-400">
-                   Welcome <i> {{ auth.session.username }}  </i>
-                </div>
                 <button @click="startGame()" v-if="stateProps.showPlayButton.value" class="bg-zinc-700 px-3 py-1 m-1 text-zinc-200 rounded-lg">
                     {{ stateProps.showPong.value ? 'Quit' : 'Play' }} 
                 </button>

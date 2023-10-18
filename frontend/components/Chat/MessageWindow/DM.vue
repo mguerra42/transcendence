@@ -15,8 +15,12 @@ const displayUserProfile = () => {
     client.chat.showUserProfile = !client.chat.showUserProfile;
 }
 
-onUpdated(() => {
-  scrollToBottom();
+onUpdated(async () => {
+  if(auth.logged)
+  {
+    client.chat.messages = await client.chat.currentHistory()
+    scrollToBottom();
+  }
 })
 </script>
 

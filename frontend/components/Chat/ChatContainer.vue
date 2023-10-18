@@ -7,10 +7,10 @@
   </div>
   
   <!-- Chat window -->
-  <div v-if="client.chat.chatVisible" class="fixed bottom-3 left-3 lg:w-1/3 md:w-1/3 sm:w-2/5 ">
+  <div v-if="client.chat.chatVisible" class="fixed bottom-3 left-3 lg:w-1/3 md:w-1/3 sm:w-2/5">
     <div v-if="!isLoading" class="max-h-[70vh] flex bg-zinc-700 rounded-lg">
       <ChatSelection/>
-      <ChatConversationWindow/>
+      <ChatConversationWindow v-if="auth.logged"/>
     </div>
     <div v-else class="min-h-[70vh] flex bg-zinc-700 rounded-lg">
       <div class="w-1/3 h-[70vh] flex-col flex items-center justify-center bg-zinc-800 rounded-lg px-2">
@@ -82,7 +82,8 @@ import { createClientOnly } from 'nuxt/dist/app/components/client-only';
     });
     socket.on('receivePrivateMessage', async (data: any) => {
       setInterval(() => {}, 50);
-      client.chat.messages = await client.chat.currentHistory();
+      if (auth.logged)
+        client.chat.messages = await client.chat.currentHistory();
     });
     socket.on('joinChannelResponse', (data: any) => {
       // client.chat.chatState.receiver.userCount = data.userCount;
@@ -93,7 +94,9 @@ import { createClientOnly } from 'nuxt/dist/app/components/client-only';
       const timeOptions:any = { hour: '2-digit', minute: '2-digit' };
       const formattedTime = currentTime.toLocaleTimeString(undefined, timeOptions);
       setInterval(() => {}, 50);
-      client.chat.messages = await client.chat.currentHistory();
+      
+      if (auth.logged)
+        client.chat.messages = await client.chat.currentHistory();
     });
   });
 </script>
