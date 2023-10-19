@@ -4,6 +4,10 @@ const channel = useChannel();
 const friend = useFriend();
 const auth = useAuth();
 
+const displayUserProfile = async (userToMessage : any) => {
+    client.chat.showUserProfile = !client.chat.showUserProfile;
+}
+
 const chatWithUser = async (userToMessage : any) => {
     if (client.chat.chatState.receiver.id != userToMessage.id || client.chat.chatState.select != 'DM')
     {
@@ -16,6 +20,7 @@ const chatWithUser = async (userToMessage : any) => {
       client.chat.chatState.receiver.victories = userToMessage.victories;
       client.chat.chatState.receiver.defeats = userToMessage.defeats;
       client.chat.chatState.receiver.ladderPoint = userToMessage.ladderPoint;
+      displayUserProfile(userToMessage);
     }
   };
 
