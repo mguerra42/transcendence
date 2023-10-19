@@ -7,6 +7,7 @@ import {
 import { UsersService } from 'src/users/users.service';
 import { SignUpDto } from './dto/signup.dto';
 import { JwtService } from '@nestjs/jwt';
+import { DBService } from 'src/db/db.service';
 import * as bcrypt from 'bcryptjs';
 
 
@@ -84,6 +85,29 @@ export class AuthService {
     //NEW LOGIC
     //-Changed update function in users.service.ts to take any object instead of UpdateDto object, to allow for empty fields
     //-Changed updateDto object to userToUpdateObject interface to allow for empty fields and dynamic add changed fields only
+    async toggle2FA(userId: number): Promise<number> {
+        const user = await this.usersService.findOne(userId);
+        
+        const updatedTwoFa = user.twoFa === 0 ? 1 : 0;
+        console.log('updatedTwoFa=',updatedTwoFa)
+        
+        interface userToUpdateObject {
+            twoFa?: number;
+        }
+        let userdata : userToUpdateObject = {};
+        userdata.twoFa = updatedTwoFa
+        const ret : any = await this.usersService.update(userId, userdata);
+        console.log('toggle2FA',ret)
+    
+        return updatedTwoFa;
+      }
+    
+      async get2FA(userId: number): Promise<number> {
+          
+          const user = await this.usersService.findOne(userId);
+          console.log('get2fa',user)
+        return user.twoFa;
+      }
 
     async update(id: number, updateDto: any) {
         //Interface acts as a type definition for an object that can dynamically add fields
@@ -103,7 +127,7 @@ export class AuthService {
                 HttpStatus.UNPROCESSABLE_ENTITY,
             );
         }
-
+        
         //Update object with non-empty fields
         //Previously we had 'if (updateDto.property)' which was always true
         if (updateDto.email != '') {

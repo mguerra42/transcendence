@@ -26,6 +26,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { async } from 'rxjs';
 import { UsersService } from 'src/users/users.service';
 
+
 @Controller('auth')
 export class AuthController {
     constructor(
@@ -186,4 +187,21 @@ export class AuthController {
         res.clearCookie('accessToken');
         return { message: 'Logged out from 42' };
     }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('onOff2FA')
+    async onOff2FA(@Request() req) {
+      const userId = req.user.id;
+      const updatedTwoFa = await this.authService.toggle2FA(userId);
+      return updatedTwoFa;
+    }
+  
+    @UseGuards(JwtAuthGuard)
+    @Get('get2FA')
+    async get2FA(@Request() req) {
+      const userId = req.user.id;
+      const currentTwoFa = await this.authService.get2FA(userId);
+      return currentTwoFa;
+    }
 }
+
