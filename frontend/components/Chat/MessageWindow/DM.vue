@@ -5,7 +5,6 @@ const friend = useFriend();
 client.chat.showUserProfile = false;
 
 const chatMessages = ref();
-client.chat.showAdd = await friend.showAddOption(client.chat.chatState.receiver.username);
 
 const scrollToBottom = () => {
     if (chatMessages.value === undefined)
