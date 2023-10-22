@@ -38,7 +38,6 @@ const startGame = async () => {
         if (stateProps.matchAccepted.value === true && stateProps.opponentAccepted.value === true)
         {
             console.log("gamelobby : ", stateProps.gameLobbyId.value)
-            await client.game.setQueueLobbyId(auth.session.username, stateProps.gameLobbyId.value)
             await client.game.getNormalQueuePlayers()
             
             stateProps.showPong.value = true;

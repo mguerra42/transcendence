@@ -75,13 +75,6 @@ export class MatchmakingController {
         return await this.userService.setUserQueueStatus(req.username, req.status);
     }
 
-    @Post ('setQueueLobbyId')
-    async setQueueLobby(@Body() req:any){
-        if (req.username === undefined)
-            return null
-        return await this.userService.setQueueLobbyId(req.username, req.lobbyId);
-    }
-
     @Get ('getAllGameLobbies')
     async getAllGameLobbies(){
         return await this.userService.getAllGameLobbies();

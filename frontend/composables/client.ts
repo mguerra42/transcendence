@@ -106,7 +106,6 @@ interface AppClient {
         addToGameQueue: (playerUsername: string) => Promise<any>
         removeFromGameQueue: (playerUsername: string) => Promise<any>
         setQueueStatus: (playerUsername: string, queueStatus: string) => Promise<any>
-        setQueueLobbyId: (playerUsername: string, queueLobbyId: string) => Promise<any>
         findAMatch: (playerUsername: string) => Promise<any>
         joinGameLobby: (playerOneId: number, playerTwoId: number) => Promise<any>
         getLobbiesForPlayer: (playerId: number) => Promise<any>
@@ -378,22 +377,6 @@ export const useClient = defineStore('client', () => {
                 body: {
                     username: playerUsername,
                     status: queueStatus,
-                },
-            })
-            return response.data.value
-        },
-
-        setQueueLobbyId: async (playerUsername: string, queueLobbyId: string): Promise<any> => {
-            const userExists: any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${playerUsername}`, {
-                method: 'GET',
-            })
-            if (userExists.data.value.profile === undefined)
-                return null
-            const response: any = await useRequest('/matchmaking/setQueueLobbyId', {
-                method: 'POST',
-                body: {
-                    username: playerUsername,
-                    lobbyId: queueLobbyId,
                 },
             })
             return response.data.value
