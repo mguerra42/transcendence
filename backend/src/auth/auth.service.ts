@@ -9,8 +9,8 @@ import { SignUpDto } from './dto/signup.dto';
 import { JwtService } from '@nestjs/jwt';
 import { DBService } from 'src/db/db.service';
 import * as bcrypt from 'bcryptjs';
-
-
+import * as speakeasy from 'speakeasy';
+import * as qrcode from 'qrcode';
 
 @Injectable()
 export class AuthService {
@@ -59,7 +59,14 @@ export class AuthService {
                 HttpStatus.UNPROCESSABLE_ENTITY,
             );
         }
+        const secret = speakeasy.generateSecret({ length: 20 }); // Vous pouvez ajuster la longueur selon vos besoins
+        credentials.secret = secret.base32;
         const user = await this.usersService.create(credentials);
+        // const user = await this.usersService.create({
+        //     ...credentials,
+        //     secret: secret.base32, // Stockez la version base32 du secret dans la base de données
+        // });
+    
         return user;
     }
 
@@ -109,6 +116,27 @@ export class AuthService {
         return user.twoFa;
       }
 
+      async get2faQrCode(userId: number): Promise<string> {
+        const user = await this.usersService.findOne(userId);
+        if (!user.secret) {
+            throw new Error('User does not have 2FA secret.');
+        }
+    
+        const otpAuthUrl = speakeasy.otpauthURL({
+            secret: user.secret,
+            label: user.email,
+            issuer: 'Transcsendence',
+            encoding: 'base32',
+        });
+    
+        try {
+            const qrCodeDataURL = await qrcode.toDataURL(otpAuthUrl);
+            return qrCodeDataURL;
+        } catch (error) {
+            throw new Error('Error generating QR code.');
+        }
+    }
+      
     async update(id: number, updateDto: any) {
         //Interface acts as a type definition for an object that can dynamically add fields
         //This is to send prisma an object with only fields that have been changed

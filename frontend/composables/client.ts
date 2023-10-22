@@ -57,6 +57,7 @@ interface AppClient {
         session: () => any // get user data
         onOff2FA: () => any
         get2FA: () => any
+        get2FAQr: () => any
     }
 
     friend: {
@@ -226,6 +227,7 @@ export const useClient = defineStore('client', () => {
             return
         }
         authStore.showUserForm = false
+
         await authStore.refreshSession()
     }
 
@@ -238,13 +240,8 @@ export const useClient = defineStore('client', () => {
             const { data, error } = await useRequest('/auth/onOff2FA', {
                 method: 'POST'
             });
-            
-            // Mettez à jour twoFAStatus avec la réponse du backend (0 ou 1)
             console.log('Statut 2FA mis à jour :', data.value);
             return (data.value);
-    
-            // twoFAStatus contient la valeur retournée par le backend
-            // Vous pouvez faire d'autres traitements avec twoFAStatus ici si nécessaire
         } catch (error) {
             console.error('Erreur lors de la mise à jour du statut 2FA :', error);
         }
@@ -255,17 +252,24 @@ export const useClient = defineStore('client', () => {
             const { data, error } = await useRequest('/auth/get2FA', {
                 method: 'GET'
             });
-            
-            // Mettez à jour twoFAStatus avec la réponse du backend (0 ou 1)
-            console.log('Statut 2FA mis à jour :', data.value === 1);
-            return (data.value === 1);
-    
-            // twoFAStatus contient la valeur retournée par le backend
-            // Vous pouvez faire d'autres traitements avec twoFAStatus ici si nécessaire
+            return (data.value);
         } catch (error) {
             console.error('Erreur lors de la récupération du statut 2FA :', error);
         }
-    };    
+    };
+    
+    client.auth.get2FAQr = async () => {
+        try {
+            const { data, error } = await useRequest('/auth/get2FAQr', {
+                method: 'GET'
+            });
+            console.log('get2FAQr:', data.value);
+            authStore.QRCodeURL = data.value as string;
+            return (data.value);
+    } catch (error) {
+        console.error('Erreur lors de la récupération du statut 2FA :', error);
+    }
+    }
 
     // CHAT FUNCTIONS
     client.chat.getOnlineUsers = async () => {

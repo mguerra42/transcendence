@@ -5,6 +5,7 @@ const socket = useSocket()
 const client = useClient()
 const twoFaStatus = ref(0)
 const buttonClass = ref('b-1 rounded bg-zinc-500 px-2 py-1 b-zinc-700 cursor-pointer hover:bg-zinc-600');
+const QrCode = ref('')
 
 
 onMounted(async () => {
@@ -25,9 +26,11 @@ const updateButtonClass = () => {
         buttonClass.value = 'b-1 rounded bg-zinc-500 px-2 py-1 b-zinc-700 cursor-pointer hover:bg-zinc-600';
     }
     console.log('button=',buttonClass.value)
-
 };
-
+const getQrCode = async () => {
+    auth.showQRCode = true
+    client.auth.get2FAQr()
+}
 </script>
 
 <template>
@@ -43,6 +46,7 @@ const updateButtonClass = () => {
                 </button>
                 <div>
                     <div :class="buttonClass" @click="toggletwoFastatus">2FA</div>
+                    <div :class="buttonClass" @click="getQrCode">2FAGetQR</div>
                 </div>
                 <!-- <button @click="startGame()" v-if="stateProps.showPlayButton.value" class="bg-zinc-700 px-3 py-1 m-1 text-zinc-200 rounded-lg">
                     {{ stateProps.showPong.value ? 'Quit' : 'Play' }} 

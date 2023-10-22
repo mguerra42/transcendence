@@ -203,5 +203,13 @@ export class AuthController {
       const currentTwoFa = await this.authService.get2FA(userId);
       return currentTwoFa;
     }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('get2FAQr')
+    async get2FAQr(@Request() req) {
+      const userId = req.user.id;
+      const Qrcode2fa = await this.authService.get2faQrCode(userId);
+      return Qrcode2fa;
+    }
 }
 

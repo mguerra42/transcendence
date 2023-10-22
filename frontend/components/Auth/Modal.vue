@@ -2,6 +2,9 @@
 const auth = useAuth()
 const socket = useSocket();
 const client = useClient();
+
+
+
 </script>
 
 <template>
@@ -19,7 +22,13 @@ const client = useClient();
   <div v-if="auth.showUserForm" class="absolute top-0 bottom-0 left-0 right-0 z-10 flex justify-center items-center bg-black/60 backdrop-blur-sm" >
     <UserForm v-if="auth.logged === true" />
   </div>
-  
+
+  <div v-if="auth.showQRCode" class="backdrop-blur-sm" >
+    <img :src="auth.QRCodeURL" alt="QR Code" />
+ 
+     <div>CACA</div>
+  </div>
+
   <div v-if="auth.logged === true" >
     <ChatContainer/>
   </div>
