@@ -142,6 +142,8 @@
   
   const gameProps = {
     Player1: ref({
+        name : "",
+        score: 0,
         width: 15,
         height: 70,
         x: 25,
@@ -149,6 +151,8 @@
     }),
 
     Player2: ref({
+        name : "",
+        score: 0,
         width: 15,
         height: 70,
         x: 800 - 35,
@@ -252,6 +256,11 @@
                 gameProps.Ball.value.velocityX = 5 ;
                 gameProps.Ball.value.velocityY = 5 ;
             }, 1000)
+            gameProps.Player2.value.score++;
+            // socket.emit('scoreUpdate', {
+                // player: auth.session.username,
+                // score: gameProps.Player2.value.score
+            // })
         }
         if (gameProps.Ball.value.y >580)
         {
@@ -271,6 +280,7 @@
                 gameProps.Ball.value.velocityX = 5 ;
                 gameProps.Ball.value.velocityY = 5 ;
             }, 1000)
+            gameProps.Player1.value.score++;
         }
         if (gameProps.Ball.value.y < 0)
         {
@@ -285,6 +295,26 @@
         // Call the game loop recursively
         stateProps.animationFrameId.value = requestAnimationFrame(gameProps.gameLoop);
     },
+
+    set: async () => {
+        const { data, error } = await useRequest('/matchmaking/getPlayersInGame', {
+            method: 'POST',
+            body: {
+                    playerId: auth.session.id,
+                },
+        })
+        if (error.value?.statusCode || data.value === null) {
+            alert('Lobby not found.')
+            auth.error = error.value?.statusMessage as string
+            return null
+        }
+  
+        gameProps.Player1.value.name = data.value.player1Name;
+        gameProps.Player2.value.name = data.value.player2Name;
+        gameProps.Player1.value.score = data.value.player1Score;
+        gameProps.Player2.value.score = data.value.player2Score;
+    },
+
   };
 
   useHead({

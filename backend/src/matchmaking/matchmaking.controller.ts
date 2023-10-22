@@ -75,6 +75,13 @@ export class MatchmakingController {
         return await this.userService.setUserQueueStatus(req.username, req.status);
     }
 
+    @Post ('setQueueLobbyId')
+    async setQueueLobby(@Body() req:any){
+        if (req.username === undefined)
+            return null
+        return await this.userService.setQueueLobbyId(req.username, req.lobbyId);
+    }
+
     @Get ('getAllGameLobbies')
     async getAllGameLobbies(){
         return await this.userService.getAllGameLobbies();
@@ -106,5 +113,30 @@ export class MatchmakingController {
     @Post ('deleteLobbyById')
     async deleteLobbyById(@Body() req:any){
         return  await this.userService.deleteLobbyById(req.lobbyId);
+    }
+
+    @Post ('getPlayersInGame')
+    async getPlayersInGame(@Body() req:any){
+        const lobbies = await this.userService.getLobbiesForUser(req.playerId);
+        const lobby = lobbies[lobbies.length - 1]
+        //console.log('lobby', lobby)
+        const ret = {
+            player1Name: '',
+            player2Name: '',
+            player1Score: lobby.playerOneScore,
+            player2Score: lobby.playerTwoScore,
+        }
+        if (lobby.players[0].id < lobby.players[1].id)
+        {
+            ret.player1Name = lobby.players[0].username;
+            ret.player2Name =  lobby.players[1].username;
+        }
+        else
+        {
+            ret.player1Name = lobby.players[1].username;
+            ret.player2Name = lobby.players[0].username;
+        }
+        return ret
+        
     }
 }

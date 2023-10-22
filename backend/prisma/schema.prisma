@@ -63,6 +63,7 @@ model Queue {
   confirmed  String   @default("idle")
   username   String   @unique
   profile    User     @relation(fields: [username], references: [username])
+  lobby     String?  
 }
 
 //Message history (may be used for group chat ?)

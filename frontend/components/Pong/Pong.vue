@@ -1,6 +1,17 @@
 <template>
-    <div class="">
-        <canvas v-show="stateProps.showPong.value" tabindex="0" @keydown.down="gameProps.player1MoveDown" @keydown.up="gameProps.player1MoveUp" class="bg-zinc-300 focus-outline-none rounded-lg cursor-crosshair" id="canvas"></canvas>
+    <div class="flex-col " v-show="stateProps.showPong.value">
+        <div class="flex justify-between p-2 mx-4">
+            <div class="text-lg text-zinc-100">
+                {{ gameProps.Player1.value.name }} - <b> {{ gameProps.Player1.value.score }} </b>
+            </div>
+            <div class="text-lg text-zinc-100">
+                <b> {{ gameProps.Player2.value.score }} </b> - {{ gameProps.Player2.value.name }}
+            </div>
+        </div>
+
+        <div class="">
+            <canvas v-show="stateProps.showPong.value" tabindex="0" @keydown.down="gameProps.player1MoveDown" @keydown.up="gameProps.player1MoveUp" class="bg-zinc-300 focus-outline-none rounded-lg cursor-crosshair" id="canvas"></canvas>
+        </div>
     </div>
 </template>
 
@@ -75,17 +86,16 @@
             }
         });
 
-        //await auth.refreshSession();
         await hasRefresh();
 
-        //setTimeout(() => {
             if (auth.refresh === true) {
                 stateProps.showPong.value = true;
                 stateProps.showPlayButton.value = true;
                 auth.refresh = false;
                 console.log('refreshed')
+                gameProps.set();
                 gameProps.gameLoop();    
             }
-        //}, 100);
+
     });
 </script>

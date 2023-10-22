@@ -117,6 +117,17 @@ export class UsersService {
         });
     }
 
+    setQueueLobbyId(playerUsername: string, lobbyId: string) {
+        return this.db.queue.update({
+            where: {
+                username: playerUsername,
+            },
+            data: {
+                lobby: lobbyId,
+            },
+        });
+    }
+
     setUserToConfirmMatch(playerUsername: string) {
         return this.db.queue.update({
             where: {
