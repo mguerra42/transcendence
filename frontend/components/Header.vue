@@ -16,7 +16,7 @@ const abortMatch = () => {
     socket.emit('abortMatch', {
         player: auth.session.username,
         senderSocketId: auth.session.socketId,
-        receiverSocketId: stateProps.opponentProfile.value.socketId
+        //receiverSocketId: stateProps.opponentProfile.value.socketId
     })
 }
 
@@ -61,7 +61,10 @@ const startGame = async () => {
         abortMatch();
         gameProps.resetGame();
         cancelAnimationFrame(stateProps.animationFrameId.value);
-        await client.game.removeFromGameQueue(auth.session.username)
+        await client.game.removeFromGameQueue(gameProps.Player1.value.name)
+        await client.game.removeFromGameQueue(gameProps.Player2.value.name)
+        await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
+        await client.game.removeFromGameQueue(stateProps.opponentProfile.value.username)
         await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
         stateProps.showPong.value = false;
         stateProps.showPlayButton.value = true;
