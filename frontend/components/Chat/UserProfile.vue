@@ -3,8 +3,10 @@ const client = useClient();
 const channel = useChannel();
 const friend = useFriend();
 const auth = useAuth();
+const socket = useSocket();
 
 const displayUserProfile = async (userToMessage : any) => {
+    console.log("ENTERED Friendlist/displayUserProfile");
     client.chat.showUserProfile = !client.chat.showUserProfile;
 }
 
@@ -26,18 +28,28 @@ const chatWithUser = async (userToMessage : any) => {
 
   const addFriend = async (newFriendUsername: string) => {
     await client.friend.add(newFriendUsername);
-    friend.toggleCategory(client.friend.categoryName);
-    client.chat.showAdd = await friend.showAddOption(newFriendUsername);
-    channel.refresh();
+    socket.emit('refreshUserProfile', {
+        currentUserId: auth.session.id,
+        otherUserId: client.chat.chatState.receiver.id
+        }) 
   };
 
   const removeFriend = async (newFriendUsername: string) => {
     await client.friend.remove(newFriendUsername);
-    friend.toggleCategory(client.friend.categoryName);
-    client.chat.showAdd = await friend.showAddOption(newFriendUsername);
-    channel.refresh();
+    socket.emit('refreshUserProfile', {
+        currentUserId: auth.session.id,
+        otherUserId: client.chat.chatState.receiver.id
+        }) 
   };
 
+    onMounted (async () => {
+    await socket.connect();
+    socket.on('refreshUserProfile', async () => {
+        friend.toggleCategory(client.friend.categoryName);
+        client.chat.showAdd = await friend.showAddOption(client.chat.chatState.receiver.username);
+        await channel.refresh();
+    });
+  })
 </script>
 
 <template>
@@ -56,14 +68,14 @@ const chatWithUser = async (userToMessage : any) => {
             </div>
             <!-- div bouton -->
             <div class=" p-2 ">
-                <div v-if="client.chat.showAdd === 'none' && auth.session.id != client.chat.chatState.receiver.id" class=" p-2">
+                <div v-if="client.chat.showAdd === 'none' && auth.session.username != client.chat.chatState.receiver.username" class=" p-2">
                     <button class="i-mdi:account-multiple-plus" @click="addFriend(client.chat.chatState.receiver.username)">Add a friend</button>
                 </div>
-                <div v-else-if="client.chat.showAdd === 'mutual' && auth.session.id != client.chat.chatState.receiver.id" class=" p-2">
+                <div v-else-if="client.chat.showAdd === 'mutual' && auth.session.username != client.chat.chatState.receiver.username" class=" p-2">
                     <button class="i-material-symbols:chat-add-on" @click="chatWithUser(client.chat.chatState.receiver)">Start a chat</button>
                     <button class="i-material-symbols:person-remove-rounded" @click="removeFriend(client.chat.chatState.receiver.username)">Delete a friend</button>
                 </div>
-                <div v-else-if="client.chat.showAdd === 'justFriend' && auth.session.id != client.chat.chatState.receiver.id" class=" p-2">
+                <div v-else-if="client.chat.showAdd === 'justFriend' && auth.session.username != client.chat.chatState.receiver.username" class=" p-2">
                     <button class="i-material-symbols:person-remove-rounded" @click="removeFriend(client.chat.chatState.receiver.username)">Delete a friend</button>
                 </div>
             </div>

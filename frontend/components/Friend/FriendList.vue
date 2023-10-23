@@ -4,6 +4,7 @@
   const client = useClient()
   const socket = useSocket();
   const channel = useChannel();
+  const auth = useAuth();
   const newFriendName = ref('')
   client.friend.categoryName = 'amis';
   const selectedItem = ref<any | null>(null);
@@ -13,6 +14,7 @@
   const displayUserProfile = async (userToMessage : any) => {
     if (client.chat.chatState.receiver.id != userToMessage.id || client.chat.chatState.select != 'DM')
     {
+      console.log("ENTERED Friendlist/displayUserProfile");
       client.chat.messages = [];
       client.chat.chatState.receiver.id = userToMessage.id;
       client.chat.chatState.receiver.username = userToMessage.username;
@@ -28,24 +30,40 @@
   }
 
     const addFriend = async (newFriendUsername: string) => {
+      client.chat.chatState.receiver.username = newFriendUsername;
+      const friendUser = await client.auth.findByUsername(newFriendUsername);
+      client.chat.chatState.receiver.id = friendUser.id;
       console.log('add a friend : ', newFriendUsername);
       await client.friend.add(newFriendUsername);
-      await friend.toggleCategory(client.friend.categoryName);
       newFriendName.value = '';
-      channel.refresh();
+      socket.emit('refreshUserProfile', {
+       currentUserId: auth.session.id,
+       otherUserId: client.chat.chatState.receiver.id
+      }) 
   };
 
   const removeFriend = async (friendName: string) => {
+    client.chat.chatState.receiver.username = friendName;
+    const friendUser = await client.auth.findByUsername(friendName);
+    client.chat.chatState.receiver.id = friendUser.id;
     console.log('remove a friend : ', friendName);
     await client.friend.remove(friendName);
-    await friend.toggleCategory(client.friend.categoryName);
-    channel.refresh();
+    socket.emit('refreshUserProfile', {
+       currentUserId: auth.session.id,
+       otherUserId: client.chat.chatState.receiver.id
+      })
   };
 
-  onMounted(() => {
+  onMounted (async () => {
     friend.fetchMutualFriendList();
     friend.fetchInverseFriendList();
     friend.toggleCategory(client.friend.categoryName);
+    await socket.connect();
+    socket.on('refreshUserProfile', async () => {
+        friend.toggleCategory(client.friend.categoryName);
+        client.chat.showAdd = await friend.showAddOption(client.chat.chatState.receiver.username);
+        await channel.refresh();
+    });
   });
 </script>
 

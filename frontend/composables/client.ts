@@ -55,6 +55,7 @@ interface AppClient {
         login42: () => void // login 42
         logout: () => void // logout
         session: () => any // get user data
+        findByUsername: (mailOrUsername: string ) => Promise<any> //get user from mail or username
     }
 
     friend: {
@@ -234,6 +235,21 @@ export const useClient = defineStore('client', () => {
 
     client.auth.onFileSelected = async (event: any) => {
         client.auth.avatarFile.value = event.target.files[0]
+    }
+
+    client.auth.findByUsername = async (username: string ) : Promise<any> => {
+        const { data, error } = await useRequest('/auth/findByUsername', {
+            method: 'POST',
+            body: {
+                username,
+            },
+        })
+
+        if (error.value?.statusCode) {
+            authStore.error = error.value?.statusMessage as string
+            return null
+        }
+        return data.value
     }
 
     // CHAT FUNCTIONS
