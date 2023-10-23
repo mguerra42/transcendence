@@ -73,8 +73,10 @@
         });
 
         socket.on('abortMatchResponse', async (data: any) => {
-            if (data.player === stateProps.opponentProfile.value.username)
+            //console.log('abortMatchResponse, data : ', data, 'auth.session.username : ', auth.session.username, 'gameProps.Player1.value.name : ', gameProps.Player1.value.name, 'gameProps.Player2 : ', gameProps.Player2)
+            if ((auth.session.username === gameProps.Player1.value.name && data.player === gameProps.Player2.value.name) || (auth.session.username === gameProps.Player2.value.name && data.player === gameProps.Player1.value.name))
             {
+                //console.log('abortMatchResponse work')
                 gameProps.resetGame();
                 cancelAnimationFrame(stateProps.animationFrameId.value);
                 await client.game.removeFromGameQueue(auth.session.username)
@@ -84,6 +86,7 @@
                 stateProps.showPlayButton.value = true;
                 stateProps.resetMatchmakingWindow()
             }
+            //console.log('abortMatchResponse dont work')
         });
 
         await hasRefresh();
