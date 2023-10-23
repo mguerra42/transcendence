@@ -31,13 +31,14 @@ const login42 = async () => {
             Welcome Back ! 😊 
         </h1>
         <h1 class="text-gray text-2xl mb-6">Log In to Your Account</h1>
-        <form @submit.prevent="client.auth.login({
+        <form @submit.prevent="client.auth.authenticateUser({
                 email: email,
                 password: password
             })" class="flex flex-col space-y-4" autocomplete="off">
             <input type="email" v-model="email" name="email" placeholder="Email" class="rounded-lg px-3 py-2 text-black b-1 " />
             <input type="password" v-model="password" name="password" placeholder="Password"
                 class="rounded-lg px-3 py-2 text-black  b-1" />
+            <input v-if="auth.twoFaStatus" type="2facode" v-model="twofacode" name="2facode" placeholder="2facode" class="rounded-lg px-3 py-2 text-black b-1 " />
             <div class="text-red">
                 {{ auth.error }}
             </div>

@@ -24,7 +24,13 @@ interface AppClient {
             email: string
             password: string
         }) => void // login
-
+        authenticateUser : ({
+            email,
+            password,
+        }:{
+            email: string
+            password: string
+        }) => void
         signup: ({
             username,
             email,
@@ -150,6 +156,37 @@ export const useClient = defineStore('client', () => {
         authStore.showForm = false
         await authStore.refreshSession()
     }
+
+    client.auth.authenticateUser =  async ({
+        email,
+        password,
+    }) => {
+        const { data, error } = await useRequest('/auth/login', {
+            method: 'POST',
+            body: {
+                email,
+                password,
+            },
+        })
+        console.log('2fa',data.value.isTwoFAEnabled)
+          if (data.value.isTwoFAEnabled === 1) {
+            const twoFactorCode = prompt('Veuillez entrer votre code 2FA :');
+      
+            const { data, error } = await useRequest('/auth/verify-2fa', {
+                method: 'POST',
+                body: {
+                    twoFactorCode,
+                },
+              });
+            else{
+
+                return data.value.access_token;
+            }
+          } else {
+            return data.value.access_token;
+          }
+      };
+
 
     client.auth.loginWithGoogle = async () => {
         location.href = 'https://accounts.google.com/o/oauth2/v2/auth?response_type=code&redirect_uri=http://localhost:3001/api/v0/auth/google/callback&scope=email%20profile&client_id=535545866334-87k5bo4t0sbf05v3i8lgf0c0ea8fkcsb.apps.googleusercontent.com'

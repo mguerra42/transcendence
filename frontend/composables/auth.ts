@@ -14,6 +14,7 @@ export const useAuth = defineStore('auth', () => {
     const showUserForm = ref(false)
     const showQRCode = ref(false)
     const QRCodeURL = ref('')
+    const twoFaStatus = ref(0)
     const logged = ref<boolean | null>(null)
     const mode = ref('login')
     const error = ref('')
@@ -50,6 +51,7 @@ export const useAuth = defineStore('auth', () => {
         showUserForm,
         showQRCode,
         QRCodeURL,
+        twoFaStatus,
         logged,
         refreshSession,
         logout,

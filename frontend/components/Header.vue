@@ -3,7 +3,6 @@ const auth = useAuth()
 const friend = useFriend()
 const socket = useSocket()
 const client = useClient()
-const twoFaStatus = ref(0)
 const buttonClass = ref('b-1 rounded bg-zinc-500 px-2 py-1 b-zinc-700 cursor-pointer hover:bg-zinc-600');
 const QrCode = ref('')
 
@@ -12,15 +11,15 @@ onMounted(async () => {
     await auth.refreshSession()
 })
 const toggletwoFastatus = async () => {
-    twoFaStatus.value = await client.auth.onOff2FA()
-    console.log('2fastatus',twoFaStatus.value )
+    auth.twoFaStatus = await client.auth.onOff2FA()
+    console.log('2fastatus',auth.twoFaStatus )
     await updateButtonClass()
 }
 
 const updateButtonClass = () => {
-    console.log('2fastatus',twoFaStatus.value )
+    console.log('2fastatus',auth.twoFaStatus )
 
-    if (twoFaStatus.value == 1) {
+    if (auth.twoFaStatus == 1) {
         buttonClass.value = 'b-1 rounded bg-blue-500 px-2 py-1 b-blue-700 cursor-pointer hover:bg-blue-600';
     } else {
         buttonClass.value = 'b-1 rounded bg-zinc-500 px-2 py-1 b-zinc-700 cursor-pointer hover:bg-zinc-600';
@@ -28,7 +27,9 @@ const updateButtonClass = () => {
     console.log('button=',buttonClass.value)
 };
 const getQrCode = async () => {
-    auth.showQRCode = true
+    auth.showQRCode = !auth.showQRCode;
+    console.log('showqrcode=',auth.showQRCode);
+
     client.auth.get2FAQr()
 }
 </script>

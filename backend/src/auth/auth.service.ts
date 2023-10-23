@@ -20,9 +20,13 @@ export class AuthService {
     ) {}
 
     async login(user: any) {
+        const isTwoFAEnabled = await this.get2FA(user.id);
         const payload = { sub: user.id, email: user.email };
+        const access_token = await this.jwtService.signAsync(payload);
+        console.log('2fa',is2FAEnabled,'2fa')
         return {
-            access_token: await this.jwtService.signAsync(payload),
+            access_token: access_token,
+            isTwoFAEnabled: isTwoFAEnabled,
         };
     }
 
