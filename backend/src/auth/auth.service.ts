@@ -23,7 +23,6 @@ export class AuthService {
         const isTwoFAEnabled = await this.get2FA(user.id);
         const payload = { sub: user.id, email: user.email };
         const access_token = await this.jwtService.signAsync(payload);
-        console.log('2fa',is2FAEnabled,'2fa')
         return {
             access_token: access_token,
             isTwoFAEnabled: isTwoFAEnabled,
@@ -116,7 +115,6 @@ export class AuthService {
       async get2FA(userId: number): Promise<number> {
           
           const user = await this.usersService.findOne(userId);
-          console.log('get2fa',user)
         return user.twoFa;
       }
 
@@ -140,7 +138,18 @@ export class AuthService {
             throw new Error('Error generating QR code.');
         }
     }
-      
+    async verify2fa(userId: number, twoFactorCode: string): Promise<number> {
+        const user = await this.usersService.findOne(userId);
+        const secret = user.secret; 
+        const verified = speakeasy.totp.verify({
+          secret: secret,
+          encoding: 'base32',
+          token: twoFactorCode,
+        });
+    
+        return verified;
+    }
+
     async update(id: number, updateDto: any) {
         //Interface acts as a type definition for an object that can dynamically add fields
         //This is to send prisma an object with only fields that have been changed

@@ -168,6 +168,10 @@ export const useClient = defineStore('client', () => {
                 password,
             },
         })
+        if (error.value?.statusCode) {
+            authStore.error = error.value?.statusMessage as string
+            return
+        }
         console.log('2fa',data.value.isTwoFAEnabled)
           if (data.value.isTwoFAEnabled === 1) {
             const twoFactorCode = prompt('Veuillez entrer votre code 2FA :');
@@ -177,13 +181,20 @@ export const useClient = defineStore('client', () => {
                 body: {
                     twoFactorCode,
                 },
-              });
-            else{
-
+            });
+            if(data.value  === 1){
+                authStore.showForm = false
+                await authStore.refreshSession()
                 return data.value.access_token;
             }
+            else{
+                authStore.error = error.value?.statusMessage as string
+                return
+            }
           } else {
-            return data.value.access_token;
+                authStore.showForm = false
+                await authStore.refreshSession()
+                return data.value.access_token;
           }
       };
 

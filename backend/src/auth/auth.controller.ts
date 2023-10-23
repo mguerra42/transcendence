@@ -48,7 +48,6 @@ export class AuthController {
             sameSite: 'strict',
             maxAge: 1000 * 60 * 60 * 24 * 7,
         });
-        console.log('controler2fa',data.isTwoFAEnabled)
         res.send(data);
     }
 
@@ -215,9 +214,10 @@ export class AuthController {
 
     @UseGuards(JwtAuthGuard)
     @Post('verify-2fa')
-    async get2FAQr(@Request() req) {
+    async verify2fa(@Request() req) {
       const userId = req.user.id;
-      const Qrcode2fa = await this.authService.get2faQrCode(userId);
-      return Qrcode2fa;
+      const ret = await this.authService.verify2fa(userId, req.twoFactorCode);
+      console.log('code bon ?',ret)
+      return ret;
     }
 }
