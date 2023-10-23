@@ -182,12 +182,15 @@ export const useClient = defineStore('client', () => {
                     twoFactorCode,
                 },
             });
-            if(data.value  === 1){
+            console.log(data)
+            if(data.value  === "true"){
                 authStore.showForm = false
                 await authStore.refreshSession()
-                return data.value.access_token;
+                return data.access_token;
             }
             else{
+                console.log('else')
+
                 authStore.error = error.value?.statusMessage as string
                 return
             }
@@ -289,6 +292,7 @@ export const useClient = defineStore('client', () => {
                 method: 'POST'
             });
             console.log('Statut 2FA mis à jour :', data.value);
+            authStore.twoFaStatus = data.value as number
             return (data.value);
         } catch (error) {
             console.error('Erreur lors de la mise à jour du statut 2FA :', error);
@@ -300,6 +304,7 @@ export const useClient = defineStore('client', () => {
             const { data, error } = await useRequest('/auth/get2FA', {
                 method: 'GET'
             });
+            authStore.twoFaStatus = data.value as number
             return (data.value);
         } catch (error) {
             console.error('Erreur lors de la récupération du statut 2FA :', error);

@@ -106,9 +106,7 @@ export class AuthService {
         }
         let userdata : userToUpdateObject = {};
         userdata.twoFa = updatedTwoFa
-        const ret : any = await this.usersService.update(userId, userdata);
-        console.log('toggle2FA',ret)
-    
+        const ret : any = await this.usersService.update(userId, userdata); 
         return updatedTwoFa;
       }
     
@@ -140,11 +138,13 @@ export class AuthService {
     }
     async verify2fa(userId: number, twoFactorCode: string): Promise<number> {
         const user = await this.usersService.findOne(userId);
-        const secret = user.secret; 
+        const secret = user.secret;
+        console.log('code =', twoFactorCode)
         const verified = speakeasy.totp.verify({
           secret: secret,
           encoding: 'base32',
           token: twoFactorCode,
+          window: 5,
         });
     
         return verified;

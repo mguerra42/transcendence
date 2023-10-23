@@ -23,10 +23,8 @@ const client = useClient();
     <UserForm v-if="auth.logged === true" />
   </div>
   <!-- <div @click="console.log(auth.showQRCode )">test v if auth.showQRCode  </div> -->
-  <div v-if="auth.showQRCode === true" class="backdrop-blur-sm bg-pink/60" >
-    <img :src="auth.QRCodeURL" alt="QR Code" />
- 
-     <div>TEST</div>
+  <div v-if="auth.showQRCode === true" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white bg-opacity-90 p-8 rounded-lg shadow-lg z-50">
+    <img :src="auth.QRCodeURL" alt="QR Code" class="w-64 h-64 mx-auto" />
   </div>
 
   <div v-if="auth.logged === true" >

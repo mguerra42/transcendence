@@ -48,6 +48,7 @@ export class AuthController {
             sameSite: 'strict',
             maxAge: 1000 * 60 * 60 * 24 * 7,
         });
+        console.log('controler2fa',data.isTwoFAEnabled)
         res.send(data);
     }
 
@@ -214,10 +215,12 @@ export class AuthController {
 
     @UseGuards(JwtAuthGuard)
     @Post('verify-2fa')
-    async verify2fa(@Request() req) {
-      const userId = req.user.id;
-      const ret = await this.authService.verify2fa(userId, req.twoFactorCode);
-      console.log('code bon ?',ret)
+    async verify2fa(@Request() req, @Body() requestBody: { twoFactorCode: string }) {
+      const userId = req.user.id; // Accédez à l'ID de l'utilisateur à partir de req.user.id
+      const { twoFactorCode } = requestBody;
+      
+      const ret = await this.authService.verify2fa(userId, twoFactorCode);
+      console.log('Code bon ?', ret);
       return ret;
     }
 }
