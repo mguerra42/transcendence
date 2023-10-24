@@ -71,7 +71,11 @@
         
         socket.on('challengePlayerResponse', async (data: any) => {
             if (data.challenger === stateProps.opponentProfile.value.username)
+            {
+                if (stateProps.gameLobbyId.value !== data.lobbyId)
+                    await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
                 stateProps.gameLobbyId.value = data.lobbyId
+            }
         })
 
         socket.on('matchmakingConfirmResponse', (data: any) => {
@@ -93,6 +97,7 @@
                 stateProps.showPong.value = false;
                 stateProps.showPlayButton.value = true;
                 stateProps.resetMatchmakingWindow()
+                await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
             }
         });
 

@@ -545,8 +545,11 @@ export const useClient = defineStore('client', () => {
         deleteLobbyById: async (lobbyId: string) => {
             const lobbyExists: any = await client.game.getLobbyById(lobbyId)
             if (lobbyExists.length === 0)
+            {
+                console.log('this lobby doesnt exist anymore', lobbyId)
                 return null
-            console.log('lobby')
+            }
+            console.log('game finished, deleting this lobby :')
             console.log(lobbyExists)
             const gameLobby: any = await useRequest('/matchmaking/deleteLobbyById', {
                 method: 'POST',
@@ -563,6 +566,7 @@ export const useClient = defineStore('client', () => {
             })
             if (userExists.data.value.length != 0)
                 return null
+            
             const gameLobby: any = await useRequest('/matchmaking/createGameLobby', {
                 method: 'POST',
                 body: {
