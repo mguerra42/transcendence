@@ -18,7 +18,9 @@ const sendMessage = async () => {
   console.log("CURRENT HISTORY 1");
   setInterval(() => {}, 20);
   client.chat.messages = await client.chat.currentHistory();
-  socket.emit('refreshPrivateChannel', { otherUserId: client.chat.chatState.receiver.id }) 
+  socket.emit('refreshPrivateChannel', {
+    otherUserId: client.chat.chatState.receiver.id
+  });
   channel.refresh();
 };
 

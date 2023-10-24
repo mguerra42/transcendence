@@ -48,10 +48,16 @@
     client.chat.chatState.receiver.id = friendUser.id;
     console.log('remove a friend : ', friendName);
     await client.friend.remove(friendName);
+
+    
     socket.emit('refreshUserProfile', {
        currentUserId: auth.session.id,
        otherUserId: client.chat.chatState.receiver.id
-      })
+      });
+    socket.emit('deletePrivateChannel', {
+        currentUserId: auth.session.id,
+        otherUserId: client.chat.chatState.receiver.id
+    });
   };
 
   onMounted (async () => {

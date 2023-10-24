@@ -36,10 +36,19 @@ const chatWithUser = async (userToMessage : any) => {
 
   const removeFriend = async (newFriendUsername: string) => {
     await client.friend.remove(newFriendUsername);
+    if (client.chat.chatState.select == 'DM')
+        {
+          client.chat.chatState.select = '';
+        }
+
     socket.emit('refreshUserProfile', {
         currentUserId: auth.session.id,
         otherUserId: client.chat.chatState.receiver.id
-        }) 
+    });
+    socket.emit('deletePrivateChannel', {
+        currentUserId: auth.session.id,
+        otherUserId: client.chat.chatState.receiver.id
+    });
   };
 
     onMounted (async () => {
@@ -51,7 +60,7 @@ const chatWithUser = async (userToMessage : any) => {
         }
         await channel.refresh();
     });
-  })
+  });
 </script>
 
 <template>
