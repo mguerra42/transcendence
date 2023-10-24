@@ -3,7 +3,9 @@ const auth = useAuth()
 const socket = useSocket();
 const client = useClient();
 
-
+const { gameProps } = defineProps<{
+      gameProps: any
+  }>();
 
 </script>
 
@@ -28,7 +30,7 @@ const client = useClient();
   </div>
 
   <div v-if="auth.logged === true" >
-    <ChatContainer/>
+    <ChatContainer :gameProps="gameProps"/>
   </div>
 
 </template>

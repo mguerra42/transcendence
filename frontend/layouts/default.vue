@@ -33,7 +33,7 @@
           </div>
           <!-- Right Sidebar -->
           
-          <AuthModal/>
+          <AuthModal :gameProps="gameProps"/>
         </div>
       <Footer/>
     </div>

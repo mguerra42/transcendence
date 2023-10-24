@@ -16,12 +16,13 @@ const displayUserProfile = () => {
 }
 
 onUpdated(async () => {
-  if(auth.logged)
-  {
-    client.chat.messages = await client.chat.currentHistory()
+  // if(auth.logged)
+  // {
+  //   client.chat.messages = await client.chat.currentHistory()
     scrollToBottom();
-  }
+  // }
 })
+
 </script>
 
 <template>

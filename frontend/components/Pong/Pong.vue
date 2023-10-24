@@ -19,6 +19,7 @@
     const auth = useAuth()
     const client = useClient()
     const socket = useSocket()
+    const channel = useChannel()
 
     const { stateProps, gameProps } = defineProps<{
         stateProps: any;
@@ -99,6 +100,10 @@
                 stateProps.resetMatchmakingWindow()
                 await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
             }
+            socket.emit('afk', {
+                sender: auth.session.username,
+                text: 'ONLINE',
+            });
         });
 
         await hasRefresh();

@@ -9,7 +9,7 @@
   <!-- Chat window -->
   <div v-if="client.chat.chatVisible" class="fixed bottom-3 left-3 lg:w-1/3 md:w-1/3 sm:w-2/5">
     <div v-if="!isLoading" class="max-h-[70vh] flex bg-zinc-700 rounded-lg">
-      <ChatSelection/>
+      <ChatSelection :gameProps="gameProps"/>
       <ChatConversationWindow v-if="auth.logged"/>
     </div>
     <div v-else class="min-h-[70vh] flex bg-zinc-700 rounded-lg">
@@ -30,8 +30,10 @@
 </style>
 
 <script setup lang="ts">
-import { createClientOnly } from 'nuxt/dist/app/components/client-only';
 
+  const { gameProps } = defineProps<{
+      gameProps: any
+  }>();
 
   //TODO : refactor to make this shorter 
   const auth = useAuth();
@@ -48,24 +50,21 @@ import { createClientOnly } from 'nuxt/dist/app/components/client-only';
   client.chat.chatState= {select: 'EMPTY', receiver:[] };
 
   const toggleChat = () => {
-    client.chat.chatVisible = !client.chat.chatVisible;
-    if (client.chat.chatVisible === false)
-      handleAFK(true);
-    else
-      handleAFK(false);
-  };
-  const handleAFK = (status:boolean) => {
-    if (status === true)
-      socket.emit('afk', {
-        sender: auth.session.username,
-        text: 'AFK',
+    client.chat.chatVisible = true;
+    // console.log(gamePr)
+    if(gameProps.gameStatus.value === '')
+    {
+      console.log('put back to online')
+        socket.emit('afk', {
+          sender: auth.session.username,
+          text: 'ONLINE',
       });
-    else
-      socket.emit('afk', {
-        sender: auth.session.username,
-        text: 'ONLINE',
-      });
+    }
   };
+
+  onBeforeUnmount(() => {
+    socket.disconnect()
+  })
 
   onBeforeMount(() => {
       isLoading.value = true;
@@ -77,9 +76,12 @@ import { createClientOnly } from 'nuxt/dist/app/components/client-only';
 
     isLoading.value = false;
     await channel.refresh();
+
     socket.on('afkResponse', async () => {
+      console.log('received afk response')
       await channel.refresh();
     });
+    
     socket.on('receivePrivateMessage', async (data: any) => {
       setInterval(() => {}, 50);
       if (auth.logged)

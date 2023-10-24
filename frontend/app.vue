@@ -142,6 +142,8 @@
   };
   
   const gameProps = {
+    gameStatus: ref(''),
+
     Player1: ref({
         name : "",
         score: 0,
@@ -321,6 +323,11 @@
         gameProps.Player2.value.name = data.value.player2Name;
         gameProps.Player1.value.score = data.value.player1Score;
         gameProps.Player2.value.score = data.value.player2Score;
+        gameProps.gameStatus.value = 'running';
+        socket.emit('afk', {
+            sender: auth.session.username,
+            text: 'INGAME',
+        });
     },
 
   };
@@ -338,6 +345,11 @@
     stateProps.showPlayButton.value = true;
     stateProps.showEndGame.value = true;
     stateProps.resetMatchmakingWindow()
+    socket.emit('afk', {
+        sender: auth.session.username,
+        text: 'ONLINE',
+    });
+    gameProps.gameStatus.value = '';
   }
 
   useHead({

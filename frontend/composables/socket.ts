@@ -4,6 +4,11 @@ import { io } from 'socket.io-client'
 export const useSocket = defineStore('socket', () => {
     const client = useClient()
     const socket = ref()
+
+    const disconnect = async () => {
+        socket.value.disconnect()
+    }
+
     const connect = async () => {
         socket.value = io('http://localhost:3001', {
             withCredentials: true,
@@ -23,6 +28,7 @@ export const useSocket = defineStore('socket', () => {
     }
 
     return {
+        disconnect,
         connect,
         emit,
         on,

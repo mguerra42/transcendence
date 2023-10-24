@@ -72,12 +72,18 @@ const startGame = async () => {
         stateProps.showPong.value = false;
         stateProps.showPlayButton.value = true;
         stateProps.resetMatchmakingWindow()
-        
+        console.log('emitted online status')
+        socket.emit('afk', {
+            sender: auth.session.username,
+            text: 'ONLINE',
+        });
+        gameProps.gameStatus.value = '';
     }
 }
 
 
 onMounted(async () => {
+    await socket.connect()
     await auth.refreshSession()
 })
 
