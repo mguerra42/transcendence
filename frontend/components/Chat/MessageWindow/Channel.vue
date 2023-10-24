@@ -73,10 +73,17 @@ import { Socket } from 'socket.io-client';
   onMounted(async () => {
     document.addEventListener('click', hideTooltip);
     await socket.connect();
+
     socket.on('refreshUserProfile', async () => {
-        friend.toggleCategory(client.friend.categoryName);
+      if (client.chat.showUserProfile) {
         client.chat.showAdd = await friend.showAddOption(client.chat.chatState.receiver.username);
-        await channel.refresh();
+      }
+      friend.toggleCategory(client.friend.categoryName);
+      await channel.refresh();
+    });
+
+    socket.on('hasToRefresh', async () => {
+      await channel.refresh();
     });
   });
 

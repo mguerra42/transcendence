@@ -68,6 +68,7 @@
 
   onMounted(async () => {
     socket.on('hasToRefresh', async () => {
+      console.log("REFRESH HASTOREFRESH");
       await channel.refresh();
     });
   })

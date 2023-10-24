@@ -2,6 +2,8 @@
 const client = useClient();
 const auth = useAuth();
 const friend = useFriend();
+const socket = useSocket();
+const channel = useChannel();
 client.chat.showUserProfile = false;
 
 const chatMessages = ref();
@@ -20,6 +22,13 @@ const displayUserProfile = async () => {
 onUpdated(() => {
   scrollToBottom();
 })
+
+onMounted(async () => {
+    await socket.connect();
+    socket.on('refreshPrivateChannel', async () => {
+      await channel.refresh();
+    });
+  });
 </script>
 
 <template>

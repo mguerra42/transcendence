@@ -167,6 +167,17 @@ export class SocketsGateway {
         }
     }
 
+    @SubscribeMessage('refreshPrivateChannel')
+    async handleRefreshPrivateChannel(client: any, payload: any) {
+
+        console.log('refreshPrivateChannel in socket gateway')
+        console.log("other user id = ", payload.otherUserId);
+        const otherUser = await this.userService.findOne(
+            payload.otherUserId
+        );
+        this.server.to(otherUser.socketId).emit('refreshPrivateChannel', {});
+    }
+
     @SubscribeMessage('refreshUserProfile')
     async handleRefreshUserProfile(client: any, payload: any) {
 

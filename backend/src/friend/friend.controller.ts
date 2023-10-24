@@ -69,6 +69,7 @@ export class FriendController {
     const currentUserId = req.user.id;
     const result = await this.friendService.areMutualFriends(currentUserId, friendNameObj.friendName);
 
+    console.log("controller mutualfriends result : ", result);
     return { Boolean : result };
   }
 }

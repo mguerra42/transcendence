@@ -2,6 +2,7 @@
 const client = useClient();
 const auth = useAuth();
 const socket = useSocket();
+const channel = useChannel();
 
 const sendMessage = async () => {
   if (client.chat.newMessage.trim() === '') 
@@ -12,10 +13,13 @@ const sendMessage = async () => {
     text: client.chat.newMessage 
   });
   client.chat.newMessage = '';
-  setInterval(() => {}, 80);
+  setInterval(() => {}, 20);
   client.chat.messages = await client.chat.currentHistory();
-  setInterval(() => {}, 80);
+  console.log("CURRENT HISTORY 1");
+  setInterval(() => {}, 20);
   client.chat.messages = await client.chat.currentHistory();
+  socket.emit('refreshPrivateChannel', { otherUserId: client.chat.chatState.receiver.id }) 
+  channel.refresh();
 };
 
 const sendMessageInChannel = async () => {
@@ -29,10 +33,13 @@ const sendMessageInChannel = async () => {
     text: client.chat.newMessage 
   });
   client.chat.newMessage = '';
-  setInterval(() => {}, 80);
+  setInterval(() => {}, 20);
   client.chat.messages = await client.chat.currentHistory();
-  setInterval(() => {}, 80);
+  console.log("CURRENT HISTORY CHANNEL 1");
+  setInterval(() => {}, 20);
   client.chat.messages = await client.chat.currentHistory();
+  socket.emit('refresh', { channelId: client.chat.chatState.receiver.id }) 
+  channel.refresh();
   //console.log('sendMessageInChannel (InputField.vue) , client.chat.messages = ', client.chat.messages);
 }
 </script>

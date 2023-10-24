@@ -374,7 +374,6 @@ export const useClient = defineStore('client', () => {
                 friendName,
             },
         })
-        console.log("areMutualFriends data.value.Boolean : ", data.value.Boolean);
         if (data.value.Boolean === true)
             return ("true");
         else

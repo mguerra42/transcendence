@@ -31,7 +31,7 @@ const chatWithUser = async (userToMessage : any) => {
     socket.emit('refreshUserProfile', {
         currentUserId: auth.session.id,
         otherUserId: client.chat.chatState.receiver.id
-        }) 
+        })
   };
 
   const removeFriend = async (newFriendUsername: string) => {
@@ -46,7 +46,9 @@ const chatWithUser = async (userToMessage : any) => {
     await socket.connect();
     socket.on('refreshUserProfile', async () => {
         friend.toggleCategory(client.friend.categoryName);
-        client.chat.showAdd = await friend.showAddOption(client.chat.chatState.receiver.username);
+        if (client.chat.showUserProfile) {
+            client.chat.showAdd = await friend.showAddOption(client.chat.chatState.receiver.username);
+        }
         await channel.refresh();
     });
   })

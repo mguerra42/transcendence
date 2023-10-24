@@ -61,7 +61,9 @@
     await socket.connect();
     socket.on('refreshUserProfile', async () => {
         friend.toggleCategory(client.friend.categoryName);
-        client.chat.showAdd = await friend.showAddOption(client.chat.chatState.receiver.username);
+        if (client.chat.showUserProfile){
+          client.chat.showAdd = await friend.showAddOption(client.chat.chatState.receiver.username);
+        }
         await channel.refresh();
     });
   });
