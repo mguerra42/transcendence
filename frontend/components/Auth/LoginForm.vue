@@ -38,7 +38,6 @@ const login42 = async () => {
             <input type="email" v-model="email" name="email" placeholder="Email" class="rounded-lg px-3 py-2 text-black b-1 " />
             <input type="password" v-model="password" name="password" placeholder="Password"
                 class="rounded-lg px-3 py-2 text-black  b-1" />
-            <input v-if="auth.twoFaStatus" type="2facode" v-model="twofacode" name="2facode" placeholder="2facode" class="rounded-lg px-3 py-2 text-black b-1 " />
             <div class="text-red">
                 {{ auth.error }}
             </div>
