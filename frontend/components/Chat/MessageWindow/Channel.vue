@@ -46,7 +46,11 @@ import { Socket } from 'socket.io-client';
   const displayUserProfile = async (event:any) => {
     //console.log('displayUserProfile (Channel.vue) , user = ', indexMessage, ', event = ', event);
     isTooltipVisible.value = false;
+    console.log("indexMessage.username = ", indexMessage.username);
     client.chat.chatState.receiver.username = indexMessage.username;
+    const otherUser = await client.auth.findByUsername(indexMessage.username);
+    console.log("otherUser.id = ", otherUser.id);
+    client.chat.chatState.receiver.id = otherUser.id;
     client.chat.showAdd = await friend.showAddOption(indexMessage.username);
     console.log("SHOWADD = ", client.chat.showAdd);
     console.log("auth.session.id = ", auth.session.id);
@@ -66,9 +70,14 @@ import { Socket } from 'socket.io-client';
     scrollToBottom();
   })
 
-  onMounted(() => {
+  onMounted(async () => {
     document.addEventListener('click', hideTooltip);
-
+    await socket.connect();
+    socket.on('refreshUserProfile', async () => {
+        friend.toggleCategory(client.friend.categoryName);
+        client.chat.showAdd = await friend.showAddOption(client.chat.chatState.receiver.username);
+        await channel.refresh();
+    });
   });
 
   // Remove the click event listener when the component is unmounted

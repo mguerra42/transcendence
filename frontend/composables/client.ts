@@ -249,6 +249,7 @@ export const useClient = defineStore('client', () => {
             authStore.error = error.value?.statusMessage as string
             return null
         }
+        console.log("client.auth.findB data.value = ", data.value);
         return data.value
     }
 
@@ -373,6 +374,7 @@ export const useClient = defineStore('client', () => {
                 friendName,
             },
         })
+        console.log("areMutualFriends data.value.Boolean : ", data.value.Boolean);
         if (data.value.Boolean === true)
             return ("true");
         else

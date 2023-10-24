@@ -175,7 +175,7 @@ export class AuthController {
 
     @Post('findByUsername')
     @UseGuards(JwtAuthGuard)
-    async findUser(@Request() requestAnimationFrame, @Body() obj) {
+    async findUser(@Request() req, @Body() obj) {
         const user = await this.usersService.findByEmailOrUsername('', obj.username);
         return (user);
     }

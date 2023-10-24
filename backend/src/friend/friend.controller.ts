@@ -60,7 +60,7 @@ export class FriendController {
     const currentUserId = req.user.id;
     const result = await this.friendService.isJustFriend(currentUserId, friendNameObj.friendName);
 
-    return { Boolean: result };
+    return { Boolean : result };
   }
 
   @Post('areMutualFriends')
@@ -69,6 +69,6 @@ export class FriendController {
     const currentUserId = req.user.id;
     const result = await this.friendService.areMutualFriends(currentUserId, friendNameObj.friendName);
 
-    return { Boolean: result };
+    return { Boolean : result };
   }
 }
