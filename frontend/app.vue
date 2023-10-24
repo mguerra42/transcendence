@@ -5,6 +5,7 @@
   const auth = useAuth()
   const client = useClient()
   const socket = useSocket()
+    client.game.showEndGame = false;
 
   const stateProps = {
     //MISC. VARIABLES
@@ -227,7 +228,6 @@
         ) {
             // Ball collided with Player1, reverse its horizontal velocity
             gameProps.Ball.value.velocityX = -gameProps.Ball.value.velocityX;
-
         }
 
         // Check for collision with Player2
@@ -257,10 +257,11 @@
                 gameProps.Ball.value.velocityY = 5 ;
             }, 1000)
             gameProps.Player2.value.score++;
-            // socket.emit('scoreUpdate', {
-                // player: auth.session.username,
-                // score: gameProps.Player2.value.score
-            // })
+            if (gameProps.Player2.value.score === 5)
+            {
+                console.log("player 2 win")
+                finishGame();
+            }
         }
         if (gameProps.Ball.value.y >580)
         {
@@ -281,6 +282,11 @@
                 gameProps.Ball.value.velocityY = 5 ;
             }, 1000)
             gameProps.Player1.value.score++;
+            if (gameProps.Player1.value.score === 5)
+            {
+                console.log("player 1 win")
+                finishGame();
+            }
         }
         if (gameProps.Ball.value.y < 0)
         {
@@ -317,6 +323,22 @@
 
   };
 
+  const finishGame = async () => {
+    //socket.emit('abortMatch', {
+    //    player: auth.session.username,
+    //    lobbyId: stateProps.gameLobbyId.value
+    //})
+    gameProps.resetGame();
+    cancelAnimationFrame(stateProps.animationFrameId.value);
+    await client.game.removeFromGameQueue(gameProps.Player1.value.name)
+    await client.game.removeFromGameQueue(gameProps.Player2.value.name)
+    await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
+    stateProps.showPong.value = false;
+    // stateProps.showPlayButton.value = false;
+    client.game.showEndGame = true;
+    stateProps.resetMatchmakingWindow()
+  }
+
   useHead({
     title: appName,
   })
@@ -346,8 +368,12 @@
     </transition>
     <div v-if="!isLoading" key="content">
       <NuxtLayout :stateProps="stateProps" :gameProps="gameProps">
-      <!-- <NuxtLayout> -->
-        <NuxtPage :stateProps="stateProps" :gameProps="gameProps"/>
+        <!-- <div v-if="client.game.showEndGame"> -->
+            <!-- <PongEndBoard/> -->
+        <!-- </div> -->
+       <!-- <div v-else> -->
+            <NuxtPage :stateProps="stateProps" :gameProps="gameProps"/>
+        <!-- </div> -->
       </NuxtLayout>
     </div>
   </div>

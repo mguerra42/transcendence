@@ -27,9 +27,11 @@
 
     const hasRefresh = async() => {
 
-        const userExists: any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${auth.session.username}`, {
+        const userExists: any = await useRequest(`/matchmaking/getUserInGameFromQueue?playerUsername=${auth.session.username}`, {
             method: 'GET',
         })
+
+        //check if the user is in a queue with status "in game"
         if (userExists.data.value.profile !== undefined) {
             auth.refresh = true
         }
@@ -88,7 +90,7 @@
 
             if (auth.refresh === true) {
                 stateProps.showPong.value = true;
-                stateProps.showPlayButton.value = true;
+                stateProps.showPlayButton.value = false;
                 auth.refresh = false;
                 console.log('refreshed')
                 gameProps.set();

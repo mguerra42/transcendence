@@ -37,9 +37,8 @@ const startGame = async () => {
         await stateProps.waitForConfirm();
         if (stateProps.matchAccepted.value === true && stateProps.opponentAccepted.value === true)
         {
-            console.log("gamelobby : ", stateProps.gameLobbyId.value)
-            await client.game.getNormalQueuePlayers()
-            
+            console.log("gamelobby : ", stateProps.gameLobbyId.value);
+            await client.game.getNormalQueuePlayers();
             stateProps.showPong.value = true;
             stateProps.showPlayButton.value = true;
             stateProps.resetMatchmakingWindow()
@@ -63,8 +62,6 @@ const startGame = async () => {
         cancelAnimationFrame(stateProps.animationFrameId.value);
         await client.game.removeFromGameQueue(gameProps.Player1.value.name)
         await client.game.removeFromGameQueue(gameProps.Player2.value.name)
-        await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
-        await client.game.removeFromGameQueue(stateProps.opponentProfile.value.username)
         await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
         stateProps.showPong.value = false;
         stateProps.showPlayButton.value = true;

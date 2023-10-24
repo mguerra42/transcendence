@@ -54,6 +54,11 @@ export class MatchmakingController {
         return await this.userService.getUserFromQueue(playerUsername); 
     }
 
+    @Get ('getUserInGameFromQueue')
+    async getUserInGamefromQueue(@Query('playerUsername') playerUsername:string){
+        return await this.userService.getUserInGameFromQueue(playerUsername); 
+    }
+
     @Post ('addPlayerToQueue')
     async addPlayerToQueue(@Body() req:any){
         if (req.username === undefined)

@@ -149,6 +149,19 @@ export class UsersService {
         });
     }
 
+    getUserInGameFromQueue(playerUsername: string) {
+        return this.db.queue.findFirst({
+            where: {
+                username: playerUsername,
+                confirmed: 'in-game',
+            },
+            select: {
+                profile: true,
+            },
+        });
+    }
+
+
     getUsersInChannel(channelName: string) {
         return this.db.channel.findMany({
             where: {

@@ -113,6 +113,7 @@ interface AppClient {
         deleteLobbyById: (lobbyId: string) => Promise<any>
         getAllLobbies: () => Promise<any>
         create: () => void // create game
+        showEndGame: boolean
     }
 }
 
