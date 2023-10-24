@@ -31,7 +31,7 @@ const login42 = async () => {
             Welcome Back ! 😊 
         </h1>
         <h1 class="text-gray text-2xl mb-6">Log In to Your Account</h1>
-        <form @submit.prevent="client.auth.login({
+        <form @submit.prevent="client.auth.authenticateUser({
                 email: email,
                 password: password
             })" class="flex flex-col space-y-4" autocomplete="off">

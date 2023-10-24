@@ -58,7 +58,7 @@ import { createClientOnly } from 'nuxt/dist/app/components/client-only';
     if (status === true)
       socket.emit('afk', {
         sender: auth.session.username,
-        text: 'OFFLINE',
+        text: 'AFK',
       });
     else
       socket.emit('afk', {

@@ -32,7 +32,8 @@ model User {
   messages       Message[]     @relation("sender")
   socketId       String        @default("") //socket id for the user
   queue          Queue?        // Define the Queue relation here
-
+  twoFa           Int          @default(0) //'on' = 1  or 'off' = 0
+  secret         String?       // Field to store the 2FA secret
 }
 
 model GameLobby {

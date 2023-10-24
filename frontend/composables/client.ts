@@ -24,7 +24,13 @@ interface AppClient {
             email: string
             password: string
         }) => void // login
-
+        authenticateUser : ({
+            email,
+            password,
+        }:{
+            email: string
+            password: string
+        }) => void
         signup: ({
             username,
             email,
@@ -55,6 +61,9 @@ interface AppClient {
         login42: () => void // login 42
         logout: () => void // logout
         session: () => any // get user data
+        onOff2FA: () => any
+        get2FA: () => any
+        get2FAQr: () => any
     }
 
     friend: {
@@ -122,6 +131,7 @@ export const useClient = defineStore('client', () => {
     const client: AppClient = {} as AppClient
     const authStore = useAuth()
     const socket = useSocket()
+    
 
     client.auth = {} as AppClient['auth']
     client.chat = {} as AppClient['chat']
@@ -147,6 +157,51 @@ export const useClient = defineStore('client', () => {
         authStore.showForm = false
         await authStore.refreshSession()
     }
+
+    client.auth.authenticateUser =  async ({
+        email,
+        password,
+    }) => {
+        const { data, error } = await useRequest('/auth/login', {
+            method: 'POST',
+            body: {
+                email,
+                password,
+            },
+        })
+        if (error.value?.statusCode) {
+            authStore.error = error.value?.statusMessage as string
+            return
+        }
+        console.log('2fa',data.value.isTwoFAEnabled)
+          if (data.value.isTwoFAEnabled === 1) {
+            const twoFactorCode = prompt('Veuillez entrer votre code 2FA :');
+      
+            const { data, error } = await useRequest('/auth/verify-2fa', {
+                method: 'POST',
+                body: {
+                    twoFactorCode,
+                },
+            });
+            console.log(data)
+            if(data.value  === "true"){
+                authStore.showForm = false
+                await authStore.refreshSession()
+                return data.access_token;
+            }
+            else{
+                console.log('else')
+
+                authStore.error = error.value?.statusMessage as string
+                return
+            }
+          } else {
+                authStore.showForm = false
+                await authStore.refreshSession()
+                return data.value.access_token;
+          }
+      };
+
 
     client.auth.loginWithGoogle = async () => {
         location.href = 'https://accounts.google.com/o/oauth2/v2/auth?response_type=code&redirect_uri=http://localhost:3001/api/v0/auth/google/callback&scope=email%20profile&client_id=535545866334-87k5bo4t0sbf05v3i8lgf0c0ea8fkcsb.apps.googleusercontent.com'
@@ -224,11 +279,50 @@ export const useClient = defineStore('client', () => {
             return
         }
         authStore.showUserForm = false
+
         await authStore.refreshSession()
     }
 
     client.auth.onFileSelected = async (event: any) => {
         client.auth.avatarFile.value = event.target.files[0]
+    }
+
+    client.auth.onOff2FA = async () => {
+        try {
+            const { data, error } = await useRequest('/auth/onOff2FA', {
+                method: 'POST'
+            });
+            console.log('Statut 2FA mis à jour :', data.value);
+            authStore.twoFaStatus = data.value as number
+            return (data.value);
+        } catch (error) {
+            console.error('Erreur lors de la mise à jour du statut 2FA :', error);
+        }
+    };
+    
+    client.auth.get2FA = async () => {
+        try {
+            const { data, error } = await useRequest('/auth/get2FA', {
+                method: 'GET'
+            });
+            authStore.twoFaStatus = data.value as number
+            return (data.value);
+        } catch (error) {
+            console.error('Erreur lors de la récupération du statut 2FA :', error);
+        }
+    };
+    
+    client.auth.get2FAQr = async () => {
+        try {
+            const { data, error } = await useRequest('/auth/get2FAQr', {
+                method: 'GET'
+            });
+            console.log('get2FAQr:', data.value);
+            authStore.QRCodeURL = data.value as string;
+            return (data.value);
+    } catch (error) {
+        console.error('Erreur lors de la récupération du statut 2FA :', error);
+    }
     }
 
     // CHAT FUNCTIONS

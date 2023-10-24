@@ -1,0 +1,55 @@
+Your website must be compatible with the latest stable up-to-date version of
+Google Chrome and one additional web browser of your choice.
+• The user should encounter no unhandled errors and no warnings when browsing the
+website.
+• Everything has to be launch by a single call to: docker-compose up --build
+
+
+Users
+
+Quand qqn se log avec 42 ou google ajouter son avatar sur notre site .
+
+The user should be able to enable two-factor authentication. For instance,
+Google Authenticator or sending a text message to their phone.
+
+The user should be able to add other users as friends and see their current status
+(online, offline, in a game, and so forth)
+
+Stats (such as: wins and losses, ladder level, achievements, and so forth) have to
+be displayed on the user profile.
+
+Each user should have a Match History including 1v1 games, ladder, and any-
+thing else useful. Anyone who is logged in should be able to consult it.
+
+
+
+Chat
+
+You also have to create a chat for your users:
+• The user should be able to create channels (chat rooms) that can be either public,
+or private, or protected by a password.
+• The user should be able to send direct messages to other users.
+• The user should be able to block other users. This way, they will see no more
+messages from the account they blocked.
+• The user who has created a new channel is automatically set as the channel owner
+until they leave it.
+◦ The channel owner can set a password required to access the channel, change
+it, and also remove it.
+◦ The channel owner is a channel administrator. They can set other users as
+administrators.
+◦ A user who is an administrator of a channel can kick, ban or mute (for a
+limited time) other users, but not the channel owners.
+• The user should be able to invite other users to play a Pong game through the chat
+interface.
+• The user should be able to access other players profiles through the chat interface.
+
+Game
+
+• It can be a canvas game, or it can be a game rendered in 3D, it can also be ugly,
+but in any case, it must be faithful to the original Pong (1972).
+• You must offer some customization options (for example, power-ups or different
+maps). However, the user should be able to select a default version of the game
+without any extra features if they want to.
+• The game must be responsive!
+Think about network issues, like unexpected disconnection or lag.
+You have to offer the best user experience possible.

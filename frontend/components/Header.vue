@@ -3,6 +3,9 @@ const auth = useAuth()
 const friend = useFriend()
 const socket = useSocket()
 const client = useClient()
+const buttonClass = ref('b-1 rounded bg-zinc-500 px-2 py-1 b-zinc-700 cursor-pointer hover:bg-zinc-600');
+
+
 
 const { stateProps, gameProps } = defineProps<{
     stateProps: any,
@@ -74,6 +77,7 @@ const startGame = async () => {
 onMounted(async () => {
     await auth.refreshSession()
 })
+
 </script>
 
 <template>

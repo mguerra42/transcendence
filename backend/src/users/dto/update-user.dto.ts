@@ -5,4 +5,5 @@ export interface UpdateUserDto {
     avatarPath?: string;
     socketId?: string;
     status?: string;
+    twoFa?:number;
 }
