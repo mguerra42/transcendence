@@ -24,9 +24,13 @@
         </div>
     </div>
     <!-- Accept match window-->
-    <div v-if="stateProps.showMatchFound.value" @click="acceptMatch" class="bg-zinc-600 shadow-lg hover:bg-zinc-700 w-140 h-70 cursor-pointer rounded-lg flex flex-col justify-center">
-        <p class="text-zinc-200 m-4 text-5xl font-bold text-center">
-            Match found !
+    <div v-if="stateProps.showMatchFound.value" @click="acceptMatch" :class="{'bg-zinc-700 shadow-lg hover:bg-zinc-700 w-140 h-70 cursor-pointer rounded-lg flex flex-col justify-center' : stateProps.matchAccepted.value === true,
+                                                                              'bg-zinc-600 shadow-lg hover:bg-zinc-700 w-140 h-70 cursor-pointer rounded-lg flex flex-col justify-center' : stateProps.matchAccepted.value === false}">
+        <p class="text-zinc-200 mt-4 ml-4 mr-4 mb-1 text-5xl font-bold text-center">
+            {{ stateProps.matchAccepted.value ? 'Accepted !' : 'Match found !' }}
+        </p>
+        <p v-if="stateProps.matchAccepted.value === true" class="text-zinc-400 text-sm text-center">
+            Waiting for {{ stateProps.opponentProfile.value.username }}...
         </p>
         <div class="flex mt-1 justify-center">
             <div class="flex">

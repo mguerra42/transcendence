@@ -55,9 +55,9 @@ const login42 = async () => {
             </button>
 
             <!-- 42 Login-->
-            <button type="button" @click="login42" class="bg-white-500 border-2 border-gray-300 text-gray-600 font-semibold rounded-lg cursor-pointer hover:scale-105 transition px-4 py-2 flex justify-center items-center">
+            <!-- <button type="button" @click="login42" class="bg-white-500 border-2 border-gray-300 text-gray-600 font-semibold rounded-lg cursor-pointer hover:scale-105 transition px-4 py-2 flex justify-center items-center">
             <img src="../../public/42_Logo.png" alt="42 Logo" class="w-6 h-6 mr-2" />   Sign in with Intra
-            </button>
+            </button> -->
             
             <h1 class="text-gray text-2s flex justify-center">or</h1>
             <a href="#" class="text-blue-500 hover:text-blue-600 flex justify-center" @click="auth.mode = 'signup'">
