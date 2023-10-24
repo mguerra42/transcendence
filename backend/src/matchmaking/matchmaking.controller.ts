@@ -70,6 +70,7 @@ export class MatchmakingController {
     async removePlayerToQueue(@Body() req:any){
         if (req.username === undefined)
             return null
+        console.log('removePlayerFromQueue in matchmaking controller, param = ', req.username)
         return await this.userService.removeUserFromQueue(req.username); 
     }
 

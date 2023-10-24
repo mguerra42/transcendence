@@ -25,6 +25,7 @@ const abortMatch = () => {
 
 const startGame = async () => {
     const player = auth.session;
+    stateProps.showEndGame.value = false;
     if (stateProps.showPong.value === false) {
         const ret = await stateProps.waitForMatch();
         //Couldnt find a match
@@ -65,6 +66,8 @@ const startGame = async () => {
         cancelAnimationFrame(stateProps.animationFrameId.value);
         await client.game.removeFromGameQueue(gameProps.Player1.value.name)
         await client.game.removeFromGameQueue(gameProps.Player2.value.name)
+        console.log("gameLobby before delete :")
+        console.log(stateProps.gameLobbyId.value)
         await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
         stateProps.showPong.value = false;
         stateProps.showPlayButton.value = true;

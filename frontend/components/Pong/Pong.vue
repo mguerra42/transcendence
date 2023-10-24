@@ -10,7 +10,7 @@
         </div>
 
         <div class="">
-            <canvas v-show="stateProps.showPong.value" tabindex="0" @keydown.down="gameProps.player1MoveDown" @keydown.up="gameProps.player1MoveUp" class="bg-zinc-300 focus-outline-none rounded-lg cursor-crosshair" id="canvas"></canvas>
+            <canvas tabindex="0" @keydown.down="gameProps.player1MoveDown" @keydown.up="gameProps.player1MoveUp" class="bg-zinc-300 focus-outline-none rounded-lg cursor-crosshair" id="canvas"></canvas>
         </div>
     </div>
 </template>
@@ -34,6 +34,16 @@
         //check if the user is in a queue with status "in game"
         if (userExists.data.value.profile !== undefined) {
             auth.refresh = true
+        }
+        else {
+            // console.log('not in game')
+            const userInQueue: any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${auth.session.username}`, {
+                method: 'GET',
+            })
+            if (userInQueue.data.value.profile !== undefined) {
+                // console.log('in queue')
+                await client.game.removeFromGameQueue(auth.session.username)
+            }
         }
     }
 
@@ -90,7 +100,7 @@
 
             if (auth.refresh === true) {
                 stateProps.showPong.value = true;
-                stateProps.showPlayButton.value = false;
+                stateProps.showPlayButton.value = true;
                 auth.refresh = false;
                 console.log('refreshed')
                 gameProps.set();

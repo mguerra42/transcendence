@@ -122,7 +122,6 @@ interface AppClient {
         deleteLobbyById: (lobbyId: string) => Promise<any>
         getAllLobbies: () => Promise<any>
         create: () => void // create game
-        showEndGame: boolean
     }
 }
 
@@ -454,6 +453,8 @@ export const useClient = defineStore('client', () => {
             })
             if (userExists.data.value.profile === undefined)
                 return null
+            console.log('remove from queue : ', playerUsername)
+            console.log('user exists : ', userExists.data.value)
             const response: any = await useRequest('/matchmaking/removePlayerFromQueue', {
                 method: 'POST',
                 body: { username: playerUsername },
@@ -545,6 +546,8 @@ export const useClient = defineStore('client', () => {
             const lobbyExists: any = await client.game.getLobbyById(lobbyId)
             if (lobbyExists.length === 0)
                 return null
+            console.log('lobby')
+            console.log(lobbyExists)
             const gameLobby: any = await useRequest('/matchmaking/deleteLobbyById', {
                 method: 'POST',
                 body: {

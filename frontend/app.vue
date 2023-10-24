@@ -5,7 +5,6 @@
   const auth = useAuth()
   const client = useClient()
   const socket = useSocket()
-    client.game.showEndGame = false;
 
   const stateProps = {
     //MISC. VARIABLES
@@ -14,6 +13,7 @@
     timeElapsed: ref(0),
     animationFrameId: ref(),
     MatchmakingError: ref('Matchmaking : An error occured.'),
+    showEndGame: ref(false),
 
     //COMPONENTS
     showCancelButton: ref(false),
@@ -261,6 +261,7 @@
             {
                 console.log("player 2 win")
                 finishGame();
+                return ;
             }
         }
         if (gameProps.Ball.value.y >580)
@@ -286,6 +287,7 @@
             {
                 console.log("player 1 win")
                 finishGame();
+                return ;
             }
         }
         if (gameProps.Ball.value.y < 0)
@@ -330,12 +332,11 @@
     //})
     gameProps.resetGame();
     cancelAnimationFrame(stateProps.animationFrameId.value);
-    await client.game.removeFromGameQueue(gameProps.Player1.value.name)
-    await client.game.removeFromGameQueue(gameProps.Player2.value.name)
+    await client.game.removeFromGameQueue(auth.session.username)
     await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
     stateProps.showPong.value = false;
-    // stateProps.showPlayButton.value = false;
-    client.game.showEndGame = true;
+    stateProps.showPlayButton.value = true;
+    stateProps.showEndGame.value = true;
     stateProps.resetMatchmakingWindow()
   }
 
@@ -368,12 +369,7 @@
     </transition>
     <div v-if="!isLoading" key="content">
       <NuxtLayout :stateProps="stateProps" :gameProps="gameProps">
-        <!-- <div v-if="client.game.showEndGame"> -->
-            <!-- <PongEndBoard/> -->
-        <!-- </div> -->
-       <!-- <div v-else> -->
             <NuxtPage :stateProps="stateProps" :gameProps="gameProps"/>
-        <!-- </div> -->
       </NuxtLayout>
     </div>
   </div>

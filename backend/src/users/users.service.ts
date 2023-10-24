@@ -98,8 +98,9 @@ export class UsersService {
         });
     }
 
-    removeUserFromQueue(playerUsername: string) {
-        return this.db.queue.delete({
+    async removeUserFromQueue(playerUsername: string) {
+        console.log('player username in user service', playerUsername);
+        return await this.db.queue.delete({
             where: {
                 username: playerUsername,
             },
@@ -316,12 +317,14 @@ export class UsersService {
             return null; // or throw an error, or handle it according to your use case
         }
 
-        // If the lobby exists, proceed with deletion
+        console.log('existingLobby', gameLobbyId)
+        //TODO :  the lobby from the database
         return this.db.gameLobby.delete({
             where: {
                 lobbyId: gameLobbyId,
             },
         });
+        return null;
     }
 
     async getLobbiesForUser(userId: number) {
