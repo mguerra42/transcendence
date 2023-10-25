@@ -7,6 +7,7 @@ export const useAuth = defineStore('auth', () => {
         email: '',
         username: '',
         avatarPath: '',
+        socketId: ''
     })
 
     const showForm = ref(false)
@@ -29,6 +30,7 @@ export const useAuth = defineStore('auth', () => {
                 email: '',
                 username: '',
                 avatarPath: '',
+                socketId: ''
             }
         }
     }

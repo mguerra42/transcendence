@@ -4,6 +4,7 @@
 // Cela nous permettra de tous bosser sur le même code sans avoir à se soucier des conflits de merge.
 // Merci d'ajouter des commentaires pour expliquer ce que fait chaque fonction ainsi que le typage des paramètres et du retour.
 import { defineStore } from 'pinia'
+import { RefSymbol } from '@vue/reactivity'
 import { useFetch } from '#app'
 
 export const useRequest: typeof useFetch = (path, options = {}) => {
@@ -15,13 +16,7 @@ export const useRequest: typeof useFetch = (path, options = {}) => {
 
 interface AppClient {
 
-    // Gardez un seul niveau de hierarchie, ex: group.functionname = implementation
-    // group: {
-    //    functionname: () => void
-    // }
-
     auth: {
-        authMethod: string
         login: ({
             email,
             password,
@@ -29,6 +24,7 @@ interface AppClient {
             email: string
             password: string
         }) => void // login
+
         signup: ({
             username,
             email,
@@ -38,42 +34,51 @@ interface AppClient {
             email: string
             password: string
         }) => void // login
-        update: (
-            {
-                username,
-                email,
-                password,
-                newPassword,
-                newPasswordConfirmation,
-            }: {
-                username: string
-                email: string
-                password: string
-                newPassword: string
-                newPasswordConfirmation: string
-            },
-        ) => void // update user data
+
+        update: ({
+            username,
+            email,
+            password,
+            newPassword,
+            newPasswordConfirmation,
+        }: {
+            username: string
+            email: string
+            password: string
+            newPassword: string
+            newPasswordConfirmation: string
+        },) => void // update user data
+
         onFileSelected: (event: any) => void // upload avatar
         avatarFile: Ref<File | undefined> // avatar file
         loginWithGoogle: () => void // login with google
         login42: () => void // login 42
         logout: () => void // logout
-        session: () => void // get user data
+        session: () => any // get user data
+        findByUsername: (mailOrUsername: string ) => Promise<any> //get user from mail or username
     }
-    friends: {
+
+    friend: {
         profile: () => void // get user profile
         list: () => void // get friends list
-        add: () => void // add friend
-        remove: () => void // remove friend
+        inverselist: () => void
+        pendinglist: () => void
+        add: (username: string) => void // add friend
+        remove: (friendName: string) => void // remove friend
+        isJustFriend: (friendName : string) => Promise<string>
+        areMutualFriends: (friendName: string) => Promise<string>
+
+        categoryArray: any[]
+        categoryName: string
     }
+
     chat: {
-    // Channels
-        create: () => void // create channel
-        update: () => void // update channel
+        // Channels
         getOnlineUsers: () => any // get online users
         getAllUsers: () => any // get all users
         getOfflineUsers: () => any // get offline users
         setAdmin: (userId: string, status: boolean) => void // set moderator
+
         // Admin
         kick: (userId: string) => void // kick user
         ban: (userId: string) => void // ban user
@@ -87,54 +92,53 @@ interface AppClient {
         sendTo: () => void // send DM to user
         block: () => void // block user
         inviteGame: () => void // invite user to game
-        getAllChannels: () => any // get offline users
-        clearChat: () => void
-        scrollToBottom: () => void
+        clearChat: (div: any) => void
+        scrollToBottom: (div: any) => void
+        currentHistory: () => any // { sender: string; text: string; time?: string; avatar?: string; user?: any }[]
+
         usersArray: globalThis.Ref<any[]>
         channelArray: globalThis.Ref<any[]>
         chatVisible: boolean
         chatMessages: globalThis.Ref<any>
         chatState: { select: string; receiver: any }
         newMessage: string
-        messages: Ref<{ sender: string; text: string; time?: string; avatar?: string; user?: any}[]>
+        messages: any[]
         showUserProfile: boolean
+        showAdd: string
     }
 
     game: {
-        gameLobby: Ref<any[]>
-        addToGameLobby: (user:any) => void
+        getNormalQueuePlayers: () => Promise<any>
+        getNumberOfIdlePlayers: () => Promise<number>
+        addToGameQueue: (playerUsername: string) => Promise<any>
+        removeFromGameQueue: (playerUsername: string) => Promise<any>
+        setQueueStatus: (playerUsername: string, queueStatus: string) => Promise<any>
+        findAMatch: (playerUsername: string) => Promise<any>
+        joinGameLobby: (playerOneId: number, playerTwoId: number) => Promise<any>
+        getLobbiesForPlayer: (playerId: number) => Promise<any>
+        getLobbyById: (lobbyId: string) => Promise<any>
+        deleteLobbyById: (lobbyId: string) => Promise<any>
+        getAllLobbies: () => Promise<any>
         create: () => void // create game
     }
 }
 
+// client store
 export const useClient = defineStore('client', () => {
     const client: AppClient = {} as AppClient
     const authStore = useAuth()
+    const socket = useSocket()
 
-    /* ¯-_-¯-_-¯-_-¯-_-¯-_-¯-_-¯*\
-¯-_-¯\_(ツ)_/¯-_-¯ AUTH
-\*¯-_-¯-_-¯-_-¯-_-¯-_-¯-_-¯ */
-
-    // Authentification
     client.auth = {} as AppClient['auth']
     client.chat = {} as AppClient['chat']
     client.game = {} as AppClient['game']
+    client.friend = {} as AppClient['friend']
 
-    // This variable is used to determine which auth method is used at the time of signin
-    client.auth.authMethod = 'default'
-
-    // This function is called to log the user in.
-    // It takes an email and a password as parameters
-    // and returns a token if the login is successful.
-    // Token will also be stored in the cookies, so nothing else is needed after this to keep the session alive.
-    // It returns an error if the login is not successful.
-    // Finally, we call the auth.refreshSession() function to refresh the session. (see auth.ts)
+    // AUTH FUNCTIONS
     client.auth.login = async ({
         email,
         password,
     }) => {
-        console.log('login', email, password)
-        // data.value.access_token, but not needed here, we use cookies.
         const { data, error } = await useRequest('/auth/login', {
             method: 'POST',
             body: {
@@ -142,7 +146,6 @@ export const useClient = defineStore('client', () => {
                 password,
             },
         })
-
         if (error.value?.statusCode) {
             authStore.error = error.value?.statusMessage as string
             return
@@ -159,15 +162,11 @@ export const useClient = defineStore('client', () => {
         location.href = 'https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-a8654d5f52c9f6fd539181d269f4c72d07954f0f6ac7409ca17d77eee7ac7822&redirect_uri=http%3A%2F%2Flocalhost%3A3001%2Fapi%2Fv0%2Fauth%2F42%2Fcallback&response_type=code'
     }
 
-    // This function is called to register a new user
-    // It takes an email and a password as parameters
-    // It automatically logs the user in after registration.
     client.auth.signup = async ({
         username,
         email,
         password,
     }) => {
-    // data.value.access_token, but not needed here, we use cookies.
         const { data, error } = await useRequest('/auth/signup', {
             method: 'POST',
             body: {
@@ -180,32 +179,20 @@ export const useClient = defineStore('client', () => {
             authStore.error = error.value?.statusMessage as string
             return
         }
-        // Auto login after registration
         await client.auth.login({
             email,
             password,
         })
     }
+
     client.auth.logout = async () => {
-        if (client.auth.authMethod === 'google') {
-            const { data, error } = await useRequest('/auth/google/logout', {
-                method: 'POST',
-            })
-        }
-        else if (client.auth.authMethod === '42') {
-            const { data, error } = await useRequest('/auth/42/logout', {
-                method: 'POST',
-            })
-        }
-        else {
-            const { data, error } = await useRequest('/auth/logout', {
-                method: 'POST',
-            })
-        }
+        const { data, error } = await useRequest('/auth/logout', {
+            method: 'POST',
+        })
     }
 
     client.auth.session = async () => {
-    // using $fetch here because nuxt SSR fucks up with cookies
+        // using $fetch here because nuxt SSR fucks up with cookies
         const data = await $fetch(`${useRuntimeConfig().public.baseURL}/auth/session`, {
             method: 'GET',
             credentials: 'include',
@@ -216,7 +203,6 @@ export const useClient = defineStore('client', () => {
     }
 
     client.auth.avatarFile = ref<File>()
-
     client.auth.update = async ({
         username,
         email,
@@ -234,8 +220,6 @@ export const useClient = defineStore('client', () => {
         if (client.auth.avatarFile.value)
             formData.append('avatar', client.auth.avatarFile.value) // la ref de ton input file
 
-        // console.log(client.auth.avatarFile.value)
-
         const { data, error } = await useRequest('/auth/update', {
             method: 'POST',
             body: formData,
@@ -245,7 +229,6 @@ export const useClient = defineStore('client', () => {
             authStore.error = error.value?.statusMessage as string
             return
         }
-
         authStore.showUserForm = false
         await authStore.refreshSession()
     }
@@ -254,6 +237,23 @@ export const useClient = defineStore('client', () => {
         client.auth.avatarFile.value = event.target.files[0]
     }
 
+    client.auth.findByUsername = async (username: string ) : Promise<any> => {
+        const { data, error } = await useRequest('/auth/findByUsername', {
+            method: 'POST',
+            body: {
+                username,
+            },
+        })
+
+        if (error.value?.statusCode) {
+            authStore.error = error.value?.statusMessage as string
+            return null
+        }
+        console.log("client.auth.findB data.value = ", data.value);
+        return data.value
+    }
+
+    // CHAT FUNCTIONS
     client.chat.getOnlineUsers = async () => {
         const { data, error } = await useRequest('/socket/getonlineusers', {
             method: 'GET',
@@ -290,33 +290,259 @@ export const useClient = defineStore('client', () => {
         return data.value
     }
 
-    client.chat.clearChat = () => {
-        client.chat.messages = ref([])
-        client.chat.scrollToBottom()
+    client.chat.clearChat = async (div: any) => {
+        client.chat.messages = await client.chat.currentHistory()
+        client.chat.scrollToBottom(div)
     }
 
-    client.chat.scrollToBottom = () => {
-        if (client.chat.chatMessages.value === undefined)
+    client.chat.scrollToBottom = (div: any) => {
+        if (div.value === undefined)
             return
-        client.chat.chatMessages.value.scrollTop = client.chat.chatMessages.value.scrollHeight
+        div.value = div.value.scrollHeight
     }
 
-    const gameLobby : Ref<any[]> = ref([]);
+    client.chat.currentHistory = async () => {
+        if (client.chat.chatState !== undefined && client.chat.chatState.select === 'DM') {
+            const { data, error } = await useRequest('/socket/gethistory', {
+                method: 'POST',
+                body: {
+                    senderId: authStore.session.id,
+                    receiverId: client.chat.chatState.receiver.id,
+                },
+            })
 
-    // ... your other code ...
+            if (error.value?.statusCode) {
+                authStore.error = error.value?.statusMessage as string
+                return null
+            }
 
-    // Add gameLobby to the client.game object
+            return data.value
+        }
+        else if (client.chat.chatState !== undefined && client.chat.chatState.select === 'CHANNEL') {
+            const { data, error } = await useRequest('/socket/getchannelhistory', {
+                method: 'POST',
+                body: {
+                    channelId: client.chat.chatState.receiver.id,
+                },
+            })
+
+            if (error.value?.statusCode) {
+                authStore.error = error.value?.statusMessage as string
+                return null
+            }
+            return data.value
+        }
+        return []
+    }
+
+    // FRIEND FUNCTIONS
+    client.friend.add = async (newFriendName: string) => {
+        const { data, error } = await useRequest('/friend/add', {
+            method: 'POST',
+            body: {
+                newFriendName,
+            },
+        })
+    }
+
+    client.friend.remove = async (friendName: string) => {
+        const { data, error } = await useRequest('/friend/remove', {
+            method: 'POST',
+            body: {
+                friendName,
+            },
+        })
+    }
+
+    client.friend.isJustFriend = async (friendName: string) : Promise<string> => {
+        const { data } = await useRequest('/friend/isJustFriend', {
+            method: 'POST',
+            body: {
+                friendName,
+            },
+        })
+        if (data.value.Boolean === true)
+            return ("true");
+        else
+            return ("false");
+    }
+
+    client.friend.areMutualFriends = async (friendName: string) : Promise<string> => {
+        const { data } = await useRequest('/friend/areMutualFriends', {
+            method: 'POST',
+            body: {
+                friendName,
+            },
+        })
+        if (data.value.Boolean === true)
+            return ("true");
+        else
+            return ("false");
+    }
+
+    // GAME FUNCTIONS
+    const gameLobby: Ref<any[]> = ref([])
     client.game = {
-        gameLobby: gameLobby,
+        addToGameQueue: async (playerUsername: string): Promise<any> => {
+            // If user is already in the game queue, return
+            const userExists: any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${playerUsername}`, {
+                method: 'GET',
+            })
+            if (userExists.data.value.profile !== undefined)
+                return null
+            // Else add user in the game queue
+            const response: any = await useRequest('/matchmaking/addPlayerToQueue', {
+                method: 'POST',
+                body: { username: playerUsername },
+            })
+            return response.data.value
+        },
 
-        addToGameLobby: async (player: any) => {
-            await new Promise(timeout => setTimeout(timeout, 5000));
-            console.log(player);
-            gameLobby.value.push(player); // Access gameLobby through its ref
+        removeFromGameQueue: async (playerUsername: string): Promise<any> => {
+            const userExists: any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${playerUsername}`, {
+                method: 'GET',
+            })
+            if (userExists.data.value.profile === undefined)
+                return null
+            const response: any = await useRequest('/matchmaking/removePlayerFromQueue', {
+                method: 'POST',
+                body: { username: playerUsername },
+            })
+            return response.data.value
         },
+
+        setQueueStatus: async (playerUsername: string, queueStatus: string):Promise<any> => {
+            const userExists: any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${playerUsername}`, {
+                method: 'GET',
+            })
+            if (userExists.data.value.profile === undefined)
+                return null
+            const response: any = await useRequest('/matchmaking/setUserQueueStatus', {
+                method: 'POST',
+                body: {
+                    username: playerUsername,
+                    status: queueStatus,
+                },
+            })
+            return response.data.value
+        },
+
+        getNormalQueuePlayers: async (): Promise<number> => {
+            const usersArray: any = await useRequest('/matchmaking/getNormalGameQueue', {
+                method: 'GET',
+            })
+
+            let numberOfIdlePlayers = 0
+            for (let i = 0; i < usersArray.data.value.length; i++) {
+                if (usersArray.data.value[i].confirmed === 'idle')
+                    numberOfIdlePlayers++
+            }
+            return usersArray.data.value
+        },
+
+        getNumberOfIdlePlayers: async (): Promise<number> => {
+            const usersArray: any = await useRequest('/matchmaking/getNormalGameQueue', {
+                method: 'GET',
+            })
+
+            let numberOfIdlePlayers = 0
+            for (let i = 0; i < usersArray.data.value.length; i++) {
+                if (usersArray.data.value[i].confirmed === 'idle')
+                    numberOfIdlePlayers++
+            }
+            return numberOfIdlePlayers
+        },
+
+        findAMatch: async (playerUsername: string) => {
+            let usersArray = await client.game.getNormalQueuePlayers()
+            let retryAttempts = 10
+
+            //wait for enough players to find a match
+            while (retryAttempts > 0)
+            {
+                const lookingForGame: any = await useRequest(`/matchmaking/findAnOpponent?playerLFG=${playerUsername}`, {
+                    method: 'GET',
+                })
+                if (lookingForGame.data.value !== "")
+                {
+                    //make sure both players have access to lobbyId during the game
+                    console.log('match possible with ', lookingForGame.data.value.username, 'in lobby ', lookingForGame.data.value.lobbyId)
+                    socket.emit('challengePlayer', {
+                        challenger: playerUsername,
+                        lobbyId: lookingForGame.data.value.lobbyId
+                    })
+                }
+                for (let i = 0; i < usersArray.length; i++)
+                {
+                    if (usersArray[i].profile.username != playerUsername && usersArray[i].confirmed === "idle")
+                    {
+                        //client A will set the status of client B to waiting and vice-versa
+                        await client.game.setQueueStatus(usersArray[i].profile.username, 'waiting')
+                        return usersArray[i]
+                    }
+                }
+                //retry every 1 sec
+                await new Promise(timeout => setTimeout(timeout, 1000));
+                usersArray = await client.game.getNormalQueuePlayers()
+                retryAttempts--
+            }
+            await client.game.removeFromGameQueue(playerUsername)
+            return null
+        },
+
+        getLobbiesForPlayer: async (playerId: number) => {
+            const lobbyArray: any = await useRequest(`/matchmaking/getLobbiesForPlayer?playerId=${playerId}`, {
+                method: 'GET',
+            })
+            return lobbyArray.data.value
+        },
+
+        getAllLobbies: async () => {
+            const lobbyArray: any = await useRequest('/matchmaking/getAllGameLobbies', {
+                method: 'GET',
+            })
+            return lobbyArray.data.value
+        },
+
+        getLobbyById: async (lobbyId: string) => {
+            const gameLobby: any = await useRequest(`/matchmaking/getLobbyById?lobbyId=${lobbyId}`, {
+                method: 'GET',
+            })
+            return gameLobby.data.value
+        },
+
+        deleteLobbyById: async (lobbyId: string) => {
+            const lobbyExists: any = await client.game.getLobbyById(lobbyId)
+            if (lobbyExists.length === 0)
+                return null
+            const gameLobby: any = await useRequest('/matchmaking/deleteLobbyById', {
+                method: 'POST',
+                body: {
+                    lobbyId,
+                },
+            })
+            return gameLobby.data.value
+        },
+
+        joinGameLobby: async (playerOneId: number, playerTwoId: number) => {
+            const userExists: any = await useRequest(`/matchmaking/getLobbiesForPlayer?playerId=${playerOneId}`, {
+                method: 'GET',
+            })
+            if (userExists.data.value.length != 0)
+                return null
+            const gameLobby: any = await useRequest('/matchmaking/createGameLobby', {
+                method: 'POST',
+                body: {
+                    playerOneId,
+                    playerTwoId,
+                },
+            })
+            return gameLobby.data.value.lobbyId
+        },
+
         create: () => {
-            // Add logic here
         },
-    };
+
+    }
     return client
 })
