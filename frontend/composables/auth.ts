@@ -40,6 +40,7 @@ export const useAuth = defineStore('auth', () => {
     }
 
     const logout = async () => {
+        
         await client.auth.logout()
         await refreshSession()
     }

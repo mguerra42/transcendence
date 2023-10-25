@@ -19,7 +19,6 @@
     const auth = useAuth()
     const client = useClient()
     const socket = useSocket()
-    const channel = useChannel()
 
     const { stateProps, gameProps } = defineProps<{
         stateProps: any;
@@ -27,6 +26,7 @@
     }>();
 
     const hasRefresh = async() => {
+        console.log('Pong.vue: Refreshing Pong status...')
 
         const userExists: any = await useRequest(`/matchmaking/getUserInGameFromQueue?playerUsername=${auth.session.username}`, {
             method: 'GET',
@@ -34,6 +34,7 @@
 
         //check if the user is in a queue with status "in game"
         if (userExists.data.value.profile !== undefined) {
+            console.log('Pong.vue: ', auth.session.username, ' is in game. Refreshing canvas...')
             auth.refresh = true
         }
         else {
@@ -43,6 +44,7 @@
             })
             if (userInQueue.data.value.profile !== undefined) {
                 // console.log('in queue')
+                console.log('Pong.vue: ', auth.session.username, ' is not in game. Removing from game queue...')
                 await client.game.removeFromGameQueue(auth.session.username)
             }
         }
@@ -76,6 +78,7 @@
                 if (stateProps.gameLobbyId.value !== data.lobbyId)
                     await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
                 stateProps.gameLobbyId.value = data.lobbyId
+                console.log('Pong.vue: Received challenge socket from ', data.challenger, ' with lobby ', data.lobbyId)
             }
         })
 
@@ -90,32 +93,34 @@
         });
 
         socket.on('abortMatchResponse', async (data: any) => {
+            console.log('Pong.vue: Received abort match socket from ', data.player)
+
             if ((auth.session.username === gameProps.Player1.value.name && data.player === gameProps.Player2.value.name) || (auth.session.username === gameProps.Player2.value.name && data.player === gameProps.Player1.value.name))
             {
+                console.log('Pong.vue: Aborting match between ', auth.session.username, ' and ', data.player, ' in lobby ', stateProps.gameLobbyId.value)
                 gameProps.resetGame();
                 cancelAnimationFrame(stateProps.animationFrameId.value);
-
                 stateProps.showPong.value = false;
                 stateProps.showPlayButton.value = true;
                 stateProps.resetMatchmakingWindow()
                 await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
             }
-            socket.emit('afk', {
+
+            console.log('Pong.vue: Resetting chat status to ONLINE')
+            socket.emit('chatStatus', {
                 sender: auth.session.username,
                 text: 'ONLINE',
             });
         });
 
         await hasRefresh();
-
-            if (auth.refresh === true) {
-                stateProps.showPong.value = true;
-                stateProps.showPlayButton.value = true;
-                auth.refresh = false;
-                console.log('refreshed')
-                gameProps.set();
-                gameProps.gameLoop();    
-            }
+        if (auth.refresh === true) {
+            stateProps.showPong.value = true;
+            stateProps.showPlayButton.value = true;
+            auth.refresh = false;
+            gameProps.refreshGameSession();
+            gameProps.gameLoop();    
+        }
 
     });
 </script>

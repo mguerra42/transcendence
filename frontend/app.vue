@@ -1,11 +1,39 @@
 <script setup lang="ts">
-  import { appName } from '~/constants'
-
+  import { getDefaultCompilerOptions } from 'typescript';
+import { appName } from '~/constants'
   const isLoading = ref(true);
+  
+  //STORES
   const auth = useAuth()
   const client = useClient()
   const socket = useSocket()
 
+  //STATIC FUNCTION
+  const finishGame = async () => {
+        
+        //clean up backend
+        console.log('app.vue: Game finished, removing ', auth.session.username, ' from queue and deleting lobby ', stateProps.gameLobbyId.value)
+        await client.game.removeFromGameQueue(auth.session.username)
+        await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
+        
+        //reset frontend
+        cancelAnimationFrame(stateProps.animationFrameId.value);
+        gameProps.resetGame();
+        stateProps.showPong.value = false;
+        stateProps.showPlayButton.value = true;
+        stateProps.showEndGame.value = true;
+        stateProps.resetMatchmakingWindow()
+        
+        console.log('app.vue: Resetting chat status to ONLINE')
+        socket.emit('chatStatus', {
+            sender: auth.session.username,
+            text: 'ONLINE',
+        });
+        console.log('app.vue: Reset game status')
+        gameProps.gameStatus.value = '';
+  }
+
+  //PROPS
   const stateProps = {
     //MISC. VARIABLES
     canvas: ref(),
@@ -53,6 +81,7 @@
         let matchOpponent:any = null;
         let retryAttempts = 0;
         //wait for match to be found
+        console.log('app.vue: Waiting for an opponent...')
         while (retryAttempts < 100 && matchOpponent === null && stateProps.cancelMatch.value === false)
         {
             matchOpponent = await client.game.findAMatch(auth.session.username);
@@ -62,6 +91,7 @@
         
         if (matchOpponent === null || stateProps.cancelMatch.value === true)
         {
+            console.log('app.vue: Could not find an opponent')
             if (stateProps.cancelMatch.value === true)
                 stateProps.MatchmakingError.value = 'You have left the queue.'
             else
@@ -77,21 +107,20 @@
         }
         else
         {
-            console.log("match found !")
+            console.log('app.vue: Found a match with ', matchOpponent.username)
             await client.game.setQueueStatus(auth.session.username, 'waiting')
-            console.log(matchOpponent)
             //update the opponent profile if match is found
             stateProps.opponentProfile.value.username = matchOpponent.username;
             stateProps.opponentProfile.value.avatarPath = matchOpponent.avatarPath;
             stateProps.opponentProfile.value.id = matchOpponent.id;
             stateProps.opponentProfile.value.socketId = matchOpponent.socketId;
+
+            console.log('app.vue: Sending challenger socket to ', matchOpponent.username, ' with lobby ', matchOpponent.lobbyId)
             socket.emit('challengePlayer', {
                 challenger: auth.session.username,
                 lobbyId: matchOpponent.lobbyId
             })
             stateProps.gameLobbyId.value = matchOpponent.lobbyId
-            //addtogamelobby
-            //return game lobby
             clearInterval(timeElapsedInterval);
             stateProps.timeElapsed.value = 0;
         }
@@ -172,11 +201,11 @@
     }),
 
     resetGame: () => {
-        //reinitialize values here
+        //TODO : reinitialize values here
     },
 
     player1MoveDown: (event:any) => {
-        if (event.key === 'ArrowDown' && gameProps.Player1.value.y < 500) { // Use 'ArrowDown' instead of 'Down'
+        if (event.key === 'ArrowDown' && gameProps.Player1.value.y < 500) {
             gameProps.Player1.value.y += 15;
             socket.emit('playerMovement', {
                 player: auth.session.username,
@@ -187,7 +216,7 @@
     },
 
     player1MoveUp: (event:any) => {
-        if (event.key === 'ArrowUp' && gameProps.Player1.value.y > 20) { // Use 'ArrowDown' instead of 'Down'
+        if (event.key === 'ArrowUp' && gameProps.Player1.value.y > 20) {
             gameProps.Player1.value.y -= 15;
             socket.emit('playerMovement', {
                 player: auth.session.username,
@@ -244,61 +273,60 @@
         }
 
         //Bounds collission
-        if (gameProps.Ball.value.x >780)
+        //TODO : Refactor into round end function
+        if (gameProps.Ball.value.x >780 || gameProps.Ball.value.x < 0)
         {
+            let roundWinner = ''
+            if(gameProps.Ball.value.x > 700)
+                roundWinner = 'P1'
+            else
+                roundWinner = 'P2'
+    
             gameProps.Ball.value.x = 390;
             gameProps.Ball.value.y = 290;
             gameProps.Ball.value.velocityX = 0;
             gameProps.Ball.value.velocityY = 0;
 
             setTimeout(() => {
+                //TODO : Put this in backend and call it on gamestart
                 const randomDirectionX = Math.random() > 0.5 ? 1 : -1; // Randomly choose 1 or -1
                 const randomDirectionY = Math.random() > 0.5 ? 1 : -1; // Randomly choose 1 or -1
 
                 gameProps.Ball.value.velocityX = 5 ;
                 gameProps.Ball.value.velocityY = 5 ;
             }, 1000)
-            gameProps.Player2.value.score++;
-            if (gameProps.Player2.value.score === 5)
+            
+            if (roundWinner === 'P1')
             {
-                console.log("player 2 win")
-                finishGame();
-                return ;
+                gameProps.Player1.value.score++;
+                if (gameProps.Player1.value.score === 5)
+                {
+                    console.log("app.vue: Player 1 Win !")
+                    finishGame();
+                    return ;
+                }
+            }
+            else
+            {
+                gameProps.Player2.value.score++;
+                if (gameProps.Player2.value.score === 5)
+                {
+                    console.log("app.vue: Player 2 Win !")
+                    finishGame();
+                    return ;
+                }
             }
         }
-        if (gameProps.Ball.value.y >580)
+        
+        //Ground/Ceiling collision
+        if (gameProps.Ball.value.y >580 || gameProps.Ball.value.y < 0)
         {
             gameProps.Ball.value.velocityY = gameProps.Ball.value.velocityY * -1;
         }
-        if (gameProps.Ball.value.x < 0)
-        {
-            gameProps.Ball.value.x = 390;
-            gameProps.Ball.value.y = 290;
-            gameProps.Ball.value.velocityX = 0;
-            gameProps.Ball.value.velocityY = 0;
 
-            setTimeout(() => {
-                const randomDirectionX = Math.random() > 0.5 ? 1 : -1; // Randomly choose 1 or -1
-                const randomDirectionY = Math.random() > 0.5 ? 1 : -1; // Randomly choose 1 or -1
-                
-                gameProps.Ball.value.velocityX = 5 ;
-                gameProps.Ball.value.velocityY = 5 ;
-            }, 1000)
-            gameProps.Player1.value.score++;
-            if (gameProps.Player1.value.score === 5)
-            {
-                console.log("player 1 win")
-                finishGame();
-                return ;
-            }
-        }
-        if (gameProps.Ball.value.y < 0)
-        {
-            gameProps.Ball.value.velocityY = gameProps.Ball.value.velocityY * -1;
-        }
         // Clear and redraw the Ball on the canvas
-        stateProps.context.value.clearRect(0, 0, stateProps.canvas.value.width, stateProps.canvas.value.height);
         stateProps.context.value.fillStyle = "blue";
+        stateProps.context.value.clearRect(0, 0, stateProps.canvas.value.width, stateProps.canvas.value.height);
         stateProps.context.value.fillRect(gameProps.Player1.value.x, gameProps.Player1.value.y, gameProps.Player1.value.width, gameProps.Player1.value.height);
         stateProps.context.value.fillRect(gameProps.Player2.value.x, gameProps.Player2.value.y, gameProps.Player2.value.width, gameProps.Player2.value.height);
         stateProps.context.value.fillRect(gameProps.Ball.value.x, gameProps.Ball.value.y, gameProps.Ball.value.width, gameProps.Ball.value.height);
@@ -306,51 +334,34 @@
         stateProps.animationFrameId.value = requestAnimationFrame(gameProps.gameLoop);
     },
 
-    set: async () => {
-        const { data, error } = await useRequest('/matchmaking/getPlayersInGame', {
+    refreshGameSession: async () => {
+        //TODO : Put this call into a function
+        const { data, error }:any = await useRequest('/matchmaking/getPlayersInGame', {
             method: 'POST',
             body: {
                     playerId: auth.session.id,
-                },
+            },
         })
         if (error.value?.statusCode || data.value === null) {
-            alert('Lobby not found.')
+            alert(`app.vue: Game Lobby no longer exists for player ${auth.session.username}`)
             auth.error = error.value?.statusMessage as string
             return null
         }
   
+        console.log('app.vue: Found existing Game Lobby for player ', auth.session.username)
         gameProps.Player1.value.name = data.value.player1Name;
         gameProps.Player2.value.name = data.value.player2Name;
         gameProps.Player1.value.score = data.value.player1Score;
         gameProps.Player2.value.score = data.value.player2Score;
         gameProps.gameStatus.value = 'running';
-        socket.emit('afk', {
+
+        console.log('app.vue: Updated chat status to INGAME for player ', auth.session.username)
+        socket.emit('chatStatus', {
             sender: auth.session.username,
             text: 'INGAME',
         });
     },
-
   };
-
-  const finishGame = async () => {
-    //socket.emit('abortMatch', {
-    //    player: auth.session.username,
-    //    lobbyId: stateProps.gameLobbyId.value
-    //})
-    gameProps.resetGame();
-    cancelAnimationFrame(stateProps.animationFrameId.value);
-    await client.game.removeFromGameQueue(auth.session.username)
-    await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
-    stateProps.showPong.value = false;
-    stateProps.showPlayButton.value = true;
-    stateProps.showEndGame.value = true;
-    stateProps.resetMatchmakingWindow()
-    socket.emit('afk', {
-        sender: auth.session.username,
-        text: 'ONLINE',
-    });
-    gameProps.gameStatus.value = '';
-  }
 
   useHead({
     title: appName,
@@ -360,11 +371,16 @@
     isLoading.value = true;
   });
 
+  onBeforeUnmount(() => {
+        socket.disconnect()
+        console.log('app.vue: Socket.io DISCONNECTED')
+  })
+  
   onMounted(async() => {
     isLoading.value = false;
     await auth.refreshSession();
     await socket.connect()
-
+    console.log('Header.vue: Socket.io CONNECTED')
   });
 </script>
 

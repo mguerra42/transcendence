@@ -55,7 +55,7 @@
     if(gameProps.gameStatus.value === '')
     {
       console.log('put back to online')
-        socket.emit('afk', {
+        socket.emit('chatStatus', {
           sender: auth.session.username,
           text: 'ONLINE',
       });
@@ -77,7 +77,7 @@
     isLoading.value = false;
     await channel.refresh();
 
-    socket.on('afkResponse', async () => {
+    socket.on('chatStatusResponse', async () => {
       console.log('received afk response')
       await channel.refresh();
     });

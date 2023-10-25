@@ -433,12 +433,16 @@ export const useClient = defineStore('client', () => {
     const gameLobby: Ref<any[]> = ref([])
     client.game = {
         addToGameQueue: async (playerUsername: string): Promise<any> => {
+            console.log('client.game: Adding ', playerUsername, ' to game queue')
             // If user is already in the game queue, return
             const userExists: any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${playerUsername}`, {
                 method: 'GET',
             })
             if (userExists.data.value.profile !== undefined)
+            {
+                console.log('client.game: Could not add ', playerUsername, ' to game queue')
                 return null
+            }
             // Else add user in the game queue
             const response: any = await useRequest('/matchmaking/addPlayerToQueue', {
                 method: 'POST',
@@ -448,13 +452,16 @@ export const useClient = defineStore('client', () => {
         },
 
         removeFromGameQueue: async (playerUsername: string): Promise<any> => {
+            console.log('client.game: Removing ', playerUsername, ' from queue')
             const userExists: any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${playerUsername}`, {
                 method: 'GET',
             })
             if (userExists.data.value.profile === undefined)
+            {
+                console.log('client.game: Could not remove ', playerUsername, ' from queue')
                 return null
-            console.log('remove from queue : ', playerUsername)
-            console.log('user exists : ', userExists.data.value)
+            }
+
             const response: any = await useRequest('/matchmaking/removePlayerFromQueue', {
                 method: 'POST',
                 body: { username: playerUsername },
@@ -463,11 +470,15 @@ export const useClient = defineStore('client', () => {
         },
 
         setQueueStatus: async (playerUsername: string, queueStatus: string):Promise<any> => {
+            console.log('client.game: Setting ', playerUsername, ' status to in-game in queue')
             const userExists: any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${playerUsername}`, {
                 method: 'GET',
             })
             if (userExists.data.value.profile === undefined)
+            {
+                console.log('client.game: Could not set ', playerUsername, ' status to in-game in queue')
                 return null
+            }
             const response: any = await useRequest('/matchmaking/setUserQueueStatus', {
                 method: 'POST',
                 body: {
@@ -543,14 +554,14 @@ export const useClient = defineStore('client', () => {
         },
 
         deleteLobbyById: async (lobbyId: string) => {
+            console.log('client.game: Deleting lobby ', lobbyId)
             const lobbyExists: any = await client.game.getLobbyById(lobbyId)
             if (lobbyExists.length === 0)
             {
-                console.log('this lobby doesnt exist anymore', lobbyId)
+                console.log('client.game: Could not delete lobby ', lobbyId)
                 return null
             }
-            console.log('game finished, deleting this lobby :')
-            console.log(lobbyExists)
+
             const gameLobby: any = await useRequest('/matchmaking/deleteLobbyById', {
                 method: 'POST',
                 body: {

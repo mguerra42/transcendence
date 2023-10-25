@@ -1,36 +1,30 @@
 <script setup lang="ts">
 const auth = useAuth()
-const friend = useFriend()
 const socket = useSocket()
 const client = useClient()
-const buttonClass = ref('b-1 rounded bg-zinc-500 px-2 py-1 b-zinc-700 cursor-pointer hover:bg-zinc-600');
-
-
 
 const { stateProps, gameProps } = defineProps<{
     stateProps: any,
     gameProps: any
 }>();
 
-const gameLobby = ref("")
-
 const abortMatch = () => {
+    console.log('Header.vue: Sending abort match socket from ', auth.session.username)
     stateProps.matchDeclined.value = true;
     socket.emit('abortMatch', {
         player: auth.session.username,
-        senderSocketId: auth.session.socketId,
-        //receiverSocketId: stateProps.opponentProfile.value.socketId
     })
 }
 
 const startGame = async () => {
-    const player = auth.session;
+    console.log('Header.vue: Looking for a match for ', auth.session.username, '...')
     stateProps.showEndGame.value = false;
     if (stateProps.showPong.value === false) {
+        
         const ret = await stateProps.waitForMatch();
-        //Couldnt find a match
         if (ret === null)
         {
+            console.log('Header.vue: Could not find a match.')
             stateProps.showLoader.value = false;
             await client.game.removeFromGameQueue(auth.session.username)
             stateProps.resetMatchmakingWindow()
@@ -38,52 +32,58 @@ const startGame = async () => {
             return ;
         }
 
+        console.log('Header.vue: Waiting for match confirm with ', stateProps.opponentProfile.value.username, '...')
         await stateProps.waitForConfirm();
         if (stateProps.matchAccepted.value === true && stateProps.opponentAccepted.value === true)
         {
-            console.log("gamelobby : ", stateProps.gameLobbyId.value);
+            console.log('Header.vue: Match accepted with ', stateProps.opponentProfile.value.username, ' ! Starting game in lobby ', stateProps.gameLobbyId.value)
             await client.game.getNormalQueuePlayers();
             stateProps.showPong.value = true;
             stateProps.showPlayButton.value = true;
             stateProps.resetMatchmakingWindow()
-            gameProps.set();
+            gameProps.refreshGameSession();
             gameProps.gameLoop();
             await client.game.setQueueStatus(auth.session.username, 'in-game')
         }
         else
         {
+            console.log('Header.vue: Match declined ', stateProps.opponentProfile.value.username)
             stateProps.showPlayButton.value = true;
             stateProps.resetMatchmakingWindow()
             await client.game.removeFromGameQueue(auth.session.username)
         }
-        //Match non confirmed
     }
-    //Exit running game
     else 
     {
+        console.log('Header.vue: Aborting game...')
         abortMatch();
         gameProps.resetGame();
         cancelAnimationFrame(stateProps.animationFrameId.value);
+        
+        console.log('Header.vue: Removing players from queue')
         await client.game.removeFromGameQueue(gameProps.Player1.value.name)
         await client.game.removeFromGameQueue(gameProps.Player2.value.name)
-        console.log("gameLobby before delete :")
-        console.log(stateProps.gameLobbyId.value)
+        
+        console.log('Header.vue: Deleting lobby ', stateProps.gameLobbyId.value)
         await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
+        
         stateProps.showPong.value = false;
         stateProps.showPlayButton.value = true;
         stateProps.resetMatchmakingWindow()
-        console.log('emitted online status')
-        socket.emit('afk', {
+
+        console.log('Header.vue: Resetting chat status to ONLINE')
+        socket.emit('chatStatus', {
             sender: auth.session.username,
             text: 'ONLINE',
         });
+        console.log('Header.vue: Reset game status')
         gameProps.gameStatus.value = '';
     }
 }
 
-
 onMounted(async () => {
     await socket.connect()
+    console.log('Header.vue: Socket.io CONNECTED')
     await auth.refreshSession()
 })
 

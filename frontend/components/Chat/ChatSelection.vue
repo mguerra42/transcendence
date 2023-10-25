@@ -21,7 +21,7 @@
     client.chat.chatVisible = false;
     if(gameProps.gameStatus.value === '')
     {
-        socket.emit('afk', {
+        socket.emit('chatStatus', {
           sender: auth.session.username,
           text: 'AFK',
       });
@@ -66,7 +66,7 @@
       await channel.refresh();
     });
 
-    socket.on('afkResponse', async () => {
+    socket.on('chatStatusResponse', async () => {
       await channel.refresh();
     });
 

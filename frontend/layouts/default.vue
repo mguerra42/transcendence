@@ -33,6 +33,7 @@
           </div>
           <!-- Right Sidebar -->
           
+          <!-- TODO : Remove Chat components from AuthModal -->
           <AuthModal :gameProps="gameProps"/>
         </div>
       <Footer/>
