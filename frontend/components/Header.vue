@@ -9,7 +9,7 @@ const { stateProps, gameProps } = defineProps<{
 }>();
 
 const abortMatch = () => {
-    console.log('Header.vue: Sending abort match socket from ', auth.session.username)
+    console.log('abortMatch: Sending abort match socket from ', auth.session.username)
     stateProps.matchDeclined.value = true;
     socket.emit('abortMatch', {
         player: auth.session.username,
@@ -17,14 +17,14 @@ const abortMatch = () => {
 }
 
 const startGame = async () => {
-    console.log('Header.vue: Looking for a match for ', auth.session.username, '...')
+    console.log('startGame: Looking for a match for ', auth.session.username, '...')
     stateProps.showEndGame.value = false;
     if (stateProps.showPong.value === false) {
         
         const ret = await stateProps.waitForMatch();
         if (ret === null)
         {
-            console.log('Header.vue: Could not find a match.')
+            console.log('startGame: Could not find a match.')
             stateProps.showLoader.value = false;
             await client.game.removeFromGameQueue(auth.session.username)
             stateProps.resetMatchmakingWindow()
@@ -32,22 +32,24 @@ const startGame = async () => {
             return ;
         }
 
-        console.log('Header.vue: Waiting for match confirm with ', stateProps.opponentProfile.value.username, '...')
+        console.log('startGame: Waiting for match confirm with ', stateProps.opponentProfile.value.username, '...')
         await stateProps.waitForConfirm();
         if (stateProps.matchAccepted.value === true && stateProps.opponentAccepted.value === true)
         {
-            console.log('Header.vue: Match accepted with ', stateProps.opponentProfile.value.username, ' ! Starting game in lobby ', stateProps.gameLobbyId.value)
+            console.log('startGame: Match accepted with ', stateProps.opponentProfile.value.username, ' ! Starting game in lobby ', stateProps.gameLobbyId.value)
             await client.game.getNormalQueuePlayers();
             stateProps.showPong.value = true;
             stateProps.showPlayButton.value = true;
             stateProps.resetMatchmakingWindow()
-            gameProps.refreshGameSession();
+            const ret = gameProps.refreshGameSession();
+            if (ret === null)
+                console.log('wsh c comment la ?')
             gameProps.gameLoop();
             await client.game.setQueueStatus(auth.session.username, 'in-game')
         }
         else
         {
-            console.log('Header.vue: Match declined ', stateProps.opponentProfile.value.username)
+            console.log('startGame: Match declined ', stateProps.opponentProfile.value.username)
             stateProps.showPlayButton.value = true;
             stateProps.resetMatchmakingWindow()
             await client.game.removeFromGameQueue(auth.session.username)
@@ -55,35 +57,39 @@ const startGame = async () => {
     }
     else 
     {
-        console.log('Header.vue: Aborting game...')
+        console.log('startGame: Aborting game...')
         abortMatch();
         gameProps.resetGame();
         cancelAnimationFrame(stateProps.animationFrameId.value);
         
-        console.log('Header.vue: Removing players from queue')
+        console.log('startGame: Removing players from queue')
         await client.game.removeFromGameQueue(gameProps.Player1.value.name)
         await client.game.removeFromGameQueue(gameProps.Player2.value.name)
         
-        console.log('Header.vue: Deleting lobby ', stateProps.gameLobbyId.value)
+        console.log('startGame: Deleting lobby ', stateProps.gameLobbyId.value)
         await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
         
         stateProps.showPong.value = false;
         stateProps.showPlayButton.value = true;
         stateProps.resetMatchmakingWindow()
 
-        console.log('Header.vue: Resetting chat status to ONLINE')
+        console.log('startGame: Resetting chat status to ONLINE')
         socket.emit('chatStatus', {
             sender: auth.session.username,
             text: 'ONLINE',
         });
-        console.log('Header.vue: Reset game status')
+        console.log('startGame: Reset game status')
         gameProps.gameStatus.value = '';
     }
 }
+onBeforeUnmount(() => {
+        socket.disconnect()
+        console.log('onBeforeUnMount: Socket.io DISCONNECTED')
+})
 
 onMounted(async () => {
     await socket.connect()
-    console.log('Header.vue: Socket.io CONNECTED')
+    console.log('onMounted: Socket.io CONNECTED')
     await auth.refreshSession()
 })
 

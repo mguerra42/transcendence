@@ -12,7 +12,7 @@ import { appName } from '~/constants'
   const finishGame = async () => {
         
         //clean up backend
-        console.log('app.vue: Game finished, removing ', auth.session.username, ' from queue and deleting lobby ', stateProps.gameLobbyId.value)
+        console.log('finishGame: Game finished, removing ', auth.session.username, ' from queue and deleting lobby ', stateProps.gameLobbyId.value)
         await client.game.removeFromGameQueue(auth.session.username)
         await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
         
@@ -24,12 +24,12 @@ import { appName } from '~/constants'
         stateProps.showEndGame.value = true;
         stateProps.resetMatchmakingWindow()
         
-        console.log('app.vue: Resetting chat status to ONLINE')
+        console.log('finishGame: Resetting chat status to ONLINE')
         socket.emit('chatStatus', {
             sender: auth.session.username,
             text: 'ONLINE',
         });
-        console.log('app.vue: Reset game status')
+        console.log('finishGame: Reset game status')
         gameProps.gameStatus.value = '';
   }
 
@@ -81,7 +81,7 @@ import { appName } from '~/constants'
         let matchOpponent:any = null;
         let retryAttempts = 0;
         //wait for match to be found
-        console.log('app.vue: Waiting for an opponent...')
+        console.log('waitForMatch: Waiting for an opponent...')
         while (retryAttempts < 100 && matchOpponent === null && stateProps.cancelMatch.value === false)
         {
             matchOpponent = await client.game.findAMatch(auth.session.username);
@@ -91,7 +91,7 @@ import { appName } from '~/constants'
         
         if (matchOpponent === null || stateProps.cancelMatch.value === true)
         {
-            console.log('app.vue: Could not find an opponent')
+            console.log('waitForMatch: Could not find an opponent')
             if (stateProps.cancelMatch.value === true)
                 stateProps.MatchmakingError.value = 'You have left the queue.'
             else
@@ -107,7 +107,7 @@ import { appName } from '~/constants'
         }
         else
         {
-            console.log('app.vue: Found a match with ', matchOpponent.username)
+            console.log('waitForMatch: Found a match with ', matchOpponent.username)
             await client.game.setQueueStatus(auth.session.username, 'waiting')
             //update the opponent profile if match is found
             stateProps.opponentProfile.value.username = matchOpponent.username;
@@ -115,7 +115,7 @@ import { appName } from '~/constants'
             stateProps.opponentProfile.value.id = matchOpponent.id;
             stateProps.opponentProfile.value.socketId = matchOpponent.socketId;
 
-            console.log('app.vue: Sending challenger socket to ', matchOpponent.username, ' with lobby ', matchOpponent.lobbyId)
+            console.log('waitForMatch: Sending challenger socket to ', matchOpponent.username, ' with lobby ', matchOpponent.lobbyId)
             socket.emit('challengePlayer', {
                 challenger: auth.session.username,
                 lobbyId: matchOpponent.lobbyId
@@ -343,19 +343,19 @@ import { appName } from '~/constants'
             },
         })
         if (error.value?.statusCode || data.value === null) {
-            alert(`app.vue: Game Lobby no longer exists for player ${auth.session.username}`)
+            alert(`refreshGameSession: Game Lobby no longer exists for player ${auth.session.username}`)
             auth.error = error.value?.statusMessage as string
             return null
         }
   
-        console.log('app.vue: Found existing Game Lobby for player ', auth.session.username)
+        console.log('refreshGameSession: Found existing Game Lobby for player ', auth.session.username)
         gameProps.Player1.value.name = data.value.player1Name;
         gameProps.Player2.value.name = data.value.player2Name;
         gameProps.Player1.value.score = data.value.player1Score;
         gameProps.Player2.value.score = data.value.player2Score;
         gameProps.gameStatus.value = 'running';
 
-        console.log('app.vue: Updated chat status to INGAME for player ', auth.session.username)
+        console.log('refreshGameSession: Updated chat status to INGAME for player ', auth.session.username)
         socket.emit('chatStatus', {
             sender: auth.session.username,
             text: 'INGAME',
@@ -373,14 +373,14 @@ import { appName } from '~/constants'
 
   onBeforeUnmount(() => {
         socket.disconnect()
-        console.log('app.vue: Socket.io DISCONNECTED')
+        console.log('onBeforeUnMount: Socket.io DISCONNECTED')
   })
   
   onMounted(async() => {
     isLoading.value = false;
     await auth.refreshSession();
     await socket.connect()
-    console.log('Header.vue: Socket.io CONNECTED')
+    console.log('onMounted: Socket.io CONNECTED')
   });
 </script>
 

@@ -2,11 +2,14 @@ import { defineStore } from 'pinia'
 import { io } from 'socket.io-client'
 
 export const useSocket = defineStore('socket', () => {
-    const client = useClient()
     const socket = ref()
+    const auth = useAuth()
 
     const disconnect = async () => {
-        socket.value.disconnect()
+        if (auth.logged === true)
+        {
+            socket.value.disconnect()
+        }
     }
 
     const connect = async () => {

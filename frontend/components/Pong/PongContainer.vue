@@ -18,11 +18,11 @@
   
     onBeforeUnmount(() => {
         socket.disconnect()
-        console.log('PongContainer.vue: Socket.io DISCONNECTED')
+        console.log('onBeforeUnMount: Socket.io DISCONNECTED')
     })
   
     onMounted(async () => {
       await socket.connect()
-      console.log('PongContainer.vue: Socket.io CONNECTED')
+      console.log('onMounted: Socket.io CONNECTED')
     })
 </script>

@@ -129,7 +129,6 @@ interface AppClient {
 export const useClient = defineStore('client', () => {
     const client: AppClient = {} as AppClient
     const authStore = useAuth()
-    const socket = useSocket()
     
 
     client.auth = {} as AppClient['auth']
@@ -241,12 +240,13 @@ export const useClient = defineStore('client', () => {
 
     client.auth.session = async () => {
         // using $fetch here because nuxt SSR fucks up with cookies
-        const data = await $fetch(`${useRuntimeConfig().public.baseURL}/auth/session`, {
+        const data:any = await $fetch(`${useRuntimeConfig().public.baseURL}/auth/session`, {
             method: 'GET',
             credentials: 'include',
         }).catch((x) => {
             return null
         })
+
         return data
     }
 
@@ -433,14 +433,14 @@ export const useClient = defineStore('client', () => {
     const gameLobby: Ref<any[]> = ref([])
     client.game = {
         addToGameQueue: async (playerUsername: string): Promise<any> => {
-            console.log('client.game: Adding ', playerUsername, ' to game queue')
+            console.log('addToGameQueue: Adding ', playerUsername, ' to game queue')
             // If user is already in the game queue, return
             const userExists: any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${playerUsername}`, {
                 method: 'GET',
             })
             if (userExists.data.value.profile !== undefined)
             {
-                console.log('client.game: Could not add ', playerUsername, ' to game queue')
+                console.log('addToGameQueue: Could not add ', playerUsername, ' to game queue')
                 return null
             }
             // Else add user in the game queue
@@ -452,13 +452,13 @@ export const useClient = defineStore('client', () => {
         },
 
         removeFromGameQueue: async (playerUsername: string): Promise<any> => {
-            console.log('client.game: Removing ', playerUsername, ' from queue')
+            console.log('removeFromGameQueue: Removing ', playerUsername, ' from queue')
             const userExists: any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${playerUsername}`, {
                 method: 'GET',
             })
             if (userExists.data.value.profile === undefined)
             {
-                console.log('client.game: Could not remove ', playerUsername, ' from queue')
+                console.log('removeFromGameQueue: Could not remove ', playerUsername, ' from queue')
                 return null
             }
 
@@ -470,13 +470,13 @@ export const useClient = defineStore('client', () => {
         },
 
         setQueueStatus: async (playerUsername: string, queueStatus: string):Promise<any> => {
-            console.log('client.game: Setting ', playerUsername, ' status to in-game in queue')
+            console.log('setQueueStatus: Setting ', playerUsername, ' status to in-game in queue')
             const userExists: any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${playerUsername}`, {
                 method: 'GET',
             })
             if (userExists.data.value.profile === undefined)
             {
-                console.log('client.game: Could not set ', playerUsername, ' status to in-game in queue')
+                console.log('setQueueStatus: Could not set ', playerUsername, ' status to ', queueStatus,' in queue')
                 return null
             }
             const response: any = await useRequest('/matchmaking/setUserQueueStatus', {
@@ -554,11 +554,12 @@ export const useClient = defineStore('client', () => {
         },
 
         deleteLobbyById: async (lobbyId: string) => {
-            console.log('client.game: Deleting lobby ', lobbyId)
+            await new Promise(timeout => setTimeout(timeout, 100));
+            console.log('deleteLobbyById: Deleting lobby ', lobbyId)
             const lobbyExists: any = await client.game.getLobbyById(lobbyId)
             if (lobbyExists.length === 0)
             {
-                console.log('client.game: Could not delete lobby ', lobbyId)
+                console.log('deleteLobbyById: Could not delete lobby ', lobbyId)
                 return null
             }
 

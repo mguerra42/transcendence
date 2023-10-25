@@ -22,7 +22,8 @@ export const useAuth = defineStore('auth', () => {
 
     // Get auth user data
     const refreshSession = async () => {
-        const sessionData = await client.auth.session()
+        let sessionData : any;
+        sessionData = await client.auth.session()
         if (sessionData?.id) {
             logged.value = true
             session.value = sessionData
