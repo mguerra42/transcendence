@@ -5,6 +5,10 @@
   const friend = useFriend();
   const channel = useChannel();
 
+  const { gameProps } = defineProps<{
+      gameProps: any
+  }>();
+
   const toggleFriends = () => {
     client.chat.chatState.select = 'Amis';
   }
@@ -14,24 +18,15 @@
   }
 
   const toggleChat = () => {
-    client.chat.chatVisible = !client.chat.chatVisible;
-    if (client.chat.chatVisible === false)
-      handleAFK(true);
-    else
-      handleAFK(false);
+    client.chat.chatVisible = false;
+    if(gameProps.gameStatus.value === '')
+    {
+        socket.emit('chatStatus', {
+          sender: auth.session.username,
+          text: 'AFK',
+      });
+    }
   };
-  const handleAFK = (status:boolean) => {
-    if (status === true)
-      socket.emit('afk', {
-        sender: auth.session.username,
-        text: 'OFFLINE',
-      });
-    else
-      socket.emit('afk', {
-        sender: auth.session.username,
-        text: 'ONLINE',
-      });
-  };  
 
   const chatWithUser = async (userToMessage : any) => {
     if (client.chat.chatState.receiver.id != userToMessage.id || client.chat.chatState.select != 'DM')
@@ -72,6 +67,11 @@
       console.log("REFRESH HASTOREFRESH");
       await channel.refresh();
     });
+
+    socket.on('chatStatusResponse', async () => {
+      await channel.refresh();
+    });
+
   })
 </script>
 
@@ -94,10 +94,14 @@
               <div class="flex flex-col justify-center relative w-8 ">
                   <img :src="user.avatarPath" class="ml-1 w-6 h-6 mr-auto rounded-full" />
                   <img v-if="user.status==='ONLINE'" src="Location_dot_green.svg" class="absolute bottom-1 right-0 w-3 h-3 border-3 border-zinc-800 rounded-full" />
-                  <img v-else="user.status==='OFFLINE'" src="Location_dot_grey.svg" class="absolute bottom-1 right-0 w-3 h-3 border-3 border-zinc-800 rounded-full" />
+                  <img v-if="user.status==='AFK'" src="Location_dot_orange.svg" class="absolute bottom-1 right-0 w-3 h-3 border-3 border-zinc-800 rounded-full" />
+                  <img v-if="user.status==='INGAME'" src="Location_dot_purple.svg" class="absolute bottom-1 right-0 w-3 h-3 border-3 border-zinc-800 rounded-full" />
+                  <img v-if="user.status==='OFFLINE'" src="Location_dot_grey.svg" class="absolute bottom-1 right-0 w-3 h-3 border-3 border-zinc-800 rounded-full" />
               </div>
               <div class="flex-col justify-center">
-                  <div :class="{'px-2 py-2 ml-1 text-sm text-left text-zinc-300':user.status === 'ONLINE', 
+                  <div :class="{'px-2 py-2 ml-1 text-sm text-left text-zinc-300':user.status === 'ONLINE',
+                                'px-2 py-2 ml-1 text-sm text-left text-zinc-299':user.status === 'AFK',
+                                'px-2 py-2 ml-1 text-sm text-left text-zinc-298':user.status === 'INGAME',
                                 'px-2 py-2 ml-1 text-sm text-left text-zinc-500':user.status === 'OFFLINE'}">
                     {{ user.username }}
                   </div>

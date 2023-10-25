@@ -33,7 +33,7 @@ const joinChannel = async (channelList : any) => {
             Available channels
         </div>
         <div v-for="channelList in channel.allChannelArray" class="bg-zinc-700 cursor-pointer hover:bg-zinc-600 rounded flex mb-2" >
-                <button @click="joinChannel(channelList)" class="bg-zinc-600  hover:bg-zinc-800 rounded px-2 py-2 w-full text-sm text-left text-zinc-300 cursor-pointer':user.status">
+                <button @click="joinChannel(channelList)" class="bg-zinc-600  hover:bg-zinc-800 rounded px-2 py-2 w-full text-sm text-left text-zinc-200 cursor-pointer':user.status">
                   #{{ channelList.name }}
                 </button>   
         </div>

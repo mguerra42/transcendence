@@ -24,7 +24,13 @@ interface AppClient {
             email: string
             password: string
         }) => void // login
-
+        authenticateUser : ({
+            email,
+            password,
+        }:{
+            email: string
+            password: string
+        }) => void
         signup: ({
             username,
             email,
@@ -55,7 +61,13 @@ interface AppClient {
         login42: () => void // login 42
         logout: () => void // logout
         session: () => any // get user data
+
+        onOff2FA: () => any
+        get2FA: () => any
+        get2FAQr: () => any
+
         findByUsername: (mailOrUsername: string ) => Promise<any> //get user from mail or username
+
     }
 
     friend: {
@@ -127,7 +139,7 @@ interface AppClient {
 export const useClient = defineStore('client', () => {
     const client: AppClient = {} as AppClient
     const authStore = useAuth()
-    const socket = useSocket()
+    
 
     client.auth = {} as AppClient['auth']
     client.chat = {} as AppClient['chat']
@@ -153,6 +165,51 @@ export const useClient = defineStore('client', () => {
         authStore.showForm = false
         await authStore.refreshSession()
     }
+
+    client.auth.authenticateUser =  async ({
+        email,
+        password,
+    }) => {
+        const { data, error } = await useRequest('/auth/login', {
+            method: 'POST',
+            body: {
+                email,
+                password,
+            },
+        })
+        if (error.value?.statusCode) {
+            authStore.error = error.value?.statusMessage as string
+            return
+        }
+        console.log('2fa',data.value.isTwoFAEnabled)
+          if (data.value.isTwoFAEnabled === 1) {
+            const twoFactorCode = prompt('Veuillez entrer votre code 2FA :');
+      
+            const { data, error } = await useRequest('/auth/verify-2fa', {
+                method: 'POST',
+                body: {
+                    twoFactorCode,
+                },
+            });
+            console.log(data)
+            if(data.value  === "true"){
+                authStore.showForm = false
+                await authStore.refreshSession()
+                return data.access_token;
+            }
+            else{
+                console.log('else')
+
+                authStore.error = error.value?.statusMessage as string
+                return
+            }
+          } else {
+                authStore.showForm = false
+                await authStore.refreshSession()
+                return data.value.access_token;
+          }
+      };
+
 
     client.auth.loginWithGoogle = async () => {
         location.href = 'https://accounts.google.com/o/oauth2/v2/auth?response_type=code&redirect_uri=http://localhost:3001/api/v0/auth/google/callback&scope=email%20profile&client_id=535545866334-87k5bo4t0sbf05v3i8lgf0c0ea8fkcsb.apps.googleusercontent.com'
@@ -193,12 +250,13 @@ export const useClient = defineStore('client', () => {
 
     client.auth.session = async () => {
         // using $fetch here because nuxt SSR fucks up with cookies
-        const data = await $fetch(`${useRuntimeConfig().public.baseURL}/auth/session`, {
+        const data:any = await $fetch(`${useRuntimeConfig().public.baseURL}/auth/session`, {
             method: 'GET',
             credentials: 'include',
         }).catch((x) => {
             return null
         })
+
         return data
     }
 
@@ -230,6 +288,7 @@ export const useClient = defineStore('client', () => {
             return
         }
         authStore.showUserForm = false
+
         await authStore.refreshSession()
     }
 
@@ -237,6 +296,43 @@ export const useClient = defineStore('client', () => {
         client.auth.avatarFile.value = event.target.files[0]
     }
 
+    client.auth.onOff2FA = async () => {
+        try {
+            const { data, error } = await useRequest('/auth/onOff2FA', {
+                method: 'POST'
+            });
+            console.log('Statut 2FA mis à jour :', data.value);
+            authStore.twoFaStatus = data.value as number
+            return (data.value);
+        } catch (error) {
+            console.error('Erreur lors de la mise à jour du statut 2FA :', error);
+        }
+    };
+    
+    client.auth.get2FA = async () => {
+        try {
+            const { data, error } = await useRequest('/auth/get2FA', {
+                method: 'GET'
+            });
+            authStore.twoFaStatus = data.value as number
+            return (data.value);
+        } catch (error) {
+            console.error('Erreur lors de la récupération du statut 2FA :', error);
+        }
+    };
+    
+    client.auth.get2FAQr = async () => {
+        try {
+            const { data, error } = await useRequest('/auth/get2FAQr', {
+                method: 'GET'
+            });
+            console.log('get2FAQr:', data.value);
+            authStore.QRCodeURL = data.value as string;
+            return (data.value);
+      } catch (error) {
+          console.error('Erreur lors de la récupération du statut 2FA :', error);
+      }
+    }
     client.auth.findByUsername = async (username: string ) : Promise<any> => {
         const { data, error } = await useRequest('/auth/findByUsername', {
             method: 'POST',
@@ -384,12 +480,16 @@ export const useClient = defineStore('client', () => {
     const gameLobby: Ref<any[]> = ref([])
     client.game = {
         addToGameQueue: async (playerUsername: string): Promise<any> => {
+            console.log('addToGameQueue: Adding ', playerUsername, ' to game queue')
             // If user is already in the game queue, return
             const userExists: any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${playerUsername}`, {
                 method: 'GET',
             })
             if (userExists.data.value.profile !== undefined)
+            {
+                console.log('addToGameQueue: Could not add ', playerUsername, ' to game queue')
                 return null
+            }
             // Else add user in the game queue
             const response: any = await useRequest('/matchmaking/addPlayerToQueue', {
                 method: 'POST',
@@ -399,11 +499,16 @@ export const useClient = defineStore('client', () => {
         },
 
         removeFromGameQueue: async (playerUsername: string): Promise<any> => {
+            console.log('removeFromGameQueue: Removing ', playerUsername, ' from queue')
             const userExists: any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${playerUsername}`, {
                 method: 'GET',
             })
             if (userExists.data.value.profile === undefined)
+            {
+                console.log('removeFromGameQueue: Could not remove ', playerUsername, ' from queue')
                 return null
+            }
+
             const response: any = await useRequest('/matchmaking/removePlayerFromQueue', {
                 method: 'POST',
                 body: { username: playerUsername },
@@ -412,11 +517,15 @@ export const useClient = defineStore('client', () => {
         },
 
         setQueueStatus: async (playerUsername: string, queueStatus: string):Promise<any> => {
+            console.log('setQueueStatus: Setting ', playerUsername, ' status to in-game in queue')
             const userExists: any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${playerUsername}`, {
                 method: 'GET',
             })
             if (userExists.data.value.profile === undefined)
+            {
+                console.log('setQueueStatus: Could not set ', playerUsername, ' status to ', queueStatus,' in queue')
                 return null
+            }
             const response: any = await useRequest('/matchmaking/setUserQueueStatus', {
                 method: 'POST',
                 body: {
@@ -454,39 +563,19 @@ export const useClient = defineStore('client', () => {
         },
 
         findAMatch: async (playerUsername: string) => {
-            let usersArray = await client.game.getNormalQueuePlayers()
-            let retryAttempts = 10
-
-            //wait for enough players to find a match
-            while (retryAttempts > 0)
-            {
-                const lookingForGame: any = await useRequest(`/matchmaking/findAnOpponent?playerLFG=${playerUsername}`, {
-                    method: 'GET',
-                })
-                if (lookingForGame.data.value !== "")
-                {
-                    //make sure both players have access to lobbyId during the game
-                    console.log('match possible with ', lookingForGame.data.value.username, 'in lobby ', lookingForGame.data.value.lobbyId)
-                    socket.emit('challengePlayer', {
-                        challenger: playerUsername,
-                        lobbyId: lookingForGame.data.value.lobbyId
-                    })
+            const lookingForGame: any = await useRequest(`/matchmaking/findAnOpponent?playerLFG=${playerUsername}`, {
+                method: 'GET',
+            })
+            if (lookingForGame.data.value !== "")
+            {  
+                return {
+                    id: lookingForGame.data.value.profile.id,
+                    socketId: lookingForGame.data.value.profile.socketId,
+                    username: lookingForGame.data.value.username,
+                    avatarPath: lookingForGame.data.value.profile.avatarPath,
+                    lobbyId: lookingForGame.data.value.lobbyId,
                 }
-                for (let i = 0; i < usersArray.length; i++)
-                {
-                    if (usersArray[i].profile.username != playerUsername && usersArray[i].confirmed === "idle")
-                    {
-                        //client A will set the status of client B to waiting and vice-versa
-                        await client.game.setQueueStatus(usersArray[i].profile.username, 'waiting')
-                        return usersArray[i]
-                    }
-                }
-                //retry every 1 sec
-                await new Promise(timeout => setTimeout(timeout, 1000));
-                usersArray = await client.game.getNormalQueuePlayers()
-                retryAttempts--
             }
-            await client.game.removeFromGameQueue(playerUsername)
             return null
         },
 
@@ -512,9 +601,15 @@ export const useClient = defineStore('client', () => {
         },
 
         deleteLobbyById: async (lobbyId: string) => {
+            await new Promise(timeout => setTimeout(timeout, 100));
+            console.log('deleteLobbyById: Deleting lobby ', lobbyId)
             const lobbyExists: any = await client.game.getLobbyById(lobbyId)
             if (lobbyExists.length === 0)
+            {
+                console.log('deleteLobbyById: Could not delete lobby ', lobbyId)
                 return null
+            }
+
             const gameLobby: any = await useRequest('/matchmaking/deleteLobbyById', {
                 method: 'POST',
                 body: {
@@ -530,6 +625,7 @@ export const useClient = defineStore('client', () => {
             })
             if (userExists.data.value.length != 0)
                 return null
+            
             const gameLobby: any = await useRequest('/matchmaking/createGameLobby', {
                 method: 'POST',
                 body: {

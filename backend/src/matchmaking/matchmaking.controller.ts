@@ -54,6 +54,11 @@ export class MatchmakingController {
         return await this.userService.getUserFromQueue(playerUsername); 
     }
 
+    @Get ('getUserInGameFromQueue')
+    async getUserInGamefromQueue(@Query('playerUsername') playerUsername:string){
+        return await this.userService.getUserInGameFromQueue(playerUsername); 
+    }
+
     @Post ('addPlayerToQueue')
     async addPlayerToQueue(@Body() req:any){
         if (req.username === undefined)
@@ -65,6 +70,7 @@ export class MatchmakingController {
     async removePlayerToQueue(@Body() req:any){
         if (req.username === undefined)
             return null
+        console.log('removePlayerFromQueue in matchmaking controller, param = ', req.username)
         return await this.userService.removeUserFromQueue(req.username); 
     }
 
@@ -106,5 +112,30 @@ export class MatchmakingController {
     @Post ('deleteLobbyById')
     async deleteLobbyById(@Body() req:any){
         return  await this.userService.deleteLobbyById(req.lobbyId);
+    }
+
+    @Post ('getPlayersInGame')
+    async getPlayersInGame(@Body() req:any){
+        const lobbies = await this.userService.getLobbiesForUser(req.playerId);
+        const lobby = lobbies[lobbies.length - 1]
+        //console.log('lobby', lobby)
+        const ret = {
+            player1Name: '',
+            player2Name: '',
+            player1Score: lobby.playerOneScore,
+            player2Score: lobby.playerTwoScore,
+        }
+        if (lobby.players[0].id < lobby.players[1].id)
+        {
+            ret.player1Name = lobby.players[0].username;
+            ret.player2Name =  lobby.players[1].username;
+        }
+        else
+        {
+            ret.player1Name = lobby.players[1].username;
+            ret.player2Name = lobby.players[0].username;
+        }
+        return ret
+        
     }
 }

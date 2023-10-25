@@ -7,18 +7,23 @@ export const useAuth = defineStore('auth', () => {
         email: '',
         username: '',
         avatarPath: '',
-        socketId: ''
+        socketId: '',
     })
 
     const showForm = ref(false)
     const showUserForm = ref(false)
+    const showQRCode = ref(false)
+    const QRCodeURL = ref('')
+    const twoFaStatus = ref(0)
     const logged = ref<boolean | null>(null)
     const mode = ref('login')
     const error = ref('')
+    const refresh = ref(false)
 
     // Get auth user data
     const refreshSession = async () => {
-        const sessionData = await client.auth.session()
+        let sessionData : any;
+        sessionData = await client.auth.session()
         if (sessionData?.id) {
             logged.value = true
             session.value = sessionData
@@ -30,12 +35,13 @@ export const useAuth = defineStore('auth', () => {
                 email: '',
                 username: '',
                 avatarPath: '',
-                socketId: ''
+                socketId: '',
             }
         }
     }
 
     const logout = async () => {
+        
         await client.auth.logout()
         await refreshSession()
     }
@@ -46,8 +52,12 @@ export const useAuth = defineStore('auth', () => {
         mode,
         showForm,
         showUserForm,
+        showQRCode,
+        QRCodeURL,
+        twoFaStatus,
         logged,
         refreshSession,
         logout,
+        refresh,
     }
 })

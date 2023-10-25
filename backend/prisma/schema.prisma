@@ -32,7 +32,8 @@ model User {
   messages       Message[]     @relation("sender")
   socketId       String        @default("") //socket id for the user
   queue          Queue?        // Define the Queue relation here
-
+  twoFa           Int          @default(0) //'on' = 1  or 'off' = 0
+  secret         String?       // Field to store the 2FA secret
 }
 
 model GameLobby {
@@ -42,6 +43,21 @@ model GameLobby {
   playerOneScore  String
   playerTwoScore  String
 }
+
+//Client 1 -> Server (joinLobby : user1, user2) -> user2 hasLobby(user1) -> cancel
+//Client 2 -> Server (joinLobby : user1, user2) -> user1 hasLobby(user2) -> cancel
+
+//Timing
+
+
+//Match
+//Define leader
+//if not leader wait ping
+//if leader create lobby and send socket to follower
+
+//Loop database for match in queues
+
+
 
 model Queue {
   id         Int      @id @default(autoincrement())

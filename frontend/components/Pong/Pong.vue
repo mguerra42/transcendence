@@ -1,9 +1,17 @@
 <template>
-    <button @click="startGame()" v-if="stateProps.showPlayButton.value" class="bg-zinc-700 px-3 py-1 m-1 text-zinc-200 rounded-lg">
-        {{ stateProps.showPong.value ? 'Quit' : 'Play' }} 
-    </button>
-    <div class="">
-        <canvas v-show="stateProps.showPong.value" tabindex="0" @keydown.down="gameProps.player1MoveDown" @keydown.up="gameProps.player1MoveUp" class="bg-zinc-300 focus-outline-none rounded-lg cursor-crosshair" id="canvas"></canvas>
+    <div class="flex-col " v-show="stateProps.showPong.value">
+        <div class="flex justify-between p-2 mx-4">
+            <div class="text-lg text-zinc-100">
+                {{ gameProps.Player1.value.name }} - <b> {{ gameProps.Player1.value.score }} </b>
+            </div>
+            <div class="text-lg text-zinc-100">
+                <b> {{ gameProps.Player2.value.score }} </b> - {{ gameProps.Player2.value.name }}
+            </div>
+        </div>
+
+        <div class="">
+            <canvas tabindex="0" @keydown.down="gameProps.player1MoveDown" @keydown.up="gameProps.player1MoveUp" class="bg-zinc-300 focus-outline-none rounded-lg cursor-crosshair" id="canvas"></canvas>
+        </div>
     </div>
 </template>
 
@@ -12,76 +20,42 @@
     const client = useClient()
     const socket = useSocket()
 
-    const gameLobby = ref("")
-
-    const abortMatch = () => {
-        stateProps.matchDeclined.value = true;
-        socket.emit('abortMatch', {
-            player: auth.session.username,
-            senderSocketId: auth.session.socketId,
-            receiverSocketId: stateProps.opponentProfile.value.socketId
-        })
-    }
-
-    const startGame = async () => {
-        const player = auth.session;
-        if (stateProps.showPong.value === false) {
-            const ret = await stateProps.waitForMatch();
-            //Couldnt find a match
-            if (ret === null)
-            {
-                stateProps.showLoader.value = false;
-                await client.game.removeFromGameQueue(auth.session.username)
-                stateProps.showMatchmakingError.value = true;
-                await new Promise(timeout => setTimeout(timeout, 2000));
-                stateProps. showMatchmakingError.value = false;
-                stateProps.resetMatchmakingWindow()
-                stateProps.showPlayButton.value = true;
-                return ;
-            }
-
-            await stateProps.waitForConfirm();
-            if (stateProps.matchAccepted.value === true && stateProps.opponentAccepted.value === true)
-            {
-                await new Promise(timeout => setTimeout(timeout, 1000));
-                console.log("gamelobby : ", gameLobby.value)
-                await client.game.getNormalQueuePlayers()
-                
-                stateProps.showPong.value = true;
-                stateProps.showPlayButton.value = true;
-                stateProps.resetMatchmakingWindow()
-                gameProps.gameLoop();
-                await client.game.setQueueStatus(auth.session.username, 'in-game')
-            }
-            else
-            {
-                stateProps.showPlayButton.value = true;
-                stateProps.resetMatchmakingWindow()
-                await client.game.removeFromGameQueue(auth.session.username)
-            }
-            //Match non confirmed
-        }
-        //Exit running game
-        else 
-        {
-            abortMatch();
-            gameProps.resetGame();
-            cancelAnimationFrame(stateProps.animationFrameId.value);
-            await client.game.removeFromGameQueue(auth.session.username)
-            await client.game.deleteLobbyById(gameLobby.value)
-            stateProps.showPong.value = false;
-            stateProps.showPlayButton.value = true;
-            stateProps.resetMatchmakingWindow()
-            
-        }
-    }
-
     const { stateProps, gameProps } = defineProps<{
         stateProps: any;
         gameProps: any;
     }>();
 
-    onMounted(() => {
+    const hasRefresh = async() => {
+        console.log('hasRefresh: Refreshing Pong status...')
+
+        const userExists: any = await useRequest(`/matchmaking/getUserInGameFromQueue?playerUsername=${auth.session.username}`, {
+            method: 'GET',
+        })
+
+        //check if the user is in a queue with status "in game"
+        if (userExists.data.value.profile !== undefined) {
+            console.log('hasRefresh: ', auth.session.username, ' is in game. Refreshing canvas...')
+            auth.refresh = true
+        }
+        else {
+            // console.log('not in game')
+            const userInQueue: any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${auth.session.username}`, {
+                method: 'GET',
+            })
+            if (userInQueue.data.value.profile !== undefined) {
+                // console.log('in queue')
+                console.log('hasRefresh: ', auth.session.username,' is not in game. Removing from game queue...')
+                await client.game.removeFromGameQueue(auth.session.username)
+            }
+            else
+            {
+                console.log('hasRefresh: ', auth.session.username,' is not in game or in queue.')
+            }
+
+        }
+    }
+
+    onMounted( async () => {
         stateProps.canvas.value = document.getElementById("canvas");
         stateProps.context.value = stateProps.canvas.value.getContext("2d");
  
@@ -92,7 +66,7 @@
         stateProps.context.value.fillRect(gameProps.Player1.value.x, gameProps.Player1.value.y, gameProps.Player1.value.width, gameProps.Player1.value.height)
         stateProps.context.value.fillRect(gameProps.Player2.value.x, gameProps.Player2.value.y, gameProps.Player2.value.width, gameProps.Player2.value.height)
         stateProps.context.value.fillRect(gameProps.Ball.value.x, gameProps.Ball.value.y, gameProps.Ball.value.width, gameProps.Ball.value.height)
-        
+
         socket.on('playerMovementResponse', (data: any) => {
             if (data.player === stateProps.opponentProfile.value.username)
             {
@@ -104,17 +78,12 @@
         });
         
         socket.on('challengePlayerResponse', async (data: any) => {
-            await new Promise(timeout => setTimeout(timeout, 500));
-            console.log('response from back, gamelobby : ', data.lobbyId)
-            console.log('challenger : ', data.challenger, 'current opponent : ', stateProps.opponentProfile.value.username)
             if (data.challenger === stateProps.opponentProfile.value.username)
             {
-                if (gameLobby.value != "")
-                {
-                    client.game.deleteLobbyById(gameLobby.value)
-                }
-                gameLobby.value = data.lobbyId
-                console.log('gamelobby id updated from :', gameLobby.value, 'to ', data.lobbyId)
+                if (stateProps.gameLobbyId.value !== data.lobbyId)
+                    await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
+                stateProps.gameLobbyId.value = data.lobbyId
+                console.log('socketChallengePlayerResponse: Received challenge socket from ', data.challenger, ' with lobby ', data.lobbyId)
             }
         })
 
@@ -129,18 +98,34 @@
         });
 
         socket.on('abortMatchResponse', async (data: any) => {
-            if (data.player === stateProps.opponentProfile.value.username)
+            console.log('socketAbortMatchResponse: Received abort match socket from ', data.player)
+
+            if ((auth.session.username === gameProps.Player1.value.name && data.player === gameProps.Player2.value.name) || (auth.session.username === gameProps.Player2.value.name && data.player === gameProps.Player1.value.name))
             {
+                console.log('socketAbortMatchResponse: Aborting match between ', auth.session.username, ' and ', data.player, ' in lobby ', stateProps.gameLobbyId.value)
                 gameProps.resetGame();
                 cancelAnimationFrame(stateProps.animationFrameId.value);
-                await client.game.removeFromGameQueue(auth.session.username)
-                // lobby is deleted by initiator of the abortMatch
-                // await client.game.deleteLobbyById(gameLobby.value)
                 stateProps.showPong.value = false;
                 stateProps.showPlayButton.value = true;
                 stateProps.resetMatchmakingWindow()
+                await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
             }
+
+            console.log('socketAbortMatchResponse: Resetting chat status to ONLINE')
+            socket.emit('chatStatus', {
+                sender: auth.session.username,
+                text: 'ONLINE',
+            });
         });
+
+        await hasRefresh();
+        if (auth.refresh === true) {
+            stateProps.showPong.value = true;
+            stateProps.showPlayButton.value = true;
+            auth.refresh = false;
+            gameProps.refreshGameSession();
+            gameProps.gameLoop();    
+        }
 
     });
 </script>
