@@ -167,6 +167,53 @@ export class SocketsGateway {
         }
     }
 
+    @SubscribeMessage('refreshPrivateChannel')
+    async handleRefreshPrivateChannel(client: any, payload: any) {
+
+        console.log('refreshPrivateChannel in socket gateway')
+        console.log("other user id = ", payload.otherUserId);
+        const otherUser = await this.userService.findOne(
+            payload.otherUserId
+        );
+        this.server.to(otherUser.socketId).emit('refreshPrivateChannel', {});
+    }
+
+    @SubscribeMessage('refreshUserProfile')
+    async handleRefreshUserProfile(client: any, payload: any) {
+
+        console.log('refreshUserProfile in socket gateway')
+        const currentUser = await this.userService.findOne(
+            payload.currentUserId
+        );
+        console.log("other user id = ", payload.otherUserId);
+        const otherUser = await this.userService.findOne(
+            payload.otherUserId
+        );
+        this.server.to(currentUser.socketId).emit('refreshUserProfile', {});
+        this.server.to(otherUser.socketId).emit('refreshUserProfile', {});
+    }
+
+    @SubscribeMessage('deletePrivateChannel')
+    async handleDeletePrivateChannel(client: any, payload: any) {
+
+        console.log('deletePrivateChannel in socket gateway')
+        const currentUser = await this.userService.findOne(
+            payload.currentUserId
+        );
+        console.log("other user id = ", payload.otherUserId);
+        const otherUser = await this.userService.findOne(
+            payload.otherUserId
+        );
+        this.server.to(currentUser.socketId).emit('deletePrivateChannel',{
+            currentUserId: payload.currentUserId,
+            otherUserId: payload.otherUserId
+        });
+        this.server.to(otherUser.socketId).emit('deletePrivateChannel', {
+            currentUserId: payload.currentUserId,
+            otherUserId: payload.otherUserId
+        });
+    }
+
     async handleConnection(client) {
         // try {
         // Split all cookies and key/value pairs

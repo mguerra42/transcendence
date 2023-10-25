@@ -61,9 +61,13 @@ interface AppClient {
         login42: () => void // login 42
         logout: () => void // logout
         session: () => any // get user data
+
         onOff2FA: () => any
         get2FA: () => any
         get2FAQr: () => any
+
+        findByUsername: (mailOrUsername: string ) => Promise<any> //get user from mail or username
+
     }
 
     friend: {
@@ -73,6 +77,11 @@ interface AppClient {
         pendinglist: () => void
         add: (username: string) => void // add friend
         remove: (friendName: string) => void // remove friend
+        isJustFriend: (friendName : string) => Promise<string>
+        areMutualFriends: (friendName: string) => Promise<string>
+
+        categoryArray: any[]
+        categoryName: string
     }
 
     chat: {
@@ -107,6 +116,7 @@ interface AppClient {
         newMessage: string
         messages: any[]
         showUserProfile: boolean
+        showAdd: string
     }
 
     game: {
@@ -319,9 +329,24 @@ export const useClient = defineStore('client', () => {
             console.log('get2FAQr:', data.value);
             authStore.QRCodeURL = data.value as string;
             return (data.value);
-    } catch (error) {
-        console.error('Erreur lors de la récupération du statut 2FA :', error);
+      } catch (error) {
+          console.error('Erreur lors de la récupération du statut 2FA :', error);
+      }
     }
+    client.auth.findByUsername = async (username: string ) : Promise<any> => {
+        const { data, error } = await useRequest('/auth/findByUsername', {
+            method: 'POST',
+            body: {
+                username,
+            },
+        })
+
+        if (error.value?.statusCode) {
+            authStore.error = error.value?.statusMessage as string
+            return null
+        }
+        console.log("client.auth.findB data.value = ", data.value);
+        return data.value
     }
 
     // CHAT FUNCTIONS
@@ -408,25 +433,47 @@ export const useClient = defineStore('client', () => {
 
     // FRIEND FUNCTIONS
     client.friend.add = async (newFriendName: string) => {
-        console.log('add a friend : ', newFriendName)
         const { data, error } = await useRequest('/friend/add', {
             method: 'POST',
             body: {
                 newFriendName,
             },
         })
-
-        console.log(data.value)
     }
 
     client.friend.remove = async (friendName: string) => {
-        console.log('remove a friend : ', friendName)
         const { data, error } = await useRequest('/friend/remove', {
             method: 'POST',
             body: {
                 friendName,
             },
         })
+    }
+
+    client.friend.isJustFriend = async (friendName: string) : Promise<string> => {
+        const { data } = await useRequest('/friend/isJustFriend', {
+            method: 'POST',
+            body: {
+                friendName,
+            },
+        })
+        if (data.value.Boolean === true)
+            return ("true");
+        else
+            return ("false");
+    }
+
+    client.friend.areMutualFriends = async (friendName: string) : Promise<string> => {
+        const { data } = await useRequest('/friend/areMutualFriends', {
+            method: 'POST',
+            body: {
+                friendName,
+            },
+        })
+        if (data.value.Boolean === true)
+            return ("true");
+        else
+            return ("false");
     }
 
     // GAME FUNCTIONS

@@ -174,6 +174,15 @@ export class AuthController {
 
         return newUser;
     }
+
+    @Post('findByUsername')
+    @UseGuards(JwtAuthGuard)
+    async findUser(@Request() req, @Body() obj) {
+        const user = await this.usersService.findByEmailOrUsername('', obj.username);
+        return (user);
+    }
+
+
     //TODO : connect to frontend
     @UseGuards(AuthGuard('google'))
     @Post('google/logout')

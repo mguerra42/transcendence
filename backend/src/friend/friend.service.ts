@@ -161,21 +161,73 @@ async getFriendRequestsReceived(userId: number): Promise<User[]> {
 
 async removeFriendship(currentId: number, friendUsername: string): Promise<void> {
     try {
-        const friendId = await this.usersService.findByEmailOrUsername('', friendUsername);
+        const friendUser = await this.usersService.findByEmailOrUsername('', friendUsername);
       // Supprimez la relation d'amitié en utilisant les IDs des utilisateurs
       await this.prisma.friend.deleteMany({
         where: {
           OR: [
-            { userOneId: currentId, userTwoId: friendId.id },
-            { userOneId: friendId.id, userTwoId: currentId },
+            { userOneId: currentId, userTwoId: friendUser.id },
+            { userOneId: friendUser.id, userTwoId: currentId },
           ],
         },
       });
   
-      console.log(`Relation d'amitié entre les utilisateurs avec les IDs ${currentId} et ${friendId} supprimée.`);
+      console.log(`Relation d'amitié entre les utilisateurs avec les IDs ${currentId} et ${friendUsername} supprimée.`);
     } catch (error) {
       console.error('Une erreur s\'est produite lors de la suppression d\'ami:', error);
       throw error;
     }
   }
+
+  async isJustFriend(currentId: number, friendName : string): Promise<Boolean> {
+    const friendUser = await this.usersService.findByEmailOrUsername('', friendName);
+    const existingFriendship = await this.prisma.friend.findFirst({
+      where: {
+        userOneId: currentId,
+        userTwoId: friendUser.id,
+      },
+    });
+    
+    if (existingFriendship)
+      return true;
+    return false;
+    }
+
+
+async areMutualFriends(currentUserId: number, otherUserName: string): Promise<boolean> {
+  try {
+      // Recherche de l'utilisateur par nom
+      const otherUser = await this.prisma.user.findUnique({
+          where: { username: otherUserName },
+          include: {
+              friends: {
+                  include: {
+                      userTwo: true
+                  }
+              },
+              inverseFriends: {
+                  include: {
+                      userOne: true
+                  }
+              }
+          }
+      });
+
+      if (!otherUser) {
+          throw new Error('Autre utilisateur non trouvé');
+      }
+
+      // Obtenez la liste des amis mutuels de l'utilisateur actuel
+      const currentUserMutualFriends = await this.getMutualFriends(currentUserId);
+
+      // Vérifiez si l'autre utilisateur est dans la liste des amis mutuels de l'utilisateur actuel
+      const hasMutualFriend = currentUserMutualFriends.some(friend => friend.id === otherUser.id);
+
+      return hasMutualFriend;
+  } catch (error) {
+      // Gérer les erreurs, par exemple, si l'autre utilisateur n'est pas trouvé
+      throw error;
+  }
+}
+
 }

@@ -1,12 +1,11 @@
 import friendListVue from '../components/Friend/FriendList.vue';
 import { defineStore } from 'pinia'
-// import { useRuntimeConfig } from '@nuxt/use-runtime-config';
 
 export const useFriend = defineStore('friend', () => {
   let mutualfriends = ref<any[]>([]);
   let inversefriends = ref<any[]>([]);
-  let currentCategory = ref<any[]>([]);
   let pendingfriends = ref<any[]>([]);
+  const client = useClient();
 
     const fetchMutualFriendList = async () => {
       try {
@@ -20,11 +19,15 @@ export const useFriend = defineStore('friend', () => {
         }
     
         const data = await response.json();
-        console.log('Données d\'amis mutuels reçues :', data.friends); 
         mutualfriends.value = data.friends; // Mettez à jour mutualfriends avec la liste d'amis
       } catch (error) {
         console.error('Erreur lors de la récupération de la liste d\'amis :', error);
       }
+    };
+
+    const getFriends = async () => {
+      await fetchMutualFriendList();
+      return (mutualfriends.value);
     };
 
     
@@ -40,7 +43,6 @@ export const useFriend = defineStore('friend', () => {
         }
         
         const data = await response.json();
-        console.log('Données d\'amis en attente reçues :', data.friends); 
         pendingfriends.value = data.friends;
       } catch (error) {
         console.error('Erreur lors de la récupération de la liste de demandes d\'amis :', error);
@@ -59,7 +61,6 @@ export const useFriend = defineStore('friend', () => {
         }
     
         const data = await response.json();
-        console.log('Données de demandes d\'amis reçues :', data.friends); 
         inversefriends.value = data.friends;
       } catch (error) {
         console.error('Erreur lors de la récupération de la liste de demandes d\'amis :', error);
@@ -69,22 +70,37 @@ export const useFriend = defineStore('friend', () => {
     const toggleCategory= async (category:string) => {
       if (category === 'amis') {
         await fetchMutualFriendList();
-        return mutualfriends.value;
+        client.friend.categoryArray = mutualfriends.value;
+        client.friend.categoryName = 'amis';
       } else if (category === 'enAttente') {
         await fetchPendingFriendList();
-        return pendingfriends.value;
+        client.friend.categoryArray = pendingfriends.value;
+        client.friend.categoryName = 'enAttente';
       } else if (category === 'demandes') {
         await fetchInverseFriendList();
-        return inversefriends.value;
+        client.friend.categoryArray = inversefriends.value;
+        client.friend.categoryName = 'demandes';
       }
     };
 
+    const showAddOption = async (friendName : string) : Promise<string> => {
+      let mutual = await client.friend.areMutualFriends(friendName);
+      let justFriend = await client.friend.isJustFriend(friendName);
+
+      if (mutual === 'true')
+        return ('mutual');
+      else if (justFriend === 'true')
+        return ('justFriend');
+      return ('none');
+    }
+
 
     return { 
-      currentCategory,
       toggleCategory,
       fetchMutualFriendList,
       fetchInverseFriendList,
-      fetchPendingFriendList
+      fetchPendingFriendList,
+      getFriends,
+      showAddOption
     }
   })

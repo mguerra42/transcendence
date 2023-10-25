@@ -5,6 +5,7 @@ import { Socket } from 'socket.io-client';
   const auth = useAuth();
   const socket = useSocket();
   const channel = useChannel();
+  const friend = useFriend();
   client.chat.showUserProfile = false;
   const isTooltipVisible = ref(false);
   const tooltipX = ref(0);
@@ -42,12 +43,20 @@ import { Socket } from 'socket.io-client';
       isTooltipVisible.value = true;
   }
 
-  const displayUserProfile = (event:any) => {
+  const displayUserProfile = async (event:any) => {
     //console.log('displayUserProfile (Channel.vue) , user = ', indexMessage, ', event = ', event);
     isTooltipVisible.value = false;
+    console.log("indexMessage.username = ", indexMessage.username);
+    client.chat.chatState.receiver.username = indexMessage.username;
+    const otherUser = await client.auth.findByUsername(indexMessage.username);
+    console.log("otherUser.id = ", otherUser.id);
+    client.chat.chatState.receiver.id = otherUser.id;
+    client.chat.showAdd = await friend.showAddOption(indexMessage.username);
+    console.log("SHOWADD = ", client.chat.showAdd);
+    console.log("auth.session.id = ", auth.session.id);
+    console.log("receiver.id = ", client.chat.chatState.receiver.id);
     client.chat.showUserProfile = !client.chat.showUserProfile;
     client.chat.chatState.receiver.avatarPath = indexMessage.avatarPath;
-    client.chat.chatState.receiver.username = indexMessage.username;
     // Prevent the click event from propagating to the document
     event.stopPropagation();
   }
@@ -61,9 +70,21 @@ import { Socket } from 'socket.io-client';
     scrollToBottom();
   })
 
-  onMounted(() => {
+  onMounted(async () => {
     document.addEventListener('click', hideTooltip);
+    await socket.connect();
 
+    socket.on('refreshUserProfile', async () => {
+      if (client.chat.showUserProfile) {
+        client.chat.showAdd = await friend.showAddOption(client.chat.chatState.receiver.username);
+      }
+      friend.toggleCategory(client.friend.categoryName);
+      await channel.refresh();
+    });
+
+    socket.on('hasToRefresh', async () => {
+      await channel.refresh();
+    });
   });
 
   // Remove the click event listener when the component is unmounted
