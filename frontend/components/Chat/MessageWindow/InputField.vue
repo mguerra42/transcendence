@@ -3,7 +3,6 @@ const client = useClient();
 const auth = useAuth();
 const socket = useSocket();
 const channel = useChannel();
-let test = ref('true');
 
 const sendMessage = async () => {
   if (client.chat.newMessage.trim() === '') 
@@ -48,16 +47,6 @@ const sendMessageInChannel = async () => {
   //console.log('sendMessageInChannel (InputField.vue) , client.chat.messages = ', client.chat.messages);
 }
 
-onUpdated(async () => {
-  if (client.chat.chatState.receiver.username !== undefined)
-  {
-    const res : string = await client.friend.areMutualFriends(client.chat.chatState.receiver.username);
-    console.log(res);
-    test.value = res;
-    console.log(test.value);
-  }
-});
-
 onMounted(async () => {
     await socket.connect();
 });
@@ -67,7 +56,6 @@ onMounted(async () => {
 <template>
     <div v-if="client.chat.chatState.select === 'DM'" @keyup.enter="sendMessage" class="p-2 h-[1/5] mt-auto ">
           <input
-            v-if="test === 'true'"
             v-model="client.chat.newMessage"
             placeholder="Send a message..."
             class="w-full px-2 py-2 text-sm rounded-lg bg-zinc-600 focus:outline-none focus:text-zinc-300"

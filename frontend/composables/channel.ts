@@ -142,6 +142,12 @@ export const useChannel = defineStore('channel', () => {
     channel.refresh = async () => {
         client.chat.messages = await client.chat.currentHistory()
         client.chat.usersArray = await friend.getFriends()
+        if (client.chat.chatState.select === 'DM')
+        {
+            let areFriends = await client.friend.areMutualFriends(client.chat.chatState.receiver.username);
+            if (areFriends === 'false')
+                client.chat.chatState.select = '';
+        }
         client.chat.channelArray = await channel.getChannels()
         if (client.chat.chatState.select === 'CHANNEL') {
             client.chat.chatState.receiver.onlineUsers = await channel.getOnlineUsers()
