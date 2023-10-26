@@ -26,6 +26,7 @@ import { appName } from '~/constants'
         //reset frontend
         cancelAnimationFrame(stateProps.animationFrameId.value);
         gameProps.resetGame();
+
         stateProps.showPong.value = false;
         stateProps.showPlayButton.value = true;
         stateProps.showEndGame.value = true;
