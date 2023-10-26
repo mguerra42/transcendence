@@ -10,10 +10,6 @@ const isValid = computed(() => {
 </script>
 <template>
     <div class="w-80  bg-white p-6 rounded-lg relative">
-        <div @click="auth.showForm = false"
-            class="text-2xl p-1 hover:bg-blue-500 cursor-pointer hover:text-white rounded m-1 text-black absolute right-0 top-0">
-            <div class="i-mdi:close"></div>
-        </div>
         <h1 class="text-black text-2xl">First time ? 😄</h1>
         <h1 class="text-gray text-2xl mb-6">Create your account !</h1>
         <form @submit.prevent="client.auth.signup({ username, email, password })" class="flex flex-col space-y-4 " autocomplete="off" autocorrect="off">
@@ -25,8 +21,9 @@ const isValid = computed(() => {
             <div class="text-red">
                 {{ auth.error }}
             </div>
-            <button type="submit" :disabled="!isValid" class="bg-blue-500 text-white cursor-pointer hover:scale-105 transition rounded-lg px-4 py-2" :class="{
-                'hover:bg-blue-600 transition duration-300': isValid,
+            <button type="submit" :disabled="!isValid" class=" text-white cursor-pointer hover:scale-105 transition rounded-lg px-4 py-2" :class="{
+                'bg-blue-500 hover:bg-blue-600 transition duration-300': isValid,
+                'bg-blue-500/50': !isValid,
             }">
                 Sign Up
             </button>

@@ -26,6 +26,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   // Use token data to form req.user
   // We might add more fields to req.user later or fetch user model from db
   async validate(payload: any) {
-    return { id: payload.sub, email: payload.email };
+    console.log('payload', payload)
+    return { 
+        id: payload.sub,
+        username: payload.username,
+        email: payload.email,
+        twoFA: payload.twoFA,
+        verified2FA: payload.verified2FA,
+    };
   }
 }

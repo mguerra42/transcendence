@@ -24,7 +24,8 @@ export const useAuth = defineStore('auth', () => {
     const refreshSession = async () => {
         let sessionData : any;
         sessionData = await client.auth.session()
-        if (sessionData?.id) {
+        if (sessionData?.id && (sessionData.twoFA === 0 || (sessionData.twoFA === 1 && sessionData.verified2FA === true))) {
+            console.log('sessionData', sessionData)
             logged.value = true
             session.value = sessionData
         }

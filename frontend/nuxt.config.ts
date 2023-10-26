@@ -4,7 +4,9 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      baseURL: process.env.BACKEND_URL || 'http://localhost:3001/api/v0',
+      GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+      INTRA_CLIENT_ID: process.env.INTRA_CLIENT_ID,
+      baseURL: process.env.BACKEND_URL + process.env.BACKEND_API_VERSION || 'http://localhost:3001/api/v0',
     },
   },
 
@@ -34,8 +36,8 @@ export default defineNuxtConfig({
     head: {
       viewport: 'width=device-width,initial-scale=1',
       link: [
-        { rel: 'icon', href: '/favicon.ico', sizes: 'any' },
-        { rel: 'icon', type: 'image/svg+xml', href: '/nuxt.svg' },
+        { rel: 'icon', href: '/logo.png', sizes: 'any' },
+        // { rel: 'icon', type: 'image/svg+xml', href: '/nuxt.svg' },
         { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
       ],
       meta: [

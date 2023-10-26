@@ -30,11 +30,66 @@ export class AuthService {
     }
 
     //TODO : move logic from controller here
-    login42(req) {
-        if (!req.user) {
-            return 'No user from intra 42';
+    async login42(user: any) {
+        if (!user) {
+            return false;
         }
-        return req.user;
+        
+        let account = await this.usersService.findByEmail(user.email);
+
+        if(!account){
+            account = await this.signup({
+                email: user.email,
+                username: user.username,
+                password: this.usersService.generateRandomString(24),
+            });
+
+            await this.usersService.update(account.id, {avatarPath: user.picture});
+        }
+        
+        const payload = {
+            sub: account.id,
+            email: account.email,
+            username: account.username,
+            twoFA: account.twoFa,
+            verified2FA: false
+        }
+
+        const access_token = await this.jwtService.signAsync(payload);
+
+        return {
+            access_token: access_token,
+            require2FA: !!account.twoFa,
+        };
+    }
+
+
+    async verify2fa(user, twoFactorCode: string): Promise<any> {
+        const account = await this.usersService.findOne(user.id);
+        const secret = account.secret;
+        const verified = speakeasy.totp.verify({
+          secret: secret,
+          encoding: 'base32',
+          token: twoFactorCode,
+          window: 5,
+        });
+
+        if(verified == true){
+            const access_token = await this.jwtService.signAsync({
+                sub: account.id,
+                email: account.email,
+                username: account.username,
+                twoFA: account.twoFa,
+                verified2FA: true
+            });
+
+            return {
+                access_token: access_token,
+                verified: true
+            }
+        }
+    
+        return {verified: false};
     }
 
     //TODO : move logic from controller here
@@ -65,10 +120,6 @@ export class AuthService {
         const secret = speakeasy.generateSecret({ length: 20 }); // Vous pouvez ajuster la longueur selon vos besoins
         credentials.secret = secret.base32;
         const user = await this.usersService.create(credentials);
-        // const user = await this.usersService.create({
-        //     ...credentials,
-        //     secret: secret.base32, // Stockez la version base32 du secret dans la base de données
-        // });
     
         return user;
     }
@@ -135,19 +186,6 @@ export class AuthService {
         } catch (error) {
             throw new Error('Error generating QR code.');
         }
-    }
-    async verify2fa(userId: number, twoFactorCode: string): Promise<number> {
-        const user = await this.usersService.findOne(userId);
-        const secret = user.secret;
-        console.log('code =', twoFactorCode)
-        const verified = speakeasy.totp.verify({
-          secret: secret,
-          encoding: 'base32',
-          token: twoFactorCode,
-          window: 5,
-        });
-    
-        return verified;
     }
 
     async update(id: number, updateDto: any) {

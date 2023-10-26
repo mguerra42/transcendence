@@ -5,6 +5,7 @@ import { Strategy, VerifyCallback } from 'passport-42';
 @Injectable()
 export class FortyTwoStrategy extends PassportStrategy(Strategy, '42') {
   constructor() {
+    
     super({
       clientID: process.env.INTRA_CLIENT_ID,
       clientSecret: process.env.INTRA_CLIENT_SECRET,
@@ -25,7 +26,7 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy, '42') {
             firstName: name.givenName,
             lastName: name.familyName,
             username: username,
-            picture: photos[0].value,
+            picture: profile._json.image.link,
             accessToken,
         };
         done(null, user);
