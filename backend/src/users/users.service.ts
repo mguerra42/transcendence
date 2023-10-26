@@ -6,10 +6,11 @@ import { User, Prisma, Role } from '@prisma/client';
 
 import * as bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
+import { connect } from 'http2';
 
 @Injectable()
 export class UsersService {
-    constructor(private db: DBService) { }
+    constructor(private db: DBService) {}
     async create(data: CreateUserDto) {
         const hash = bcrypt.hashSync(data.password, 10);
         data.password = hash;
@@ -124,7 +125,7 @@ export class UsersService {
                 username: playerUsername,
             },
             data: {
-              confirmed: 'confirmed',
+                confirmed: 'confirmed',
             },
         });
     }
@@ -161,7 +162,6 @@ export class UsersService {
             },
         });
     }
-
 
     getUsersInChannel(channelName: string) {
         return this.db.channel.findMany({
@@ -317,7 +317,7 @@ export class UsersService {
             return null; // or throw an error, or handle it according to your use case
         }
 
-        console.log('existingLobby', gameLobbyId)
+        console.log('existingLobby', gameLobbyId);
         //TODO :  the lobby from the database
         return this.db.gameLobby.delete({
             where: {
@@ -352,6 +352,39 @@ export class UsersService {
                 },
                 playerOneScore: '0',
                 playerTwoScore: '0',
+            },
+        });
+    }
+
+    async createEndGame(
+        winner: string,
+        loser: string,
+        winnerScore: number,
+        loserScore: number,
+    ) {
+        const winnerUser = await this.db.user.findUnique({
+            where: { username: winner },
+        });
+
+        const loserUser = await this.db.user.findUnique({
+            where: { username: loser },
+        });
+
+        if (!winnerUser || !loserUser) {
+            console.error('Invalid winner or loser');
+            return null;
+        }
+
+        return await this.db.game.create({
+            data: {
+                winner: {
+                    connect: { id: winnerUser.id },
+                },
+                loser: {
+                    connect: { id: loserUser.id },
+                },
+                winnerScore: winnerScore,
+                loserScore: loserScore,
             },
         });
     }

@@ -136,6 +136,15 @@ export class MatchmakingController {
             ret.player2Name = lobby.players[0].username;
         }
         return ret
-        
+    }
+
+    @Post ('createEndGame')
+    async createEndGame(@Body() req:any){
+        return await this.userService.createEndGame(
+            req.winner,
+            req.loser,
+            req.winnerScore,
+            req.loserScore,
+        );
     }
 }

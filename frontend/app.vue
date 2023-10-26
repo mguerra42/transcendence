@@ -9,13 +9,20 @@ import { appName } from '~/constants'
   const socket = useSocket()
 
   //STATIC FUNCTION
-  const finishGame = async () => {
+  const finishGame = async (winner:string) => {
         
         //clean up backend
         console.log('finishGame: Game finished, removing ', auth.session.username, ' from queue and deleting lobby ', stateProps.gameLobbyId.value)
         await client.game.removeFromGameQueue(auth.session.username)
         await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
-        
+
+        //le winner crée l'objet game dans la DB pour eviter doublon
+        if (winner == 'P1' && auth.session.username == gameProps.Player1.value.name)
+            await client.game.createEndGame(gameProps.Player1.value.name, gameProps.Player2.value.name, gameProps.Player1.value.score, gameProps.Player2.value.score);
+        else if (winner == 'P2' && auth.session.username == gameProps.Player2.value.name)
+            await client.game.createEndGame(gameProps.Player2.value.name, gameProps.Player1.value.name, gameProps.Player2.value.score, gameProps.Player1.value.score);
+        //else, le user est perdant donc n'a pas a crée l'objet game.
+            
         //reset frontend
         cancelAnimationFrame(stateProps.animationFrameId.value);
         gameProps.resetGame();
@@ -302,7 +309,7 @@ import { appName } from '~/constants'
                 if (gameProps.Player1.value.score === 5)
                 {
                     console.log("app.vue: Player 1 Win !")
-                    finishGame();
+                    finishGame('P1');
                     return ;
                 }
             }
@@ -312,7 +319,7 @@ import { appName } from '~/constants'
                 if (gameProps.Player2.value.score === 5)
                 {
                     console.log("app.vue: Player 2 Win !")
-                    finishGame();
+                    finishGame('P2');
                     return ;
                 }
             }

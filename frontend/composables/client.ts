@@ -131,6 +131,7 @@ interface AppClient {
         getLobbyById: (lobbyId: string) => Promise<any>
         deleteLobbyById: (lobbyId: string) => Promise<any>
         getAllLobbies: () => Promise<any>
+        createEndGame: (winner: string, loser: string, winnerScore: number, loserScore: number) => void
         create: () => void // create game
     }
 }
@@ -634,6 +635,29 @@ export const useClient = defineStore('client', () => {
                 },
             })
             return gameLobby.data.value.lobbyId
+        },
+
+        createEndGame: async (winner: string, loser: string, winnerScore: number, loserScore: number) => {
+            if (winnerScore === '0')
+                winnerScore = 0
+            if (loserScore === '0')
+                loserScore = 0
+            const { data, error } = await useRequest('/matchmaking/createEndGame', {
+                method: 'POST',
+                body: {
+                    winner,
+                    loser,
+                    winnerScore,
+                    loserScore,
+                },
+            })
+
+            if (error.value?.statusCode) {
+                authStore.error = error.value?.statusMessage as string
+                return null
+            }
+
+            return data.value
         },
 
         create: () => {
