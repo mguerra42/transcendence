@@ -10,10 +10,7 @@ export class FriendController {
   @UseGuards(JwtAuthGuard)
   async addFriend(@Request() req, @Body() friendUsername) {
     const currentUserId = req.user.id;
-    console.log(`Current User ID: ${currentUserId}`);
-    console.log('Friendadd : ', friendUsername);
 
-    // Utilisez le service FriendsService pour ajouter l'ami dans la base de données
     await this.friendService.addFriend(currentUserId, friendUsername.newFriendName);
     return { message: 'Ami ajouté avec succès'};
   }
@@ -69,7 +66,6 @@ export class FriendController {
     const currentUserId = req.user.id;
     const result = await this.friendService.areMutualFriends(currentUserId, friendNameObj.friendName);
 
-    console.log("controller mutualfriends result : ", result);
     return { Boolean : result };
   }
 }

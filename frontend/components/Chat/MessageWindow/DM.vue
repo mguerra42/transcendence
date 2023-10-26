@@ -19,28 +19,13 @@ const displayUserProfile = async () => {
     client.chat.showAdd = await friend.showAddOption(client.chat.chatState.receiver.username);
   }
 
-onUpdated(() => {
+onUpdated( async () => {
   scrollToBottom();
+  client.chat.messages = await client.chat.currentHistory();
 })
 
 onMounted(async () => {
     await socket.connect();
-    socket.on('refreshPrivateChannel', async () => {
-      setInterval(() => {}, 20);
-      client.chat.messages = await client.chat.currentHistory();
-    });
-    socket.on('deletePrivateChannel', async (currentUserId : number, otherUserId : number) => {
-      console.log("socket.on delete DM");
-      console.log("client.chat.chatState.select = ", client.chat.chatState.select);
-      console.log("auth.session.id = ", auth.session.id);
-      console.log("client.chat.chatState.receiver.id", client.chat.chatState.receiver.id);
-      if (client.chat.chatState.select == 'DM'
-        && auth.session.id == currentUserId
-        && client.chat.chatState.receiver.id == otherUserId)
-        {
-          client.chat.chatState.select = '';
-        }
-    });
   });
 </script>
 

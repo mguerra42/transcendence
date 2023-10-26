@@ -74,7 +74,7 @@ import { Socket } from 'socket.io-client';
     document.addEventListener('click', hideTooltip);
     await socket.connect();
 
-    socket.on('refreshUserProfile', async () => {
+    socket.on('refreshUserProfileResponse', async () => {
       if (client.chat.showUserProfile) {
         client.chat.showAdd = await friend.showAddOption(client.chat.chatState.receiver.username);
       }

@@ -54,10 +54,6 @@
        currentUserId: auth.session.id,
        otherUserId: client.chat.chatState.receiver.id
       });
-    socket.emit('deletePrivateChannel', {
-        currentUserId: auth.session.id,
-        otherUserId: client.chat.chatState.receiver.id
-    });
   };
 
   onMounted (async () => {
@@ -65,7 +61,7 @@
     friend.fetchInverseFriendList();
     friend.toggleCategory(client.friend.categoryName);
     await socket.connect();
-    socket.on('refreshUserProfile', async () => {
+    socket.on('refreshUserProfileResponse', async () => {
         friend.toggleCategory(client.friend.categoryName);
         if (client.chat.showUserProfile){
           client.chat.showAdd = await friend.showAddOption(client.chat.chatState.receiver.username);

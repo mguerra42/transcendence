@@ -189,29 +189,8 @@ export class SocketsGateway {
         const otherUser = await this.userService.findOne(
             payload.otherUserId
         );
-        this.server.to(currentUser.socketId).emit('refreshUserProfile', {});
-        this.server.to(otherUser.socketId).emit('refreshUserProfile', {});
-    }
-
-    @SubscribeMessage('deletePrivateChannel')
-    async handleDeletePrivateChannel(client: any, payload: any) {
-
-        console.log('deletePrivateChannel in socket gateway')
-        const currentUser = await this.userService.findOne(
-            payload.currentUserId
-        );
-        console.log("other user id = ", payload.otherUserId);
-        const otherUser = await this.userService.findOne(
-            payload.otherUserId
-        );
-        this.server.to(currentUser.socketId).emit('deletePrivateChannel',{
-            currentUserId: payload.currentUserId,
-            otherUserId: payload.otherUserId
-        });
-        this.server.to(otherUser.socketId).emit('deletePrivateChannel', {
-            currentUserId: payload.currentUserId,
-            otherUserId: payload.otherUserId
-        });
+        this.server.to(currentUser.socketId).emit('refreshUserProfileResponse', {});
+        this.server.to(otherUser.socketId).emit('refreshUserProfileResponse', {});
     }
 
     async handleConnection(client) {

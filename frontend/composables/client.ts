@@ -355,7 +355,7 @@ export const useClient = defineStore('client', () => {
     }
 
     client.friend.isJustFriend = async (friendName: string) : Promise<string> => {
-        const { data } = await useRequest('/friend/isJustFriend', {
+        const { data } : any = await useRequest('/friend/isJustFriend', {
             method: 'POST',
             body: {
                 friendName,
@@ -368,12 +368,14 @@ export const useClient = defineStore('client', () => {
     }
 
     client.friend.areMutualFriends = async (friendName: string) : Promise<string> => {
-        const { data } = await useRequest('/friend/areMutualFriends', {
+        const { data } : any = await useRequest('/friend/areMutualFriends', {
             method: 'POST',
             body: {
                 friendName,
             },
         })
+        if (data.value === null)
+            return ("false");
         if (data.value.Boolean === true)
             return ("true");
         else
