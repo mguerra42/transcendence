@@ -3,4 +3,6 @@ export interface updateSessionDto {
     avatarPath?: string;
     id?: number;
     email?: string;
+    victories?: number;
+    defeats?: number;
 }

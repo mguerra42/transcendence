@@ -375,7 +375,7 @@ export class UsersService {
             return null;
         }
 
-        return await this.db.game.create({
+        const newGame =  await this.db.game.create({
             data: {
                 winner: {
                     connect: { id: winnerUser.id },
@@ -387,5 +387,70 @@ export class UsersService {
                 loserScore: loserScore,
             },
         });
+
+        await this.db.user.update({
+            where: { username: winner },
+            data: {
+                victories: winnerUser.victories + 1,
+            },
+        });
+
+        await this.db.user.update({
+            where: { username: loser },
+            data: {
+                defeats: loserUser.defeats + 1,
+            },
+        });
+
+        return newGame;
+    }
+
+    compare_id(a: any, b: any) {
+        if (a.id < b.id) {
+            return -1;
+        }
+        if (a.id > b.id) {
+            return 1;
+        }
+        return 0;
+    }
+
+    async getGameArray(playerId: number) {
+        const user = await this.db.user.findUnique({
+            where: { id: playerId },
+            include: {
+                wonGames: true,
+                lostGames: true,
+            },
+        });
+
+        const DBGames = user?.wonGames.concat(user?.lostGames) || [];
+        DBGames.sort(this.compare_id);
+        //trier par id !!
+
+        const games = [];
+
+        for (let i = 0; i < (DBGames.length); i++) {
+            if (DBGames[i].winnerId === playerId) {
+                games[i] = DBGames[i];
+                games[i].winnerName = user?.username;
+                const loser = await this.db.user.findUnique({
+                    where: { id: DBGames[i].loserId },
+                });
+                games[i].loserName = loser?.username;
+                //ajouter avatarpath ?
+            }
+            else if (DBGames[i].loserId === playerId) {
+                games[i] = DBGames[i];
+                games[i].loserName = user?.username;
+                const winner = await this.db.user.findUnique({
+                    where: { id: DBGames[i].winnerId },
+                });
+                games[i].winnerName = winner?.username;
+                //ajouter avatarpath ?
+            }
+        }
+
+        return games;
     }
 }

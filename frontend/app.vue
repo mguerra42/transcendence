@@ -14,7 +14,7 @@ import { appName } from '~/constants'
         //clean up backend
         console.log('finishGame: Game finished, removing ', auth.session.username, ' from queue and deleting lobby ', stateProps.gameLobbyId.value)
         await client.game.removeFromGameQueue(auth.session.username)
-        await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
+        //await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
 
         //le winner crée l'objet game dans la DB pour eviter doublon
         if (winner == 'P1' && auth.session.username == gameProps.Player1.value.name)
@@ -26,6 +26,7 @@ import { appName } from '~/constants'
         //reset frontend
         cancelAnimationFrame(stateProps.animationFrameId.value);
         gameProps.resetGame();
+        auth.refreshSession();
 
         stateProps.showPong.value = false;
         stateProps.showPlayButton.value = true;
@@ -39,6 +40,8 @@ import { appName } from '~/constants'
         });
         console.log('finishGame: Reset game status')
         gameProps.gameStatus.value = '';
+
+        client.game.gameArray = await client.game.getGameArray();
   }
 
   //PROPS

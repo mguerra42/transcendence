@@ -6,6 +6,7 @@
 import { defineStore } from 'pinia'
 import { RefSymbol } from '@vue/reactivity'
 import { useFetch } from '#app'
+import { AuthLoginForm } from '#build/components'
 
 export const useRequest: typeof useFetch = (path, options = {}) => {
     const config = useRuntimeConfig()
@@ -131,8 +132,10 @@ interface AppClient {
         getLobbyById: (lobbyId: string) => Promise<any>
         deleteLobbyById: (lobbyId: string) => Promise<any>
         getAllLobbies: () => Promise<any>
+        getGameArray: () => any
         createEndGame: (winner: string, loser: string, winnerScore: number, loserScore: number) => void
         create: () => void // create game
+        gameArray: globalThis.Ref<any[]> // all the games of the current player
     }
 }
 
@@ -652,6 +655,22 @@ export const useClient = defineStore('client', () => {
                 },
             })
 
+            if (error.value?.statusCode) {
+                authStore.error = error.value?.statusMessage as string
+                return null
+            }
+
+            return data.value
+        },
+
+        getGameArray: async () => {
+            const { data, error } = await useRequest('/matchmaking/getGameArray', {
+                method: 'POST',
+                body: {
+                    userId: authStore.session.id,
+                },
+            })
+            
             if (error.value?.statusCode) {
                 authStore.error = error.value?.statusMessage as string
                 return null

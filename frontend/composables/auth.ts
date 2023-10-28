@@ -8,6 +8,8 @@ export const useAuth = defineStore('auth', () => {
         username: '',
         avatarPath: '',
         socketId: '',
+        victories: 0,
+        defeats: 0,
     })
 
     const showForm = ref(false)
@@ -36,6 +38,8 @@ export const useAuth = defineStore('auth', () => {
                 username: '',
                 avatarPath: '',
                 socketId: '',
+                victories: 0,
+                defeats: 0,
             }
         }
     }

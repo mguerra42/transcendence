@@ -24,11 +24,32 @@
           <!-- Nuxt Page -->
           
           <!-- Right Sidebar -->
-          <div class="w-0/6 sm:w-0/6 lg:w-300px md:w-300px rounded bg-zinc-800 max-h-[100vh] overflow-y-auto scrollbar-w-2">
-            <div class="overflow-y-auto scrollbar-w-2 h-[100vh] bg-zinc-900 rounded-lg m-4">
-              <p class="text-4xl text-center m-2">
+          <div class="w-0/6 sm:w-0/6 lg:w-300px md:w-300px rounded bg-zinc-300 max-h-[100vh] overflow-y-auto scrollbar-w-2">
+            <div class="overflow-y-auto scrollbar-w-2 h-[100vh] bg-zinc-900 rounded-lg m-4 flex-col">
+              <p class="text-4xl text-white text-center m-2">
                   {{ auth.session.username }}
               </p>
+              <p class="text-sm text-white ml-6 m-2">
+                total victories &ensp;:&ensp; {{ auth.session.victories }}
+                <br>
+                total defeats  &emsp;:&ensp; {{ auth.session.defeats }}
+              </p>
+
+              <!-- Game List -->
+              <div v-for="gameList in client.game.gameArray" :class="{' bg-red-700 cursor-pointer hover:bg-red-600  flex-col mb-3 mt-4' : gameList.loserId === auth.session.id,
+                                                                      ' bg-green-700 cursor-pointer hover:bg-green-600  flex-col mb-3 mt-4' : gameList.winnerId === auth.session.id}" >
+                   <p class="text-s text-white text-center m-2">
+                    game id : {{ gameList.id }} 
+                  </p>
+                  <p class="text-2xl text-white text-center m-2">
+                    {{ gameList.winnerName }} <b>VS</b> {{ gameList.loserName }}
+                  </p>
+                  <p class="text-3xl text-white text-center m-2">
+                    {{ gameList.winnerScore }} - {{ gameList.loserScore }} 
+                  </p>
+                  
+              </div>
+
             </div>
           </div>
           <!-- Right Sidebar -->
@@ -65,11 +86,16 @@
 
 <script setup lang="ts">
   const auth = useAuth()
+  const client = useClient()
   const { stateProps, gameProps } = defineProps<{
       stateProps: any,
       gameProps: any
   }>();
 
+  client.game.gameArray = [];
+
   onMounted(async() => {
+    await auth.refreshSession()
+    client.game.gameArray = await client.game.getGameArray();
   })
 </script>

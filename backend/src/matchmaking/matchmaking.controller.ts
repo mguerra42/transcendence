@@ -147,4 +147,10 @@ export class MatchmakingController {
             req.loserScore,
         );
     }
+
+    @Post ('getGameArray')
+    async getGameArray(@Body() req:any){
+        const gameArray =  await this.userService.getGameArray(req.userId);
+        return gameArray
+    }
 }
