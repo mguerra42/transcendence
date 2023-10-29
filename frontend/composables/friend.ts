@@ -83,6 +83,29 @@ export const useFriend = defineStore('friend', () => {
       }
     };
 
+    const findClosestUsers = async (searchString : string) => {
+      const closestUsers = ref([]);
+    
+      try {
+        const response = await fetch(`${useRuntimeConfig().public.baseURL}/friend/closest?search=${searchString}`, {
+          method: 'GET',
+          credentials: 'include',
+        });
+    
+        if (!response.ok) {
+          throw new Error('La requête /users/closest a échoué');
+        }
+    
+        const data = await response.json();
+        closestUsers.value = data.closestUsers;
+      } catch (error) {
+        console.error('Erreur lors de la récupération des utilisateurs les plus proches :', error);
+      }
+    
+      return closestUsers;
+    };
+    
+    
     const showAddOption = async (friendName : string) : Promise<string> => {
       let mutual = await client.friend.areMutualFriends(friendName);
       let justFriend = await client.friend.isJustFriend(friendName);
@@ -101,6 +124,7 @@ export const useFriend = defineStore('friend', () => {
       fetchInverseFriendList,
       fetchPendingFriendList,
       getFriends,
-      showAddOption
+      showAddOption,
+      findClosestUsers,
     }
   })

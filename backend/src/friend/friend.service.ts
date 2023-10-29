@@ -5,6 +5,7 @@ import { UsersService } from '../users/users.service';
 import { DBService } from 'src/db/db.service';
 import { Prisma } from '@prisma/client';
 import { User } from '@prisma/client';
+import * as levenshtein from 'fast-levenshtein';
 
 @Injectable()
 export class FriendService {
@@ -230,4 +231,20 @@ async areMutualFriends(currentUserId: number, otherUserName: string): Promise<bo
   }
 }
 
+
+async getClosestUsers(search: string, numberOfResults: number): Promise<User[]> {
+  const users = await this.prisma.user.findMany();
+  const results: { user: User, distance: number }[] = [];
+
+  users.forEach(user => {
+    const distance = levenshtein.get(search, user.username);
+    results.push({ user, distance });
+  });
+
+  results.sort((a, b) => a.distance - b.distance);
+
+  const closestUsers: User[] = results.slice(0, numberOfResults).map(result => result.user);
+
+  return closestUsers;
+}
 }
