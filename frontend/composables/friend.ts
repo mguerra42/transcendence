@@ -102,7 +102,7 @@ export const useFriend = defineStore('friend', () => {
         console.error('Erreur lors de la récupération des utilisateurs les plus proches :', error);
       }
     
-      return closestUsers;
+      return closestUsers.value;
     };
     
     
