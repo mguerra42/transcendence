@@ -75,8 +75,9 @@ export class FriendController {
 
   @Get('closest')
   @UseGuards(JwtAuthGuard)
-  async getClosestUsers(@Query('search') search: string) {
-    const closestUsers = await this.friendService.getClosestUsers(search, 10);
+  async getClosestUsers(@Request() req, @Query('search') search: string) {
+    const currentUserId = req.user.id;
+    const closestUsers = await this.friendService.getClosestUsers(currentUserId, search, 10);
     return { closestUsers };
   }
 }

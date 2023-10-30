@@ -195,6 +195,7 @@ async removeFriendship(currentId: number, friendUsername: string): Promise<void>
     }
 
 
+
 async areMutualFriends(currentUserId: number, otherUserName: string): Promise<boolean> {
   try {
       // Recherche de l'utilisateur par nom
@@ -231,20 +232,85 @@ async areMutualFriends(currentUserId: number, otherUserName: string): Promise<bo
   }
 }
 
+async isFriend(currentUserId: number, otherUserId: number): Promise<boolean> {
+  try {
+    const existingFriendship = await this.prisma.friend.findFirst({
+      where: {
+        OR: [
+          { userOneId: currentUserId, userTwoId: otherUserId },
+          { userOneId: otherUserId, userTwoId: currentUserId },
+        ],
+      },
+    });
 
-async getClosestUsers(search: string, numberOfResults: number): Promise<User[]> {
-  const users = await this.prisma.user.findMany();
-  const results: { user: User, distance: number }[] = [];
-
-  users.forEach(user => {
-    const distance = levenshtein.get(search, user.username);
-    results.push({ user, distance });
-  });
-
-  results.sort((a, b) => a.distance - b.distance);
-
-  const closestUsers: User[] = results.slice(0, numberOfResults).map(result => result.user);
-
-  return closestUsers;
+    return existingFriendship ? true : false;
+  } catch (error) {
+    throw error;
+  }
 }
+
+async getFriendsUseTwo(userId: number): Promise<User[]> {
+  try {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        friends: {
+          include: {
+            userTwo: true
+          }
+        }
+      }
+    });
+
+    if (!user) {
+      throw new Error('Utilisateur non trouvé');
+    }
+
+    // Utilisation de optional chaining pour éviter les erreurs si friends est null ou undefined
+    const friendRequestsReceivedList = user.friends?.map(friend => friend.userTwo) || [];
+
+    return friendRequestsReceivedList;
+  } catch (error) {
+    // Gérer les erreurs (par exemple, l'utilisateur n'a pas été trouvé)
+    throw error;
+  }
+}
+
+async getClosestUsers(currentUserId: number, search: string, numberOfResults: number): Promise<User[]> {
+  try {
+    // Récupérer tous les utilisateurs de la base de données
+    const users = await this.prisma.user.findMany({
+      include: {
+        friends: {
+          include: {
+            userTwo: true
+          }
+        }
+      }
+    });
+    console.log('users',users)
+    // Filtrer les utilisateurs qui sont des amis de l'utilisateur courant
+    const friendUsers = await getFriendsUseTwo(currentUserId)
+      console.log('frienduser',friendUsers)
+    // Calculer les distances de Levenshtein pour chaque utilisateur filtré
+    const results: { user: User, distance: number }[] = [];
+    friendUsers.forEach(user => {
+      const distance = levenshtein.get(search, user.username);
+      results.push({ user, distance });
+    });
+
+    // Trier les résultats par distance croissante
+    results.sort((a, b) => a.distance - b.distance);
+
+    // Sélectionner les 10 utilisateurs les plus proches
+    const closestUsers: User[] = results.slice(0, numberOfResults).map(result => result.user);
+
+    return closestUsers;
+  } catch (error) {
+    // Gérer les erreurs (par exemple, l'utilisateur n'a pas été trouvé)
+    throw error;
+  }
+}
+
+
 }

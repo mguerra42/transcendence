@@ -7,6 +7,7 @@
   const auth = useAuth();
   const newFriendName = ref('')
   const closestUsers : Ref<any[]> = ref([]);
+  const rawClosestUsers = ref([]);
   const showClosestUserList = ref(false);
   client.friend.categoryName = 'amis';
   const selectedItem = ref<any | null>(null);
@@ -64,10 +65,13 @@
   const searchUsers = async (event: Event) => {
     const friendName = (event.target as HTMLInputElement).value;
     closestUsers.value = await friend.findClosestUsers(friendName);
-    showClosestUserList.value = true
+    rawClosestUsers.value = toRaw(closestUsers.value);
     if (friendName === '')
-    showClosestUserList.value = false
+      showClosestUserList.value = false
+    else
+      showClosestUserList.value = true
     console.log('closest', closestUsers.value)
+    // console.log(closestUsers.value[0].username)
   };
 
   onMounted (async () => {
@@ -141,8 +145,7 @@
           <div v-for="user in closestUsers" :key="user.id" class="text-zinc-200 text-sm p-2 m-1 hover:bg-zinc-500 rounded flex justify-between">
             <div class="flex">
               <div class="flex flex-col justify-center">
-                <!-- Affiche l'image de l'utilisateur -->
-                <img :src="user.pathImage" class="w-6 h-6 rounded-full" />
+                <img :src="user.avatarPath" class="w-6 h-6 rounded-full" />
               </div>
               <div class="flex flex-col justify-center">
                 <!-- Affiche le nom d'utilisateur de l'utilisateur -->
