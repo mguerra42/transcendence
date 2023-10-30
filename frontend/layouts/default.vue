@@ -1,3 +1,32 @@
+<script setup lang="ts">
+    const auth = useAuth()
+    const { stateProps, gameProps } = defineProps<{
+        stateProps: any,
+        gameProps: any
+    }>();
+  
+    onMounted(async() => {
+    })
+
+
+  const addGlitchEffect = () => {
+    const button = document.getElementById("loginButton");
+    button.classList.add("hero", "glitch", "layers");
+  };
+
+  const removeGlitchEffect = () => {
+    const button = document.getElementById("loginButton");
+    button.classList.remove("hero", "glitch", "layers");
+  };
+
+  const changeMode = (mode : string) => {
+    auth.showForm = true;
+    auth.mode = mode;
+    console.log(auth.mode);
+  };
+
+</script>
+
 <template>
     <main class="h-100vh">
       
@@ -40,19 +69,29 @@
       </div>
       
       <!-- Logged Out View -->
-      <div class="home">
-        <div class="video-container">
-          <video autoplay loop muted>
-            <source src="../grid.mp4" type="video/mp4">
-          </video>
+        <div v-else class="">
+          <div class="home">
+            <!-- Homepage -->
+            <div class="video-container">
+              <video autoplay loop muted>
+                <source src="/videos/grid.mp4" type="video/mp4">
+              </video>
+            </div>
+            <section>
+              <div class="hero-container">
+                <h2 class="hero glitch layers big-title neon-text" data-text="Welcome to pong"><span>Welcome to pong</span></h2>
+                <!-- <button @click="auth.showForm = true" class="hero glitch layers little-title neon-text">Login</button> -->
+                <button class="b-1 rounded bg-blue-500 px-2 py-1 b-blue-700 cursor-pointer hover:bg-blue-600" @click="changeMode('login')">Login</button>
+              </div>
+            </section>
         </div>
-
-        <section>
-
-        <div class="hero-container">
-          <h2 class="hero glitch layers neon-text" data-text="Welcome to pong"><span>Welcome to pong</span></h2>
+        <!-- LoginForm -->
+        <div v-if="auth.showForm === true" class="login-modal">
+          <div class="">
+            <AuthLoginForm v-if="auth.mode === 'login'" />
+            <AuthSignUpForm v-else-if="auth.mode === 'signup'" />
+          </div>
         </div>
-      </section>
       </div>
   
     </main>
@@ -61,7 +100,7 @@
   <style scoped>
     @font-face {
     font-family: 'glitchy';
-    src: url('../fonts/SDGlitch_Demo.ttf') format('truetype');
+    src: url('/fonts/SDGlitch_Demo.ttf') format('truetype');
     }
 
     .scrollbar-w-2::-webkit-scrollbar {
@@ -94,15 +133,53 @@
   .neon-text {
     font-family: 'glitchy', sans-serif;
     text-align: center;
-    font-size: 5rem;
     color: rgb(8, 7, 7);
-    text-transform: uppercase;
     text-shadow: 0 0 10px #00FFC6, 0 0 20px #00FFC6, 0 0 30px #00FFC6;
-    position: absolute;
-    top: 50%; /* Positionnez le texte au milieu de la page */
-    left: 50%;
-    transform: translate(-50%, -50%); /* Centrez le texte */
+    width: 100%;
   }
+
+  .little-title {
+    font-size: 3rem;
+  }
+
+  .big-title {
+    font-size: 5rem;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-transform: uppercase;
+  }
+
+  .login-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 30%;
+    z-index: 9999;
+  }
+
+  .glitch-button {
+  font-size: 1rem; /* Ajustez la taille du texte à votre convenance */
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s; /* Animation de transition en cas de survol */
+  display: block; /* Définissez le bouton comme un élément de type bloc */
+
+  /* Styles normaux */
+  color: #fff; /* Couleur du texte */
+  text-transform: uppercase;
+  font-weight: bold;
+
+  /* Styles d'effet "glitch" en cas de hover
+  &:hover {
+    text-shadow: 0 0 10px #00FFC6, 0 0 20px #00FFC6, 0 0 30px #00FFC6;
+    color: #00FFC6; /* Couleur du texte pendant le hover */
+  /* } */
+}
 
   body {
   color: #ccc;
@@ -601,27 +678,4 @@ section {
   text-align: center;
 }
 
-.environment {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  opacity: 0.5;
-  filter: blur(5px);
-  background: url(https://images.unsplash.com/photo-1602136773736-34d445b989cb?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80)
-    center no-repeat;
-  background-size: cover;
-}
   </style>
-  
-  <script setup lang="ts">
-    const auth = useAuth()
-    const { stateProps, gameProps } = defineProps<{
-        stateProps: any,
-        gameProps: any
-    }>();
-  
-    onMounted(async() => {
-    })
-  </script>
