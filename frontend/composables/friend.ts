@@ -97,6 +97,8 @@ export const useFriend = defineStore('friend', () => {
         }
     
         const data = await response.json();
+        console.log('datae',data)
+        return data;
         closestUsers.value = data.closestUsers;
       } catch (error) {
         console.error('Erreur lors de la récupération des utilisateurs les plus proches :', error);

@@ -63,7 +63,7 @@
   };
   const searchUsers = async (event: Event) => {
     const friendName = (event.target as HTMLInputElement).value;
-    closestUsers.value = await friend.findClosestUsers(friendName).value;
+    closestUsers.value = await friend.findClosestUsers(friendName);
     showClosestUserList.value = true
     if (friendName === '')
     showClosestUserList.value = false
@@ -138,7 +138,7 @@
         </div>
       </div>
       <div v-if="showClosestUserList=== true" class="bg-zinc-600 rounded mt-2 ">
-          <div v-for="user in closestUsers.value" :key="user.id" class="text-zinc-200 text-sm p-2 m-1 hover:bg-zinc-500 rounded flex justify-between">
+          <div v-for="user in closestUsers" :key="user.id" class="text-zinc-200 text-sm p-2 m-1 hover:bg-zinc-500 rounded flex justify-between">
             <div class="flex">
               <div class="flex flex-col justify-center">
                 <!-- Affiche l'image de l'utilisateur -->
