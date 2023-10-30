@@ -278,36 +278,23 @@ async getFriendsUseTwo(userId: number): Promise<User[]> {
 
 async getClosestUsers(currentUserId: number, search: string, numberOfResults: number): Promise<User[]> {
   try {
-    // Récupérer tous les utilisateurs de la base de données
-    const users = await this.prisma.user.findMany({
-      include: {
-        friends: {
-          include: {
-            userTwo: true
-          }
-        }
-      }
+    const users = await this.prisma.user.findMany();
+    const friendUsers = await this.getFriendsUseTwo(currentUserId);
+    const filteredUsers = users.filter(user => {
+      return user.id !== currentUserId && !friendUsers.some(friend => friend.id === user.id);
     });
-    console.log('users',users)
-    // Filtrer les utilisateurs qui sont des amis de l'utilisateur courant
-    const friendUsers = await getFriendsUseTwo(currentUserId)
-      console.log('frienduser',friendUsers)
-    // Calculer les distances de Levenshtein pour chaque utilisateur filtré
+    
     const results: { user: User, distance: number }[] = [];
-    friendUsers.forEach(user => {
+    filteredUsers.forEach(user => {  
       const distance = levenshtein.get(search, user.username);
       results.push({ user, distance });
     });
 
-    // Trier les résultats par distance croissante
     results.sort((a, b) => a.distance - b.distance);
-
-    // Sélectionner les 10 utilisateurs les plus proches
     const closestUsers: User[] = results.slice(0, numberOfResults).map(result => result.user);
 
     return closestUsers;
   } catch (error) {
-    // Gérer les erreurs (par exemple, l'utilisateur n'a pas été trouvé)
     throw error;
   }
 }
