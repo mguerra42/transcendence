@@ -1,5 +1,5 @@
-<template>
-    <div class="flex-col " v-show="stateProps.showPong.value">
+<template >
+    <div class="flex-col" v-show="stateProps.showPong.value" >
         <div class="flex justify-between p-2 mx-4">
             <div class="text-lg text-zinc-100">
                 {{ gameProps.Player1.value.name }} - <b> {{ gameProps.Player1.value.score }} </b>
@@ -9,7 +9,7 @@
             </div>
         </div>
 
-        <div class="">
+        <div class="" >
             <canvas tabindex="0" @keydown.down="gameProps.player1MoveDown" @keydown.up="gameProps.player1MoveUp" class="bg-zinc-300 focus-outline-none rounded-lg cursor-crosshair" id="canvas"></canvas>
         </div>
     </div>
@@ -19,6 +19,7 @@
     const auth = useAuth()
     const client = useClient()
     const socket = useSocket()
+    const canvas = ref()
 
     const { stateProps, gameProps } = defineProps<{
         stateProps: any;
@@ -51,16 +52,93 @@
             {
                 console.log('hasRefresh: ', auth.session.username,' is not in game or in queue.')
             }
-
         }
     }
 
+    const handleResize = () => {
+            // The window has been resized
+            console.log('Window can not be resized');
+            const windowSize = stateProps.getWindowSize()
+            if (windowSize.width < 800 || windowSize.height < 600)
+            {
+                console.log('smol')
+                stateProps.canvas.value.width = 400;
+                stateProps.canvas.value.height = 300;
+                
+                gameProps.Player1.value.width = 7;
+                gameProps.Player1.value.height = 35;
+                gameProps.Player1.value.x = 12;
+                gameProps.Player1.value.y = 10;
+            
+                gameProps.Player2.value.width = 7;
+                gameProps.Player2.value.height = 35;
+                gameProps.Player2.value.x = 400 - 17;
+                gameProps.Player2.value.y = 10;
+            }
+            else
+            {
+                console.log('big')
+                stateProps.canvas.value.width = 800;
+                stateProps.canvas.value.height = 600;
+                
+                gameProps.Player1.value.width = 14;
+                gameProps.Player1.value.height = 70;
+                gameProps.Player1.value.x = 25;
+                gameProps.Player1.value.y = 20;
+
+                gameProps.Player2.value.width = 14;
+                gameProps.Player2.value.height = 70;
+                gameProps.Player2.value.x = 800 - 35;
+                gameProps.Player2.value.y = 20;
+            }
+    };
+    
     onMounted( async () => {
         stateProps.canvas.value = document.getElementById("canvas");
         stateProps.context.value = stateProps.canvas.value.getContext("2d");
- 
-        stateProps.canvas.value.width = 800;
-        stateProps.canvas.value.height = 600;
+
+        const windowSize = stateProps.getWindowSize()
+        if (windowSize.width >= 800 && windowSize.height >= 600)
+        {
+            stateProps.canvas.value.width = 800;
+            stateProps.canvas.value.height = 600;
+            
+            gameProps.Player1.value.width = 14;
+            gameProps.Player1.value.height = 70;
+            gameProps.Player1.value.x = 25;
+            gameProps.Player1.value.y = 20;
+
+            gameProps.Player2.value.width = 14;
+            gameProps.Player2.value.height = 70;
+            gameProps.Player2.value.x = 800 - 35;
+            gameProps.Player2.value.y = 20;
+
+            gameProps.Ball.value.width = 20;
+            gameProps.Ball.value.height = 20;
+            gameProps.Ball.value.x = 390;
+            gameProps.Ball.value.y = 290;
+
+        }
+        else
+        {
+            stateProps.canvas.value.width = 400;
+            stateProps.canvas.value.height = 300;
+            
+            gameProps.Player1.value.width = 7;
+            gameProps.Player1.value.height = 35;
+            gameProps.Player1.value.x = 12;
+            gameProps.Player1.value.y = 10;
+        
+            gameProps.Player2.value.width = 7;
+            gameProps.Player2.value.height = 35;
+            gameProps.Player2.value.x = 400 - 17;
+            gameProps.Player2.value.y = 10;
+
+            gameProps.Ball.value.width = 15;
+            gameProps.Ball.value.height = 15;
+            gameProps.Ball.value.x = 190;
+            gameProps.Ball.value.y = 140;
+        }
 
         stateProps.context.value.fillStyle = "blue";
         stateProps.context.value.fillRect(gameProps.Player1.value.x, gameProps.Player1.value.y, gameProps.Player1.value.width, gameProps.Player1.value.height)
@@ -127,5 +205,11 @@
             gameProps.gameLoop();    
         }
 
+        window.addEventListener('resize', handleResize);
     });
+    
+    onBeforeUnmount(() => {
+        window.removeEventListener('resize', handleResize);
+    });
+
 </script>

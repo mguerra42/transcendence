@@ -43,7 +43,6 @@ import { appName } from '~/constants'
 
         client.game.gameArray = await client.game.getGameArray();
   }
-
   //PROPS
   const stateProps = {
     //MISC. VARIABLES
@@ -71,6 +70,15 @@ import { appName } from '~/constants'
     opponentAccepted: ref(false),
     opponentProfile: ref<{ username?: string; id?: string; socketId?: string; avatarPath?: string; }>({}),
     
+    getWindowSize: () => {
+        const window = document.getElementById("haha");
+        if (window === null)
+            return null
+        return {
+            height: window.offsetHeight,
+            width: window.offsetWidth,
+        }
+    },
     //MATCHMAKING FUNCTIONS
     waitForMatch: async() => {
         //hide play button when waiting for match
@@ -183,11 +191,13 @@ import { appName } from '~/constants'
   
   const gameProps = {
     gameStatus: ref(''),
+    newRound: ref(false),
+    initialDirection: ref(1),
 
     Player1: ref({
         name : "",
         score: 0,
-        width: 15,
+        width: 14,
         height: 70,
         x: 25,
         y: 20
@@ -196,7 +206,7 @@ import { appName } from '~/constants'
     Player2: ref({
         name : "",
         score: 0,
-        width: 15,
+        width: 14,
         height: 70,
         x: 800 - 35,
         y: 20
@@ -216,7 +226,7 @@ import { appName } from '~/constants'
     },
 
     player1MoveDown: (event:any) => {
-        if (event.key === 'ArrowDown' && gameProps.Player1.value.y < 500) {
+        if (event.key === 'ArrowDown' && gameProps.Player1.value.y < stateProps.canvas.value.height - gameProps.Player2.value.height) {
             gameProps.Player1.value.y += 15;
             socket.emit('playerMovement', {
                 player: auth.session.username,
@@ -227,7 +237,7 @@ import { appName } from '~/constants'
     },
 
     player1MoveUp: (event:any) => {
-        if (event.key === 'ArrowUp' && gameProps.Player1.value.y > 20) {
+        if (event.key === 'ArrowUp' && gameProps.Player1.value.y > gameProps.Player1.value.height) {
             gameProps.Player1.value.y -= 15;
             socket.emit('playerMovement', {
                 player: auth.session.username,
@@ -238,14 +248,14 @@ import { appName } from '~/constants'
     },
 
     player2MoveDown: () => {
-        if(gameProps.Player2.value.y < 500)
-            gameProps.Player2.value.y += 20;
+        if(gameProps.Player2.value.y < stateProps.canvas.value.height - gameProps.Player2.value.height)
+            gameProps.Player2.value.y += 15;
         gameProps.refreshCanvas();
     },
 
     player2MoveUp: () => {
-        if(gameProps.Player2.value.y > 20)
-            gameProps.Player2.value.y -= 20;
+        if(gameProps.Player2.value.y > gameProps.Player2.value.height)
+            gameProps.Player2.value.y -= 15;
         gameProps.refreshCanvas();
     },
 
@@ -256,7 +266,7 @@ import { appName } from '~/constants'
         stateProps.context.value.fillRect(gameProps.Ball.value.x, gameProps.Ball.value.y, gameProps.Ball.value.width, gameProps.Ball.value.height)
     },
 
-    gameLoop: () => {
+    gameLoop: async () => {
         // Update the Ball's position based on its velocity
         gameProps.Ball.value.x += gameProps.Ball.value.velocityX;
         gameProps.Ball.value.y += gameProps.Ball.value.velocityY;
@@ -283,30 +293,43 @@ import { appName } from '~/constants'
             gameProps.Ball.value.velocityX = -gameProps.Ball.value.velocityX;
         }
 
-        //Bounds collission
+        //Goal scenario 
         //TODO : Refactor into round end function
-        if (gameProps.Ball.value.x >780 || gameProps.Ball.value.x < 0)
+        if ((gameProps.Ball.value.x > stateProps.canvas.value.width + gameProps.Ball.value.width || gameProps.Ball.value.x < 0 - gameProps.Ball.value.width) || gameProps.newRound.value === true)
         {
+            if (gameProps.newRound.value === false)
+            {
+                console.log('new round !')
+                socket.emit('newRound', {
+                    player: auth.session.username
+                })
+            }
             let roundWinner = ''
-            if(gameProps.Ball.value.x > 700)
+            if(gameProps.Ball.value.x > stateProps.canvas.value.width)
                 roundWinner = 'P1'
             else
                 roundWinner = 'P2'
     
-            gameProps.Ball.value.x = 390;
-            gameProps.Ball.value.y = 290;
+            gameProps.Ball.value.x = stateProps.canvas.value.width / 2 - 10;
+            gameProps.Ball.value.y = stateProps.canvas.value.height / 2 - 10;
             gameProps.Ball.value.velocityX = 0;
             gameProps.Ball.value.velocityY = 0;
 
-            setTimeout(() => {
-                //TODO : Put this in backend and call it on gamestart
-                const randomDirectionX = Math.random() > 0.5 ? 1 : -1; // Randomly choose 1 or -1
-                const randomDirectionY = Math.random() > 0.5 ? 1 : -1; // Randomly choose 1 or -1
+            // setTimeout(() => {
+                if (gameProps.newRound.value === true)
+                {
+                    gameProps.Ball.value.velocityX = 5 * gameProps.initialDirection.value ;
+                    gameProps.Ball.value.velocityY = 5 * gameProps.initialDirection.value ;
+                    gameProps.newRound.value = false
+                }
+                else
+                {
+                    gameProps.Ball.value.velocityX = 5 * gameProps.initialDirection.value * -1;
+                    gameProps.Ball.value.velocityY = 5 * gameProps.initialDirection.value;
+                }
+            // }, 1000)
+            await new Promise (timeout => setTimeout(timeout, 1000))
 
-                gameProps.Ball.value.velocityX = 5 ;
-                gameProps.Ball.value.velocityY = 5 ;
-            }, 1000)
-            
             if (roundWinner === 'P1')
             {
                 gameProps.Player1.value.score++;
@@ -327,10 +350,12 @@ import { appName } from '~/constants'
                     return ;
                 }
             }
+
+            //check if still in gameloop, else return
         }
         
         //Ground/Ceiling collision
-        if (gameProps.Ball.value.y >580 || gameProps.Ball.value.y < 0)
+        if (gameProps.Ball.value.y > stateProps.canvas.value.height - gameProps.Ball.value.height || gameProps.Ball.value.y < gameProps.Ball.value.height)
         {
             gameProps.Ball.value.velocityY = gameProps.Ball.value.velocityY * -1;
         }
@@ -392,21 +417,33 @@ import { appName } from '~/constants'
     await auth.refreshSession();
     await socket.connect()
     console.log('onMounted: Socket.io CONNECTED')
+
+    socket.on('newRoundResponse', (data:any) => {
+        if (data.player !== auth.session.username)
+        {
+            gameProps.newRound.value = true
+        }
+        console.log(gameProps.initialDirection.value)
+    })
+
   });
+
+
+
 </script>
 
 <template>
-  <div>
+  <div class="bg-red m-4 min-w-600px min-h-400px">
     <transition name="fade" mode="out-in">
       <div v-if="isLoading" key="loading" class="min-h-screen bg-zinc-800 flex flex-col items-center justify-center">
         <div>
-          <p class="text-7xl text-center font-bold text-zinc-200 m-4">transcendence</p>
+          <p class="text-7xl text-center font-bold text-zinc-200 m-4">transcenden   ce</p>
           <p class="text-xl text-center text-zinc-400 mb-4">Loading...</p>
         </div>
         <div class="flex justify-center items-center animate-bounce h-[12px] w-[12px] bg-zinc-200 rounded-full"></div>
       </div>
     </transition>
-    <div v-if="!isLoading" key="content">
+    <div v-if="!isLoading" key="content" id="haha">
       <NuxtLayout :stateProps="stateProps" :gameProps="gameProps">
             <NuxtPage :stateProps="stateProps" :gameProps="gameProps"/>
       </NuxtLayout>

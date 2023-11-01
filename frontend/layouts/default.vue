@@ -7,14 +7,14 @@
         <div class="h-[calc(100vh-80px)] flex" >
           
           <!-- Left Sidebar -->
-            <div class="w-0/6 lg:w-300px sm:w-0/6 md:w-0/6 rounded bg-zinc-800 max-h-[100vh] overflow-y-auto scrollbar-w-2">
+            <!-- <div class="w-0/6 lg:w-300px sm:w-0/6 md:w-0/6 rounded bg-zinc-800 max-h-[100vh] overflow-y-auto scrollbar-w-2"> -->
               <!-- Leaderboard -->
-              <div class="overflow-y-auto scrollbar-w-2 h-[70vh] bg-zinc-900 rounded-lg m-4">
+              <!-- <div class="overflow-y-auto scrollbar-w-2 h-[70vh] bg-zinc-900 rounded-lg m-4">
                 <p class="text-4xl flex text-center font-bold m-2">
                   Leaderboard
                 </p>
               </div>
-            </div>
+            </div> -->
           <!-- Left Sidebar -->
           
           <!-- Nuxt Page -->
@@ -24,7 +24,7 @@
           <!-- Nuxt Page -->
           
           <!-- Right Sidebar -->
-          <div class="w-0/6 sm:w-0/6 lg:w-300px md:w-300px rounded bg-zinc-300 max-h-[100vh] overflow-y-auto scrollbar-w-2">
+          <!-- <div class="w-0/6 sm:w-0/6 lg:w-300px md:w-300px rounded bg-zinc-300 max-h-[100vh] overflow-y-auto scrollbar-w-2">
             <div class="overflow-y-auto scrollbar-w-2 h-[100vh] bg-zinc-900 rounded-lg m-4 flex-col">
               <p class="text-4xl text-white text-center m-2">
                   {{ auth.session.username }}
@@ -33,10 +33,10 @@
                 total victories &ensp;:&ensp; {{ auth.session.victories }}
                 <br>
                 total defeats  &emsp;:&ensp; {{ auth.session.defeats }}
-              </p>
+              </p> -->
 
               <!-- Game List -->
-              <div v-for="gameList in client.game.gameArray" :class="{' bg-red-700 cursor-pointer hover:bg-red-600  flex-col mb-3 mt-4' : gameList.loserId === auth.session.id,
+              <!-- <div v-for="gameList in client.game.gameArray" :class="{' bg-red-700 cursor-pointer hover:bg-red-600  flex-col mb-3 mt-4' : gameList.loserId === auth.session.id,
                                                                       ' bg-green-700 cursor-pointer hover:bg-green-600  flex-col mb-3 mt-4' : gameList.winnerId === auth.session.id}" >
                    <p class="text-s text-white text-center m-2">
                     game id : {{ gameList.id }} 
@@ -51,7 +51,7 @@
               </div>
 
             </div>
-          </div>
+          </div> -->
           <!-- Right Sidebar -->
           
           <!-- TODO : Remove Chat components from AuthModal -->
@@ -94,8 +94,12 @@
 
   client.game.gameArray = [];
 
+  //TODO : move this to another place
   onMounted(async() => {
     await auth.refreshSession()
-    client.game.gameArray = await client.game.getGameArray();
+    if (auth.logged)
+    {
+      client.game.gameArray = await client.game.getGameArray();
+    }
   })
 </script>

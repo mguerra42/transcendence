@@ -42,8 +42,6 @@ const startGame = async () => {
             stateProps.showPlayButton.value = true;
             stateProps.resetMatchmakingWindow()
             const ret = gameProps.refreshGameSession();
-            if (ret === null)
-                console.log('wsh c comment la ?')
             gameProps.gameLoop();
             await client.game.setQueueStatus(auth.session.username, 'in-game')
         }
