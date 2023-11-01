@@ -33,18 +33,15 @@
             method: 'GET',
         })
 
-        //check if the user is in a queue with status "in game"
         if (userExists.data.value.profile !== undefined) {
             console.log('hasRefresh: ', auth.session.username, ' is in game. Refreshing canvas...')
             auth.refresh = true
         }
         else {
-            // console.log('not in game')
             const userInQueue: any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${auth.session.username}`, {
                 method: 'GET',
             })
             if (userInQueue.data.value.profile !== undefined) {
-                // console.log('in queue')
                 console.log('hasRefresh: ', auth.session.username,' is not in game. Removing from game queue...')
                 await client.game.removeFromGameQueue(auth.session.username)
             }
@@ -55,47 +52,7 @@
         }
     }
 
-    const handleResize = () => {
-            // The window has been resized
-            console.log('Window resized');
-            const windowSize = stateProps.getWindowSize()
-            if (windowSize.width < 800 || windowSize.height < 600)
-            {
-                console.log('smol')
-                stateProps.canvas.value.width = 400;
-                stateProps.canvas.value.height = 300;
-                
-                gameProps.Player1.value.width = 7;
-                gameProps.Player1.value.height = 35;
-                gameProps.Player1.value.x = 12;
-                gameProps.Player1.value.y = 10;
-            
-                gameProps.Player2.value.width = 7;
-                gameProps.Player2.value.height = 35;
-                gameProps.Player2.value.x = 400 - 17;
-                gameProps.Player2.value.y = 10;
-            }
-            else
-            {
-                console.log('big')
-                stateProps.canvas.value.width = 800;
-                stateProps.canvas.value.height = 600;
-                
-                gameProps.Player1.value.width = 14;
-                gameProps.Player1.value.height = 70;
-                gameProps.Player1.value.x = 25;
-                gameProps.Player1.value.y = 20;
-
-                gameProps.Player2.value.width = 14;
-                gameProps.Player2.value.height = 70;
-                gameProps.Player2.value.x = 800 - 35;
-                gameProps.Player2.value.y = 20;
-            }
-    };
-    
-    onMounted( async () => {
-        stateProps.canvas.value = document.getElementById("canvas");
-        stateProps.context.value = stateProps.canvas.value.getContext("2d");
+    const setCanvasSize = () => {
 
         const windowSize = stateProps.getWindowSize()
         if (windowSize.width >= 800 && windowSize.height >= 600)
@@ -139,6 +96,20 @@
             gameProps.Ball.value.x = 190;
             gameProps.Ball.value.y = 140;
         }
+    }
+
+    const handleResize = () => {
+            // The window has been resized
+            console.log('Window resized');
+            setCanvasSize()
+
+    };
+    
+    onMounted( async () => {
+        stateProps.canvas.value = document.getElementById("canvas");
+        stateProps.context.value = stateProps.canvas.value.getContext("2d");
+
+        setCanvasSize()
 
         stateProps.context.value.fillStyle = "blue";
         stateProps.context.value.fillRect(gameProps.Player1.value.x, gameProps.Player1.value.y, gameProps.Player1.value.width, gameProps.Player1.value.height)
