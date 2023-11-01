@@ -227,7 +227,7 @@ import { appName } from '~/constants'
     },
 
     player1MoveDown: (event:any) => {
-        if (gameProps.isPlayerTwo.value === true)
+        if (gameProps.Player2.value.name === auth.session.username)
         {
             if (event.key === 'ArrowDown' && gameProps.Player2.value.y < stateProps.canvas.value.height - gameProps.Player2.value.height) {
                 gameProps.Player2.value.y += 15;
@@ -251,7 +251,7 @@ import { appName } from '~/constants'
     },
 
     player1MoveUp: (event:any) => {
-        if (gameProps.isPlayerTwo.value === true)
+        if (gameProps.Player2.value.name === auth.session.username)
         {
             if (event.key === 'ArrowUp' && gameProps.Player2.value.y > gameProps.Player2.value.height) {
                 gameProps.Player2.value.y -= 15;
@@ -276,7 +276,7 @@ import { appName } from '~/constants'
     },
 
     player2MoveDown: () => {
-        if (gameProps.isPlayerTwo.value === true)
+        if (gameProps.Player2.value.name === auth.session.username)
         {
             if (gameProps.Player1.value.y < stateProps.canvas.value.height - gameProps.Player1.value.height)
                 gameProps.Player1.value.y += 15;
@@ -290,7 +290,7 @@ import { appName } from '~/constants'
     },
 
     player2MoveUp: () => {
-        if (gameProps.isPlayerTwo.value === true)
+        if (gameProps.Player2.value.name === auth.session.username)
         {
             if (gameProps.Player1.value.y > gameProps.Player1.value.height)
                 gameProps.Player1.value.y -= 15;
@@ -350,9 +350,9 @@ import { appName } from '~/constants'
             }
             let roundWinner = ''
             if(gameProps.Ball.value.x > stateProps.canvas.value.width)
-                roundWinner = 'P1'
+                roundWinner = gameProps.Player1.value.name
             else
-                roundWinner = 'P2'
+                roundWinner = gameProps.Player2.value.name
     
             gameProps.Ball.value.x = stateProps.canvas.value.width / 2 - 10;
             gameProps.Ball.value.y = stateProps.canvas.value.height / 2 - 10;
@@ -373,8 +373,8 @@ import { appName } from '~/constants'
                 // }
             // }, 1000)
             await new Promise (timeout => setTimeout(timeout, 1000))
-
-            if (roundWinner === 'P1')
+            //TODO : score are reversed
+            if (roundWinner === gameProps.Player1.value.name)
             {
                 gameProps.Player1.value.score++;
                 if (gameProps.Player1.value.score === 5)
@@ -394,7 +394,7 @@ import { appName } from '~/constants'
                     return ;
                 }
             }
-
+            //TODO : fix velocity difference on small canvas 
             //check if still in gameloop, else return
         }
         

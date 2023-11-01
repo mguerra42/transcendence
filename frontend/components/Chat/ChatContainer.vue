@@ -54,7 +54,7 @@
     // console.log(gamePr)
     if(gameProps.gameStatus.value === '')
     {
-      console.log('put back to online')
+      //console.log('put back to online')
         socket.emit('chatStatus', {
           sender: auth.session.username,
           text: 'ONLINE',

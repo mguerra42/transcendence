@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 export const useAuth = defineStore('auth', () => {
     const client = useClient()
     const session = ref({
-        id: '',
+        id: 0,
         email: '',
         username: '',
         avatarPath: '',
@@ -33,7 +33,7 @@ export const useAuth = defineStore('auth', () => {
         else {
             logged.value = false
             session.value = {
-                id: '',
+                id: 0,
                 email: '',
                 username: '',
                 avatarPath: '',

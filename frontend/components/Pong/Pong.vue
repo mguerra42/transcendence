@@ -74,7 +74,8 @@
             gameProps.Ball.value.height = 20;
             gameProps.Ball.value.x = 390;
             gameProps.Ball.value.y = 290;
-
+            gameProps.Ball.value.velocityX = 6;
+            gameProps.Ball.value.velocityY = 6;
         }
         else
         {
@@ -95,6 +96,8 @@
             gameProps.Ball.value.height = 15;
             gameProps.Ball.value.x = 190;
             gameProps.Ball.value.y = 140;
+            gameProps.Ball.value.velocityX = 3;
+            gameProps.Ball.value.velocityY = 3;
         }
     }
 
