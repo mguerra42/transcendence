@@ -128,9 +128,12 @@ export class SocketsGateway {
         });
     }
     
-    @SubscribeMessage('updateBallPosition')
-    handleUpdateBallPosition(client: any, payload: any) {
-        this.server.emit('updateBallPositionResponse', payload);
+    @SubscribeMessage('newRound')
+    handleNewRound(client: any, payload: any) {
+        this.server.emit('newRoundResponse', {
+            player: payload.player,
+            direction: -1,
+        });
     }
 
     @SubscribeMessage('afk')
