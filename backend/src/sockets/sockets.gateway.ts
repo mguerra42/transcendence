@@ -10,6 +10,7 @@ import { AuthService } from '../auth/auth.service';
 import { Server } from 'socket.io';
 import { UpdateUserDto } from '../users/dto/update-user.dto';
 import { ChannelService } from '../channel/channel.service';
+import { find } from 'rxjs';
 
 @WebSocketGateway({
     cors: {
@@ -134,6 +135,29 @@ export class SocketsGateway {
             player: payload.player,
             direction: -1,
         });
+    }
+
+    @SubscribeMessage('readyForMatchmaking')
+    async handleReadyForMatchmaking(client: any, payload: any) {
+        const ret:any = await this.userService.findAnOpponent(payload.player);
+        console.log(ret)
+        if (ret !== null)
+        {
+            console.log("socketIds : " + ret.player1.socketId + " " + ret.player2.socketId)
+            // this.server.to(ret.player1.socketId as string).emit('readyForMatchmakingResponse', {
+            this.server.emit('readyForMatchmakingResponse', {
+                lobbyId: "1234",
+                player1: ret.player1.username,
+                player2: ret.player2.username,
+            });
+            // this.server.to(ret.player2.socketId as string).emit('readyForMatchmakingResponse', {
+            // this.server.to(ret.player2.socketId as string).emit('readyForMatchmakingResponse', {
+            //     lobbyId: "1234",
+            //     player1: ret.player1.username,
+            //     plauer2: ret.player2.username,
+            // });
+        }
+        //lamcer la fonction qui trouve un opponent
     }
 
     @SubscribeMessage('afk')

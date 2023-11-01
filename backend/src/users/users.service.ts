@@ -10,6 +10,8 @@ import { connect } from 'http2';
 
 @Injectable()
 export class UsersService {
+    
+
     constructor(private db: DBService) {}
     async create(data: CreateUserDto) {
         const hash = bcrypt.hashSync(data.password, 10);
@@ -108,8 +110,9 @@ export class UsersService {
         });
     }
 
-    setUserQueueStatus(playerUsername: string, status: string) {
-        return this.db.queue.update({
+    async setUserQueueStatus(playerUsername: string, status: string) {
+        console.log('updating user status in user service')
+        const ret:any = await this.db.queue.update({
             where: {
                 username: playerUsername,
             },
@@ -117,6 +120,8 @@ export class UsersService {
                 confirmed: status,
             },
         });
+        console.log(ret)
+        return ret
     }
 
     setUserToConfirmMatch(playerUsername: string) {
@@ -451,6 +456,45 @@ export class UsersService {
             }
         }
 
+        
+
         return games;
+    }
+
+    async findAnOpponent(playerLFG:string){
+        const res:any = await this.getUsersFromQueue();
+        let playerLfgId = 0
+        let j = 0
+        for (j = 0; j < res.length; j++)
+        {
+            if (res[j].username === playerLFG)
+                playerLfgId = j
+        }
+        for(let i = 0; i < res.length; i++)
+        {
+
+            if(res[i].confirmed === 'idle' && res[i].username != playerLFG)
+            {
+                await this.setUserQueueStatus(playerLFG, 'challenged')
+                await this.setUserQueueStatus(res[i].username, 'challenged')
+
+                return {
+                    player1: res[playerLfgId].profile,
+                    player2: res[i].profile,
+                }
+                // const game
+                // const match = {
+                //     playerOneId: playerLfgId,
+                //     playerTwoId: res[i].profile.id
+                // }
+                // // const lobby = await this.createNewGameLobby(match)
+                // const ret = {
+                //     username: res[i].username,
+                //     // lobbyId: lobby.lobbyId,
+                //     profile: res[i]
+                // }
+            }
+        }
+        return null
     }
 }

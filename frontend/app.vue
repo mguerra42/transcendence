@@ -45,6 +45,10 @@ import { appName } from '~/constants'
   }
   //PROPS
   const stateProps = {
+    //TEST props
+    
+    //TEST props
+
     //MISC. VARIABLES
     canvas: ref(),
     context: ref(),
@@ -97,53 +101,72 @@ import { appName } from '~/constants'
 
         //add in game queue
         await client.game.addToGameQueue(auth.session.username)
-        let matchOpponent:any = null;
-        let retryAttempts = 0;
-        //wait for match to be found
-        console.log('waitForMatch: Waiting for an opponent...')
-        while (retryAttempts < 100 && matchOpponent === null && stateProps.cancelMatch.value === false)
-        {
-            matchOpponent = await client.game.findAMatch(auth.session.username);
-            await new Promise(timeout => setTimeout(timeout, 100));
-            retryAttempts++;
-        }
+        socket.emit('readyForMatchmaking', {
+            player: auth.session.username,
+        })
         
-        if (matchOpponent === null || stateProps.cancelMatch.value === true)
+        let i = 0;
+        console.log('waitForMatch: Waiting for an opponent...')
+        while (i < 100)
         {
-            console.log('waitForMatch: Could not find an opponent')
-            if (stateProps.cancelMatch.value === true)
-                stateProps.MatchmakingError.value = 'You have left the queue.'
-            else
-                stateProps.MatchmakingError.value = 'No players available.'
-            stateProps.showCancelButton.value = false
-            stateProps.showMatchmakingError.value = true
-            await new Promise(timeout => setTimeout(timeout, 2000));
-            stateProps.showMatchmakingError.value = false
-            //reset time count
-            clearInterval(timeElapsedInterval);
-            stateProps.timeElapsed.value = 0;
-            return null;
+            console.log('waitForMatch: Waiting for opponent profile...', stateProps.opponentProfile.value.username)
+            if (stateProps.opponentProfile.value.username !== undefined)
+                return stateProps.opponentProfile.value.username;
+            await new Promise (timeout => setTimeout(timeout, 100))
+            i++;
+            //if readyForMatchmakingResponse is received from socket.on, break
         }
-        else
-        {
-            console.log('waitForMatch: Found a match with ', matchOpponent.username)
-            await client.game.setQueueStatus(auth.session.username, 'waiting')
-            //update the opponent profile if match is found
-            stateProps.opponentProfile.value.username = matchOpponent.username;
-            stateProps.opponentProfile.value.avatarPath = matchOpponent.avatarPath;
-            stateProps.opponentProfile.value.id = matchOpponent.id;
-            stateProps.opponentProfile.value.socketId = matchOpponent.socketId;
+        console.log('couldnt find a match')
+        //check 10 times 1 sec for a response
+        // let matchOpponent:any = null;
+        // let retryAttempts = 0;
+        //wait for match to be found
+        //attends une reponse
+        // await new Promise (timeout => setTimeout(timeout, 10000))
+        return null
+        // while (retryAttempts < 100 && matchOpponent === null && stateProps.cancelMatch.value === false)
+        // {
+        //     matchOpponent = await client.game.findAMatch(auth.session.username);
+        //     await new Promise(timeout => setTimeout(timeout, 100));
+        //     retryAttempts++;
+        // }
+        
+        // if (matchOpponent === null || stateProps.cancelMatch.value === true)
+        // {
+        //     console.log('waitForMatch: Could not find an opponent')
+        //     if (stateProps.cancelMatch.value === true)
+        //         stateProps.MatchmakingError.value = 'You have left the queue.'
+        //     else
+        //         stateProps.MatchmakingError.value = 'No players available.'
+        //     stateProps.showCancelButton.value = false
+        //     stateProps.showMatchmakingError.value = true
+        //     await new Promise(timeout => setTimeout(timeout, 2000));
+        //     stateProps.showMatchmakingError.value = false
+        //     //reset time count
+        //     clearInterval(timeElapsedInterval);
+        //     stateProps.timeElapsed.value = 0;
+        //     return null;
+        // }
+        // else
+        // {
+        //     console.log('waitForMatch: Found a match with ', matchOpponent.username)
+        //     await client.game.setQueueStatus(auth.session.username, 'waiting')
+        //     //update the opponent profile if match is found
+        //     stateProps.opponentProfile.value.username = matchOpponent.username;
+        //     stateProps.opponentProfile.value.avatarPath = matchOpponent.avatarPath;
+        //     stateProps.opponentProfile.value.id = matchOpponent.id;
+        //     stateProps.opponentProfile.value.socketId = matchOpponent.socketId;
 
-            console.log('waitForMatch: Sending challenger socket to ', matchOpponent.username, ' with lobby ', matchOpponent.lobbyId)
-            socket.emit('challengePlayer', {
-                challenger: auth.session.username,
-                lobbyId: matchOpponent.lobbyId
-            })
-            stateProps.gameLobbyId.value = matchOpponent.lobbyId
-            clearInterval(timeElapsedInterval);
-            stateProps.timeElapsed.value = 0;
-        }
-        return matchOpponent;
+        //     console.log('waitForMatch: Sending challenger socket to ', matchOpponent.username, ' with lobby ', matchOpponent.lobbyId)
+        //     socket.emit('challengePlayer', {
+        //         challenger: auth.session.username,
+        //         lobbyId: matchOpponent.lobbyId
+        //     })
+        //     stateProps.gameLobbyId.value = matchOpponent.lobbyId
+        //     clearInterval(timeElapsedInterval);
+        //     stateProps.timeElapsed.value = 0;
+        // }
+        // return matchOpponent;
     },
 
     waitForConfirm: async () => {
@@ -468,6 +491,17 @@ import { appName } from '~/constants'
             gameProps.newRound.value = true
         }
         console.log(gameProps.initialDirection.value)
+    })
+
+    socket.on('readyForMatchmakingResponse', (data:any) => {
+        console.log('i got my response')
+        console.log(data)
+            if (data.player1.username === auth.session.username)
+                stateProps.opponentProfile.value.username = data.player2;
+            else
+                stateProps.opponentProfile.value.username = data.player1;
+            console.log('value of stateProp in socket.on : ' , stateProps.opponentProfile.value.username)
+        // console.log(gameProps.initialDirection.value)
     })
   });
 </script>

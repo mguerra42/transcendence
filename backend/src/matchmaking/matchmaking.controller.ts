@@ -20,6 +20,24 @@ export class MatchmakingController {
         return res
     }
 
+
+    //FRONT
+    //addToGameQueue
+    //semd ready socket to server
+    //wait for a response opponent
+    
+
+    //FRONT
+    //addToGameQueue
+    //semd ready socket to server
+    //wait for a response opponent
+    
+
+    //While 10 attempts
+    //find an opponent
+    //fetch game lobby
+    //if success, send sockets to players
+
     @Get ('findAnOpponent')
     async findAnOpponent(@Query('playerLFG') playerLFG:string){
         const res:any = await this.userService.getUsersFromQueue();
@@ -37,10 +55,10 @@ export class MatchmakingController {
                     playerOneId: playerLfgId,
                     playerTwoId: res[i].profile.id
                 }
-                const lobby = await this.createNewGameLobby(match)
+                // const lobby = await this.createNewGameLobby(match)
                 const ret = {
                     username: res[i].username,
-                    lobbyId: lobby.lobbyId,
+                    // lobbyId: lobby.lobbyId,
                     profile: res[i]
                 }
                 return ret
@@ -51,7 +69,8 @@ export class MatchmakingController {
 
     @Get ('getUserFromQueue')
     async getUserfromQueue(@Query('playerUsername') playerUsername:string){
-        return await this.userService.getUserFromQueue(playerUsername); 
+        const ret:any = await this.userService.getUserFromQueue(playerUsername);
+        return ret
     }
 
     @Get ('getUserInGameFromQueue')
@@ -63,7 +82,7 @@ export class MatchmakingController {
     async addPlayerToQueue(@Body() req:any){
         if (req.username === undefined)
             return null
-        return await this.userService.addUserToQueue(req.username); 
+        return await this.userService.addUserToQueue(req.username);
     }
     
     @Post ('removePlayerFromQueue')
