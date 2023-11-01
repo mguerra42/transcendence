@@ -192,6 +192,7 @@ import { appName } from '~/constants'
   const gameProps = {
     gameStatus: ref(''),
     newRound: ref(false),
+    isPlayerTwo: ref(false),
     initialDirection: ref(1),
 
     Player1: ref({
@@ -226,36 +227,79 @@ import { appName } from '~/constants'
     },
 
     player1MoveDown: (event:any) => {
-        if (event.key === 'ArrowDown' && gameProps.Player1.value.y < stateProps.canvas.value.height - gameProps.Player2.value.height) {
-            gameProps.Player1.value.y += 15;
-            socket.emit('playerMovement', {
-                player: auth.session.username,
-                move:'moveDown' 
-            });
-            gameProps.refreshCanvas();
+        if (gameProps.isPlayerTwo.value === true)
+        {
+            if (event.key === 'ArrowDown' && gameProps.Player2.value.y < stateProps.canvas.value.height - gameProps.Player2.value.height) {
+                gameProps.Player2.value.y += 15;
+                socket.emit('playerMovement', {
+                    player: auth.session.username,
+                    move:'moveDown' 
+                });
+                gameProps.refreshCanvas();
+            }
+        }
+        else{
+            if (event.key === 'ArrowDown' && gameProps.Player1.value.y < stateProps.canvas.value.height - gameProps.Player1.value.height) {
+                gameProps.Player1.value.y += 15;
+                socket.emit('playerMovement', {
+                    player: auth.session.username,
+                    move:'moveDown' 
+                });
+                gameProps.refreshCanvas();
+            }
         }
     },
 
     player1MoveUp: (event:any) => {
-        if (event.key === 'ArrowUp' && gameProps.Player1.value.y > gameProps.Player1.value.height) {
-            gameProps.Player1.value.y -= 15;
-            socket.emit('playerMovement', {
-                player: auth.session.username,
-                move:'moveUp' 
-            });
-            gameProps.refreshCanvas();
+        if (gameProps.isPlayerTwo.value === true)
+        {
+            if (event.key === 'ArrowUp' && gameProps.Player2.value.y > gameProps.Player2.value.height) {
+                gameProps.Player2.value.y -= 15;
+                socket.emit('playerMovement', {
+                    player: auth.session.username,
+                    move:'moveUp' 
+                });
+                gameProps.refreshCanvas();
+            }
+        }
+        else
+        {
+            if (event.key === 'ArrowUp' && gameProps.Player1.value.y > gameProps.Player1.value.height) {
+                gameProps.Player1.value.y -= 15;
+                socket.emit('playerMovement', {
+                    player: auth.session.username,
+                    move:'moveUp' 
+                });
+                gameProps.refreshCanvas();
+            }
         }
     },
 
     player2MoveDown: () => {
-        if(gameProps.Player2.value.y < stateProps.canvas.value.height - gameProps.Player2.value.height)
-            gameProps.Player2.value.y += 15;
+        if (gameProps.isPlayerTwo.value === true)
+        {
+            if (gameProps.Player1.value.y < stateProps.canvas.value.height - gameProps.Player1.value.height)
+                gameProps.Player1.value.y += 15;
+        }
+        else
+        {
+            if (gameProps.Player2.value.y < stateProps.canvas.value.height - gameProps.Player2.value.height)
+                gameProps.Player2.value.y += 15;
+        }
         gameProps.refreshCanvas();
     },
 
     player2MoveUp: () => {
-        if(gameProps.Player2.value.y > gameProps.Player2.value.height)
-            gameProps.Player2.value.y -= 15;
+        if (gameProps.isPlayerTwo.value === true)
+        {
+            if (gameProps.Player1.value.y > gameProps.Player1.value.height)
+                gameProps.Player1.value.y -= 15;
+        }
+        else
+        {
+            if (gameProps.Player2.value.y > gameProps.Player2.value.height)
+                gameProps.Player2.value.y -= 15;
+        }
         gameProps.refreshCanvas();
     },
 
@@ -316,17 +360,17 @@ import { appName } from '~/constants'
             gameProps.Ball.value.velocityY = 0;
 
             // setTimeout(() => {
-                if (gameProps.newRound.value === true)
-                {
+                // if (gameProps.newRound.value === true)
+                // {
                     gameProps.Ball.value.velocityX = 5 * gameProps.initialDirection.value ;
                     gameProps.Ball.value.velocityY = 5 * gameProps.initialDirection.value ;
                     gameProps.newRound.value = false
-                }
-                else
-                {
-                    gameProps.Ball.value.velocityX = 5 * gameProps.initialDirection.value * -1;
-                    gameProps.Ball.value.velocityY = 5 * gameProps.initialDirection.value;
-                }
+                // }
+                // else
+                // {
+                //     gameProps.Ball.value.velocityX = 5 * gameProps.initialDirection.value * -1;
+                //     gameProps.Ball.value.velocityY = 5 * gameProps.initialDirection.value;
+                // }
             // }, 1000)
             await new Promise (timeout => setTimeout(timeout, 1000))
 
@@ -425,15 +469,11 @@ import { appName } from '~/constants'
         }
         console.log(gameProps.initialDirection.value)
     })
-
   });
-
-
-
 </script>
 
 <template>
-  <div class="bg-red m-4 min-w-600px min-h-400px">
+  <div class="min-w-600px min-h-400px">
     <transition name="fade" mode="out-in">
       <div v-if="isLoading" key="loading" class="min-h-screen bg-zinc-800 flex flex-col items-center justify-center">
         <div>

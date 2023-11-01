@@ -57,7 +57,7 @@
 
     const handleResize = () => {
             // The window has been resized
-            console.log('Window can not be resized');
+            console.log('Window resized');
             const windowSize = stateProps.getWindowSize()
             if (windowSize.width < 800 || windowSize.height < 600)
             {
@@ -162,6 +162,9 @@
                     await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
                 stateProps.gameLobbyId.value = data.lobbyId
                 console.log('socketChallengePlayerResponse: Received challenge socket from ', data.challenger, ' with lobby ', data.lobbyId)
+                console.log('i am player 2 !')
+                //TODO : persist this value after refresh
+                gameProps.isPlayerTwo.value = true
             }
         })
 
