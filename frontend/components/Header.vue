@@ -20,7 +20,9 @@ const quitMatchButton = async () => {
     stateProps.showPlayButton.value = true;
 
     await client.game.removeFromGameQueue(auth.session.username)
-
+    stateProps.resetMatchmakingWindow()
+    gameProps.gameState.value = {}
+    stateProps.gameLobbyId.value = ""
 
 }
 

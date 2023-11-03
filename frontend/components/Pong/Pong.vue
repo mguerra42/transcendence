@@ -104,7 +104,7 @@
     const handleResize = () => {
             // The window has been resized
             console.log('Window resized');
-            setCanvasSize()
+            // setCanvasSize()
 
     };
     
@@ -167,6 +167,8 @@
                 stateProps.resetMatchmakingWindow()
                 await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
                 await client.game.removeFromGameQueue(auth.session.username)
+                gameProps.gameState.value = {}
+                stateProps.gameLobbyId.value = ""
             }
 
             console.log('socketquitMatchButtonResponse: Resetting chat status to ONLINE')

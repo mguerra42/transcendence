@@ -10,49 +10,46 @@ import { appName } from '~/constants'
 
   //STATIC FUNCTION
   const finishGame = async (winner:string) => {
-        socket.emit('stopGameSession', {
-            gameId: stateProps.gameLobbyId.value
-        })
-        //clean up backend
-        console.log('finishGame: Game finished, removing ', auth.session.username, ' from queue and deleting lobby ', stateProps.gameLobbyId.value)
-        await client.game.removeFromGameQueue(auth.session.username)
-        //await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
+        // socket.emit('stopGameSession', {
+        //     gameId: stateProps.gameLobbyId.value
+        // })
+        // //clean up backend
+        // console.log('finishGame: Game finished, removing ', auth.session.username, ' from queue and deleting lobby ', stateProps.gameLobbyId.value)
+        // await client.game.removeFromGameQueue(auth.session.username)
+        // //await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
 
-        //le winner crée l'objet game dans la DB pour eviter doublon
-        if (winner == 'P1' && auth.session.username == gameProps.Player1.value.name)
-            await client.game.createEndGame(gameProps.Player1.value.name, gameProps.Player2.value.name, gameProps.Player1.value.score, gameProps.Player2.value.score);
-        else if (winner == 'P2' && auth.session.username == gameProps.Player2.value.name)
-            await client.game.createEndGame(gameProps.Player2.value.name, gameProps.Player1.value.name, gameProps.Player2.value.score, gameProps.Player1.value.score);
-        //else, le user est perdant donc n'a pas a crée l'objet game.
+        // //le winner crée l'objet game dans la DB pour eviter doublon
+        // if (winner == 'P1' && auth.session.username == gameProps.Player1.value.name)
+        //     await client.game.createEndGame(gameProps.Player1.value.name, gameProps.Player2.value.name, gameProps.Player1.value.score, gameProps.Player2.value.score);
+        // else if (winner == 'P2' && auth.session.username == gameProps.Player2.value.name)
+        //     await client.game.createEndGame(gameProps.Player2.value.name, gameProps.Player1.value.name, gameProps.Player2.value.score, gameProps.Player1.value.score);
+        // //else, le user est perdant donc n'a pas a crée l'objet game.
             
-        //reset frontend
-        cancelAnimationFrame(stateProps.animationFrameId.value);
-        gameProps.resetGame();
-        auth.refreshSession();
+        // //reset frontend
+        // cancelAnimationFrame(stateProps.animationFrameId.value);
+        // gameProps.resetGame();
+        // auth.refreshSession();
 
-        stateProps.showPong.value = false;
-        stateProps.showPlayButton.value = true;
+        // stateProps.showPong.value = false;
+        // stateProps.showPlayButton.value = true;
 
-        stateProps.showEndGame.value = true;
-        await new Promise (timeout => setTimeout(timeout, 2000))
-        stateProps.showEndGame.value = false;
+        // stateProps.showEndGame.value = true;
+        // await new Promise (timeout => setTimeout(timeout, 2000))
+        // stateProps.showEndGame.value = false;
         
-        stateProps.resetMatchmakingWindow()
-        console.log('finishGame: Resetting chat status to ONLINE')
-        socket.emit('chatStatus', {
-            sender: auth.session.username,
-            text: 'ONLINE',
-        });
-        console.log('finishGame: Reset game status')
-        gameProps.gameStatus.value = '';
+        // stateProps.resetMatchmakingWindow()
+        // console.log('finishGame: Resetting chat status to ONLINE')
+        // socket.emit('chatStatus', {
+        //     sender: auth.session.username,
+        //     text: 'ONLINE',
+        // });
+        // console.log('finishGame: Reset game status')
+        // gameProps.gameStatus.value = '';
 
-        client.game.gameArray = await client.game.getGameArray();
+        // client.game.gameArray = await client.game.getGameArray();
   }
   //PROPS
   const stateProps = {
-    //TEST props
-    
-    //TEST props
 
     //MISC. VARIABLES
     canvas: ref(),
@@ -89,6 +86,7 @@ import { appName } from '~/constants'
             width: window.offsetWidth,
         }
     },
+
     //MATCHMAKING FUNCTIONS
     waitForMatch: async() => {
         const timeoutLimit = 100;
@@ -108,7 +106,7 @@ import { appName } from '~/constants'
             }
             await client.waitDuration(100)
         }
-        
+
         clearInterval(timeElapsedInterval)
         if (stateProps.gameLobbyId.value !== ""){
             return stateProps.gameLobbyId.value
@@ -147,20 +145,21 @@ import { appName } from '~/constants'
     },
 
     resetMatchmakingWindow: async () => {
+        stateProps.showLoader.value = false;
         stateProps.showMatchFound.value = false;
+        stateProps.showCancelButton.value = false;
+        
+        stateProps.cancelMatch.value = false;
         stateProps.matchAccepted.value = false;
         stateProps.matchDeclined.value = false;
-        stateProps.cancelMatch.value = false;
         stateProps.opponentAccepted.value = false;
         stateProps.opponentDeclined.value = false;
-        // stateProps.opponentProfile.value = {}
-        stateProps.showCancelButton.value = false;
-        stateProps.showLoader.value = false;
         stateProps.showMatchmakingError.value = false
+
+        // stateProps.opponentProfile.value = {}
         // stateProps.endGameLoop.value = false;
         // stateProps.gameLobbyId.value = ""
         stateProps.timeElapsed.value = 0;
-
         stateProps.showPlayButton.value = true;
     },
   };
@@ -308,11 +307,9 @@ import { appName } from '~/constants'
         socket.emit('getGameState', {
             gameId: stateProps.gameLobbyId.value
         })
-        new Promise(timeout => setTimeout(timeout, 1000/24))
-        // Update the Ball's position based on its velocity
+        new Promise(timeout => setTimeout(timeout, 1000/60))
         gameProps.Ball.value.x = gameProps.gameState.value.ballPositionX;
         gameProps.Ball.value.y = gameProps.gameState.value.ballPositionY;
-        // console.log('ball position : ', gameProps.Ball.value.x, ', ', gameProps.Ball.value.y)
         
         // Check for collision with Player1
         // if (
@@ -398,21 +395,8 @@ import { appName } from '~/constants'
 
 
         // }
-        
-        // //Ground/Ceiling collision
-        // if (gameProps.Ball.value.y > stateProps.canvas.value.height - gameProps.Ball.value.height || gameProps.Ball.value.y < gameProps.Ball.value.height)
-        // {
-        //     gameProps.Ball.value.velocityY = gameProps.Ball.value.velocityY * -1;
-        // }
 
         gameProps.refreshCanvas()
-        // Clear and redraw the Ball on the canvas
-        // stateProps.context.value.fillStyle = "blue";
-        // stateProps.context.value.clearRect(0, 0, stateProps.canvas.value.width, stateProps.canvas.value.height);
-        // stateProps.context.value.fillRect(gameProps.Player1.value.x, gameProps.Player1.value.y, gameProps.Player1.value.width, gameProps.Player1.value.height);
-        // stateProps.context.value.fillRect(gameProps.Player2.value.x, gameProps.Player2.value.y, gameProps.Player2.value.width, gameProps.Player2.value.height);
-        // stateProps.context.value.fillRect(gameProps.Ball.value.x, gameProps.Ball.value.y, gameProps.Ball.value.width, gameProps.Ball.value.height);
-        // Call the game loop recursively
         stateProps.animationFrameId.value = requestAnimationFrame(gameProps.gameLoop);
     },
 
