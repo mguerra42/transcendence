@@ -472,7 +472,6 @@ export class UsersService {
         }
         for(let i = 0; i < res.length; i++)
         {
-
             if(res[i].confirmed === 'idle' && res[i].username != playerLFG)
             {
                 await this.setUserQueueStatus(playerLFG, 'challenged')
@@ -482,17 +481,6 @@ export class UsersService {
                     player1: res[playerLfgId].profile,
                     player2: res[i].profile,
                 }
-                // const game
-                // const match = {
-                //     playerOneId: playerLfgId,
-                //     playerTwoId: res[i].profile.id
-                // }
-                // // const lobby = await this.createNewGameLobby(match)
-                // const ret = {
-                //     username: res[i].username,
-                //     // lobbyId: lobby.lobbyId,
-                //     profile: res[i]
-                // }
             }
         }
         return null

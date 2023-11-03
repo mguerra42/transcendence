@@ -143,7 +143,7 @@
         })
 
         socket.on('matchmakingConfirmResponse', (data: any) => {
-            if (data.player === stateProps.opponentProfile.value.username)
+            if (data.lobby === stateProps.gameLobbyId.value && data.player !== auth.session.username)
             {
                 if (data.confirm === 'decline')
                     stateProps.opponentDeclined.value = true;
@@ -152,21 +152,24 @@
             }
         });
 
-        socket.on('abortMatchResponse', async (data: any) => {
-            console.log('socketAbortMatchResponse: Received abort match socket from ', data.player)
+        socket.on('quitMatchButtonResponse', async (data: any) => {
+            console.log('socketquitMatchButtonResponse: Received abort match socket from ', data.player)
 
-            if ((auth.session.username === gameProps.Player1.value.name && data.player === gameProps.Player2.value.name) || (auth.session.username === gameProps.Player2.value.name && data.player === gameProps.Player1.value.name))
+            if (data.player !== auth.session.username && data.lobbyId === stateProps.gameLobbyId.value)
             {
-                console.log('socketAbortMatchResponse: Aborting match between ', auth.session.username, ' and ', data.player, ' in lobby ', stateProps.gameLobbyId.value)
+                console.log('socketquitMatchButtonResponse: Aborting match between ', auth.session.username, ' and ', data.player, ' in lobby ', stateProps.gameLobbyId.value)
                 gameProps.resetGame();
                 cancelAnimationFrame(stateProps.animationFrameId.value);
+                console.log('value of endGameLoop in quitMatchButton response', stateProps.endGameLoop.value)
+                stateProps.endGameLoop.value = true;
                 stateProps.showPong.value = false;
                 stateProps.showPlayButton.value = true;
                 stateProps.resetMatchmakingWindow()
                 await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
+                await client.game.removeFromGameQueue(auth.session.username)
             }
 
-            console.log('socketAbortMatchResponse: Resetting chat status to ONLINE')
+            console.log('socketquitMatchButtonResponse: Resetting chat status to ONLINE')
             socket.emit('chatStatus', {
                 sender: auth.session.username,
                 text: 'ONLINE',

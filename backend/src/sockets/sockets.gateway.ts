@@ -6,6 +6,7 @@ import {
 } from '@nestjs/websockets';
 
 import { UsersService } from '../users/users.service';
+import { PongService } from 'src/pong/pong.service';
 import { AuthService } from '../auth/auth.service';
 import { Server } from 'socket.io';
 import { UpdateUserDto } from '../users/dto/update-user.dto';
@@ -22,6 +23,7 @@ export class SocketsGateway {
     constructor(
         private authService: AuthService,
         private userService: UsersService,
+        private pongService: PongService,
         private channelService: ChannelService,
     ) {}
 
@@ -105,6 +107,7 @@ export class SocketsGateway {
     @SubscribeMessage('matchmakingConfirm')
     handleMatchmakingDecline(client: any, payload: any) {
         this.server.emit('matchmakingConfirmResponse', {
+            lobby: payload.lobby,
             player: payload.player,
             confirm: payload.confirm,
             //gamelobby
@@ -121,11 +124,11 @@ export class SocketsGateway {
         console.log('gamelobby : ', payload.lobbyId)
     }
 
-    @SubscribeMessage('abortMatch')
-    handleAbortMatch(client: any, payload: any) {
-        this.server.emit('abortMatchResponse', {
+    @SubscribeMessage('quitMatchButton')
+    handlequitMatchButton(client: any, payload: any) {
+        this.server.emit('quitMatchButtonResponse', {
             player: payload.player,
-            //gamelobby
+            lobbyId: payload.lobbyId
         });
     }
     
@@ -140,24 +143,32 @@ export class SocketsGateway {
     @SubscribeMessage('readyForMatchmaking')
     async handleReadyForMatchmaking(client: any, payload: any) {
         const ret:any = await this.userService.findAnOpponent(payload.player);
-        console.log(ret)
         if (ret !== null)
         {
-            console.log("socketIds : " + ret.player1.socketId + " " + ret.player2.socketId)
-            // this.server.to(ret.player1.socketId as string).emit('readyForMatchmakingResponse', {
             this.server.emit('readyForMatchmakingResponse', {
-                lobbyId: "1234",
+                lobbyId: this.pongService.newGameSession(ret.player1, ret.player2),
                 player1: ret.player1.username,
                 player2: ret.player2.username,
             });
-            // this.server.to(ret.player2.socketId as string).emit('readyForMatchmakingResponse', {
-            // this.server.to(ret.player2.socketId as string).emit('readyForMatchmakingResponse', {
-            //     lobbyId: "1234",
-            //     player1: ret.player1.username,
-            //     plauer2: ret.player2.username,
-            // });
         }
-        //lamcer la fonction qui trouve un opponent
+    }
+
+    @SubscribeMessage('getGameState')
+    async handleGetGameState(client: any, payload: any) {
+        const ret:any  = await this.pongService.getGameState(payload.gameId)
+        this.server.emit('getGameStateResponse', {
+            gameState: ret
+        });
+    }
+
+    @SubscribeMessage('stopGameSession')
+    async handleStopGameSession(client: any, payload: any) {
+        const ret:any  = await this.pongService.stopGameSession(payload.gameId)
+    }
+
+    @SubscribeMessage('startGameSession')
+    async handleStartGameSession(client: any, payload: any) {
+        const ret:any  = await this.pongService.startGameSession(payload.gameId)
     }
 
     @SubscribeMessage('afk')

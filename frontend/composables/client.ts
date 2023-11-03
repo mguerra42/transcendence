@@ -16,7 +16,7 @@ export const useRequest: typeof useFetch = (path, options = {}) => {
 }
 
 interface AppClient {
-
+    waitDuration: (milliseconds : number) => void
     auth: {
         login: ({
             email,
@@ -134,6 +134,7 @@ interface AppClient {
         getAllLobbies: () => Promise<any>
         getGameArray: () => any
         createEndGame: (winner: string, loser: string, winnerScore: number, loserScore: number) => void
+        tryGameLobby: () => void
         create: () => void // create game
         gameArray: globalThis.Ref<any[]> // all the games of the current player
     }
@@ -144,11 +145,14 @@ export const useClient = defineStore('client', () => {
     const client: AppClient = {} as AppClient
     const authStore = useAuth()
     
-
     client.auth = {} as AppClient['auth']
     client.chat = {} as AppClient['chat']
     client.game = {} as AppClient['game']
     client.friend = {} as AppClient['friend']
+
+    client.waitDuration = async (ms:number) => {
+        await new Promise (timeout => setTimeout(timeout, ms))
+    }
 
     // AUTH FUNCTIONS
     client.auth.login = async ({

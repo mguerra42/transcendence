@@ -83,15 +83,16 @@
     const acceptMatch = () => {
         stateProps.matchAccepted.value = true;
         socket.emit('matchmakingConfirm', {
-            player: auth.session.username, 
             confirm: 'accept',
+            player: auth.session.username,
+            lobby: stateProps.gameLobbyId.value,
         })
     }
 
     const declineMatch = () => {
         stateProps.matchDeclined.value = true;
         socket.emit('matchmakingConfirm', {
-            player: auth.session.username,
+            lobby: stateProps.gameLobbyId.value, 
             confirm: 'decline',
         })
     }
