@@ -307,10 +307,11 @@ import { appName } from '~/constants'
         socket.emit('getGameState', {
             gameId: stateProps.gameLobbyId.value
         })
-        new Promise(timeout => setTimeout(timeout, 1000/60))
+        new Promise(timeout => setTimeout(timeout, 1000/24))
         gameProps.Ball.value.x = gameProps.gameState.value.ballPositionX;
         gameProps.Ball.value.y = gameProps.gameState.value.ballPositionY;
-        
+        gameProps.Player1.value.y = gameProps.gameState.value.playerOnePos;
+        gameProps.Player2.value.y = gameProps.gameState.value.playerTwoPos;
         // Check for collision with Player1
         // if (
         //     gameProps.Ball.value.x < gameProps.Player1.value.x + gameProps.Player1.value.width &&

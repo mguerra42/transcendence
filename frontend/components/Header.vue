@@ -16,6 +16,9 @@ const quitMatchButton = async () => {
         player: auth.session.username,
         lobbyId: stateProps.gameLobbyId.value
     })
+    socket.emit('stopGameSession', {
+            gameId: stateProps.gameLobbyId.value
+    })
     stateProps.showPong.value = false;
     stateProps.showPlayButton.value = true;
 
@@ -68,7 +71,7 @@ const startGameButton = async () => {
             socket.emit('startGameSession', {
                 gameId: stateProps.gameLobbyId.value
             })
-            // stateProps.endGameLoop.value = false;
+            stateProps.endGameLoop.value = false;
             // await client.game.setQueueStatus(auth.session.username, 'in-game')
             gameProps.gameLoop();
             stateProps.resetMatchmakingWindow()

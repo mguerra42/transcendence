@@ -30,8 +30,8 @@ export class PongService {
                 playerTwoProfile : opponentProfile,
                 playerOneName: playerProfile.username,
                 playerTwoName: opponentProfile.username,
-                playerOnePos: 0,
-                playerTwoPos: 0,
+                playerOnePos: 20,
+                playerTwoPos: 20,
                 playerOneScore: 0,
                 playerTwoScore: 0,
                 ballPositionX: 400,
@@ -52,16 +52,38 @@ export class PongService {
                 gameSession.isGameLoopRunning = true;
                 let i = 0;
                 while (gameSession.isGameLoopRunning) {
-                    console.log('updating ball position X from ', gameSession.gameState.ballPositionX, ' to ' , gameSession.gameState.ballPositionX + gameSession.gameState.velocityX)
                     gameSession.gameState.ballPositionX += gameSession.gameState.velocityX;
                     gameSession.gameState.ballPositionY += gameSession.gameState.velocityY;
                     
+                    //Bounds logic
                     if (gameSession.gameState.ballPositionY > gameSession.gameState.canvasHeight -20 || gameSession.gameState.ballPositionY < 0)
                     {
                         gameSession.gameState.velocityY = gameSession.gameState.velocityY * -1;
                     }
 
                     if (gameSession.gameState.ballPositionX > gameSession.gameState.canvasWidth -20 || gameSession.gameState.ballPositionX < 0)
+                    {
+                        gameSession.gameState.velocityX = gameSession.gameState.velocityX * -1;
+                    }
+                    
+                    //Player collision logic
+                    if  (
+                        gameSession.gameState.ballPositionX + 15 <= gameSession.gameState.playerOnePos + 15 &&
+                        gameSession.gameState.ballPositionY + 15 >=  gameSession.gameState.playerOnePos + 15 &&
+                        gameSession.gameState.ballPositionX + 15 >= gameSession.gameState.playerOnePos + 15 &&
+                        gameSession.gameState.ballPositionY + 15 <=  gameSession.gameState.playerOnePos + 15
+                    )
+                    {
+                        gameSession.gameState.velocityX = gameSession.gameState.velocityX * -1;
+                    }
+
+                    //Player collision logic
+                    if  (
+                        gameSession.gameState.ballPositionX + 15 <= gameSession.gameState.playerTwoPos + 15 &&
+                        gameSession.gameState.ballPositionY + 15 >=  gameSession.gameState.playerTwoPos + 15 &&
+                        gameSession.gameState.ballPositionX + 15 >= gameSession.gameState.playerTwoPos + 15 &&
+                        gameSession.gameState.ballPositionY + 15 <=  gameSession.gameState.playerTwoPos + 15
+                    )
                     {
                         gameSession.gameState.velocityX = gameSession.gameState.velocityX * -1;
                     }
@@ -99,6 +121,7 @@ export class PongService {
     async startGameSession(gameId: string) {
         const gameSession = this.findGameSessionById(gameId);
         if (gameSession) {
+            console.log('new gameLoop in session : ', gameSession)
             gameSession.startGameLoop();
         }
     }
