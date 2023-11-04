@@ -97,11 +97,15 @@ export class SocketsGateway {
 
     @SubscribeMessage('playerMovement')
     handlePlayerMovement(client: any, payload: any) {
-        this.server.emit('playerMovementResponse', {
-            player: payload.player,
-            move: payload.move,
-            //gamelobby
-        });
+        if (payload.move === 'UP')
+            this.pongService.moveUp(payload.gameId, payload.player)
+        else
+            this.pongService.moveDown(payload.gameId, payload.player)
+            // this.server.emit('playerMovementResponse', {
+        //     player: payload.player,
+        //     move: payload.move,
+        //     //gamelobby
+        // });
     }
 
     @SubscribeMessage('matchmakingConfirm')

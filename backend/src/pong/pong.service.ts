@@ -54,7 +54,7 @@ export class PongService {
                 while (gameSession.isGameLoopRunning) {
                     gameSession.gameState.ballPositionX += gameSession.gameState.velocityX;
                     gameSession.gameState.ballPositionY += gameSession.gameState.velocityY;
-                    
+
                     //Bounds logic
                     if (gameSession.gameState.ballPositionY > gameSession.gameState.canvasHeight -20 || gameSession.gameState.ballPositionY < 0)
                     {
@@ -68,23 +68,21 @@ export class PongService {
                     
                     //Player collision logic
                     if  (
-                        gameSession.gameState.ballPositionX + 15 <= gameSession.gameState.playerOnePos + 15 &&
-                        gameSession.gameState.ballPositionY + 15 >=  gameSession.gameState.playerOnePos + 15 &&
-                        gameSession.gameState.ballPositionX + 15 >= gameSession.gameState.playerOnePos + 15 &&
-                        gameSession.gameState.ballPositionY + 15 <=  gameSession.gameState.playerOnePos + 15
+                        (gameSession.gameState.ballPositionX <= 20 + 14 &&
+                        (gameSession.gameState.ballPositionY >=  gameSession.gameState.playerOnePos && gameSession.gameState.ballPositionY <=  gameSession.gameState.playerOnePos + 70))
                     )
                     {
+                        console.log('askip')
                         gameSession.gameState.velocityX = gameSession.gameState.velocityX * -1;
                     }
 
                     //Player collision logic
                     if  (
-                        gameSession.gameState.ballPositionX + 15 <= gameSession.gameState.playerTwoPos + 15 &&
-                        gameSession.gameState.ballPositionY + 15 >=  gameSession.gameState.playerTwoPos + 15 &&
-                        gameSession.gameState.ballPositionX + 15 >= gameSession.gameState.playerTwoPos + 15 &&
-                        gameSession.gameState.ballPositionY + 15 <=  gameSession.gameState.playerTwoPos + 15
+                        (gameSession.gameState.ballPositionX >= 800 - 35 - 14 &&
+                        (gameSession.gameState.ballPositionY >=  gameSession.gameState.playerTwoPos && gameSession.gameState.ballPositionY <=  gameSession.gameState.playerTwoPos + 70))
                     )
                     {
+                        console.log('wsh')
                         gameSession.gameState.velocityX = gameSession.gameState.velocityX * -1;
                     }
                     await new Promise((timeout) => setTimeout(timeout, 30));
@@ -116,6 +114,28 @@ export class PongService {
             }
         }
         return null;
+    }
+
+    moveUp(gameId: string, player:any) {
+        const gameSession = this.findGameSessionById(gameId)
+        if (gameSession && gameSession.gameState.playerOnePos > 0)
+        {
+            if (player === gameSession.gameState.playerOneName)
+                gameSession.gameState.playerOnePos -= 10
+            else
+                gameSession.gameState.playerTwoPos -= 10
+        }
+    }
+
+    moveDown(gameId: string, player:any) {
+        const gameSession = this.findGameSessionById(gameId)
+        if (gameSession && gameSession.gameState.playerOnePos < 800 - 70)
+        {
+            if (player === gameSession.gameState.playerOneName)
+                gameSession.gameState.playerOnePos += 10
+            else
+                gameSession.gameState.playerTwoPos += 10
+        }
     }
 
     async startGameSession(gameId: string) {
