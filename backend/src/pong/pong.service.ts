@@ -13,6 +13,7 @@ interface GameSession {
     isGameLoopRunning: boolean; // Add a flag
     stopGameLoop: () => void;
     startGameLoop: () => void;
+    endRound: (roundWinner:string) => void;
 }
 
 @Injectable()
@@ -61,18 +62,18 @@ export class PongService {
                         gameSession.gameState.velocityY = gameSession.gameState.velocityY * -1;
                     }
 
-                    if (gameSession.gameState.ballPositionX > gameSession.gameState.canvasWidth -20 || gameSession.gameState.ballPositionX < 0)
-                    {
-                        gameSession.gameState.velocityX = gameSession.gameState.velocityX * -1;
+                    if (gameSession.gameState.ballPositionX > gameSession.gameState.canvasWidth + 20){
+                        await gameSession.endRound(gameSession.gameState.playerOneName)
                     }
                     
+                    if (gameSession.gameState.ballPositionX < -20){
+                        await gameSession.endRound(gameSession.gameState.playerTwoName)
+                    }
                     //Player collision logic
                     if  (
                         (gameSession.gameState.ballPositionX <= 20 + 14 &&
                         (gameSession.gameState.ballPositionY >=  gameSession.gameState.playerOnePos && gameSession.gameState.ballPositionY <=  gameSession.gameState.playerOnePos + 70))
-                    )
-                    {
-                        console.log('askip')
+                    ){
                         gameSession.gameState.velocityX = gameSession.gameState.velocityX * -1;
                     }
 
@@ -80,15 +81,27 @@ export class PongService {
                     if  (
                         (gameSession.gameState.ballPositionX >= 800 - 35 - 14 &&
                         (gameSession.gameState.ballPositionY >=  gameSession.gameState.playerTwoPos && gameSession.gameState.ballPositionY <=  gameSession.gameState.playerTwoPos + 70))
-                    )
-                    {
-                        console.log('wsh')
+                    ){
                         gameSession.gameState.velocityX = gameSession.gameState.velocityX * -1;
                     }
                     await new Promise((timeout) => setTimeout(timeout, 30));
                     i++;
                 }
                 gameSession.isGameLoopRunning = false; // Set the flag to false when the loop is done
+            },
+
+            endRound: async (roundWinner:string) => {
+                if (roundWinner === gameSession.gameState.playerOneName){
+                    gameSession.gameState.playerOneScore += 1
+                }
+                else {
+                    gameSession.gameState.playerTwoScore += 1
+                }
+                gameSession.gameState.ballPositionX = 400;
+                gameSession.gameState.ballPositionY = 300;
+                gameSession.gameState.playerOnePos = 20,
+                gameSession.gameState.playerTwoPos = 20,
+                await new Promise (timeout => setTimeout(timeout, 1000))
             },
 
             stopGameLoop: () => {
@@ -118,23 +131,31 @@ export class PongService {
 
     moveUp(gameId: string, player:any) {
         const gameSession = this.findGameSessionById(gameId)
-        if (gameSession && gameSession.gameState.playerOnePos > 0)
+        if (gameSession)
         {
-            if (player === gameSession.gameState.playerOneName)
+            if (player === gameSession.gameState.playerOneName && gameSession.gameState.playerOnePos > 10){
                 gameSession.gameState.playerOnePos -= 10
-            else
-                gameSession.gameState.playerTwoPos -= 10
+            }
+            else {
+                if (gameSession.gameState.playerTwoPos > 10){
+                    gameSession.gameState.playerTwoPos -= 10
+                }
+            }
         }
     }
 
     moveDown(gameId: string, player:any) {
         const gameSession = this.findGameSessionById(gameId)
-        if (gameSession && gameSession.gameState.playerOnePos < 800 - 70)
+        if (gameSession)
         {
-            if (player === gameSession.gameState.playerOneName)
+            if (player === gameSession.gameState.playerOneName && gameSession.gameState.playerOnePos < 600 - 70 - 10){
                 gameSession.gameState.playerOnePos += 10
-            else
-                gameSession.gameState.playerTwoPos += 10
+            }
+            else{
+                if (gameSession.gameState.playerTwoPos < 600 - 70 - 10){
+                    gameSession.gameState.playerTwoPos += 10
+                }
+            }
         }
     }
 

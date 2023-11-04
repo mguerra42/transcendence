@@ -485,7 +485,7 @@ import { appName } from '~/constants'
     <transition name="fade" mode="out-in">
       <div v-if="isLoading" key="loading" class="min-h-screen bg-zinc-800 flex flex-col items-center justify-center">
         <div>
-          <p class="text-7xl text-center font-bold text-zinc-200 m-4">transcenden   ce</p>
+          <p class="text-7xl text-center font-bold text-zinc-200 m-4">transcendence</p>
           <p class="text-xl text-center text-zinc-400 mb-4">Loading...</p>
         </div>
         <div class="flex justify-center items-center animate-bounce h-[12px] w-[12px] bg-zinc-200 rounded-full"></div>
