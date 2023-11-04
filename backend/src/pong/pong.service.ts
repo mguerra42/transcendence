@@ -84,7 +84,7 @@ export class PongService {
                     ){
                         gameSession.gameState.velocityX = gameSession.gameState.velocityX * -1;
                     }
-                    await new Promise((timeout) => setTimeout(timeout, 30));
+                    await new Promise((timeout) => setTimeout(timeout, 1000/60));
                     i++;
                 }
                 gameSession.isGameLoopRunning = false; // Set the flag to false when the loop is done
