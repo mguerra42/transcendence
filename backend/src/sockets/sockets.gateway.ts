@@ -101,11 +101,6 @@ export class SocketsGateway {
             this.pongService.moveUp(payload.gameId, payload.player)
         else
             this.pongService.moveDown(payload.gameId, payload.player)
-            // this.server.emit('playerMovementResponse', {
-        //     player: payload.player,
-        //     move: payload.move,
-        //     //gamelobby
-        // });
     }
 
     @SubscribeMessage('matchmakingConfirm')
@@ -118,29 +113,11 @@ export class SocketsGateway {
         });
     }
 
-    @SubscribeMessage('challengePlayer')
-    handleChallengePlayer(client: any, payload: any) {
-        this.server.emit('challengePlayerResponse', {
-            challenger: payload.challenger,
-            lobbyId: payload.lobbyId,
-            //gamelobby
-        });
-        console.log('gamelobby : ', payload.lobbyId)
-    }
-
     @SubscribeMessage('quitMatchButton')
     handlequitMatchButton(client: any, payload: any) {
         this.server.emit('quitMatchButtonResponse', {
             player: payload.player,
             lobbyId: payload.lobbyId
-        });
-    }
-    
-    @SubscribeMessage('newRound')
-    handleNewRound(client: any, payload: any) {
-        this.server.emit('newRoundResponse', {
-            player: payload.player,
-            direction: -1,
         });
     }
 
@@ -161,8 +138,22 @@ export class SocketsGateway {
     async handleGetGameState(client: any, payload: any) {
         const ret:any  = await this.pongService.getGameState(payload.gameId)
         this.server.emit('getGameStateResponse', {
-            gameState: ret
+            gameState: ret,
+            gameId: payload.gameId
         });
+    }
+
+    @SubscribeMessage('getActiveGameSessions')
+    async handleGetActiveGameSessions(client: any, payload: any) {
+        const ret:any  = await this.pongService.getActiveGameSessionsNumber()
+        this.server.emit('getActiveGameSessionsResponse', {
+            response: ret
+        });
+    }
+
+    @SubscribeMessage('deleteGameSession')
+    async handleDeleteGameSession(client: any, payload: any) {
+        const ret:any  = await this.pongService.deleteGameSession(payload.gameId)
     }
 
     @SubscribeMessage('stopGameSession')

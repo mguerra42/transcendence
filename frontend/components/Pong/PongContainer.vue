@@ -1,7 +1,7 @@
 
 
 <template>
-  <PongMatchmaking :state-props="stateProps" />
+  <PongMatchmaking :state-props="stateProps" :game-props="gameProps"/>
   <Pong v-if="auth.logged" :state-props="stateProps" :game-props="gameProps"/>
   <PongEndBoard v-if="stateProps.showEndGame.value === true" :state-props="stateProps" :game-props="gameProps" />
 </template>

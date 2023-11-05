@@ -29,19 +29,19 @@
         <p class="text-zinc-200 mt-4 ml-4 mr-4 mb-1 text-5xl font-bold text-center">
             {{ stateProps.matchAccepted.value ? 'Accepted !' : 'Match found !' }}
         </p>
-        <p v-if="stateProps.matchAccepted.value === true" class="text-zinc-400 text-sm text-center">
-            Waiting for {{ stateProps.opponentProfile.value.username }}...
+        <p v-if="stateProps.matchAccepted.value === true && !stateProps.opponentAccepted.value" class="text-zinc-400 text-sm text-center">
+            Waiting for {{ auth.session.username === gameProps.gameState.value.playerOneName ? gameProps.gameState.value.playerOneName : gameProps.gameState.value.playerTwoName }}...
         </p>
         <div class="flex mt-1 justify-center">
             <div class="flex">
                 <div class="flex justify-center">
                     <div class="flex-col flex justify-center">
-                        <p class="text-lg text-center text-zinc-200" >{{ auth.session.username }}</p>
+                        <p class="text-lg text-center text-zinc-200" >{{ gameProps.gameState.value.playerOneName }}</p>
                         <p class="text-xs text-center text-zinc-400" >W/L : 10-3</p>
                         <p class="text-xs text-center text-zinc-400" >Elo : 1230</p>
                     </div>
                 </div>
-                <img :src="auth.session.avatarPath" class="w-30 h-30 m-2 border-8 border-zinc-100 rounded-full" />
+                <img :src="gameProps.gameState.value.playerOneProfile.avatarPath" class="w-30 h-30 m-2 border-8 border-zinc-100 rounded-full" />
             </div>
             <div class="flex flex-col justify-center">
                 <p class="text-zinc-200 ml-5 mr-5 text-7xl font-bold text-center">
@@ -49,10 +49,10 @@
                 </p>
             </div>
             <div class="flex">
-                <img :src="stateProps.opponentProfile.value.avatarPath" class="w-30 h-30 m-2 border-8 border-zinc-100 rounded-full" />
+                <img :src="gameProps.gameState.value.playerTwoProfile.avatarPath" class="w-30 h-30 m-2 border-8 border-zinc-100 rounded-full" />
                 <div class="flex justify-center">
                     <div class="flex-col flex justify-center">
-                        <p class="text-lg text-center text-zinc-200" >{{ stateProps.opponentProfile.value.username }}</p>
+                        <p class="text-lg text-center text-zinc-200" >{{ gameProps.gameState.value.playerTwoName }}</p>
                         <p class="text-xs text-center text-zinc-400" >W/L : 10-3</p>
                         <p class="text-xs text-center text-zinc-400" >Elo : 1230</p>
                     </div>
@@ -64,7 +64,7 @@
         </p>
     </div>
     <!-- Decline button -->
-    <div v-if="stateProps.showMatchFound.value" @click="declineMatch" class="bg-zinc-600 w-40 hover:bg-zinc-700 px-2 py-1 m-2 cursor-pointer rounded-lg">
+    <div v-if="stateProps.showMatchFound.value && !stateProps.matchAccepted.value" @click="declineMatch" class="bg-zinc-600 w-40 hover:bg-zinc-700 px-2 py-1 m-2 cursor-pointer rounded-lg">
         <p class="text-zinc-200 text-center">
             Decline
         </p>
@@ -97,7 +97,8 @@
         })
     }
 
-    const { stateProps } = defineProps<{
+    const { stateProps, gameProps } = defineProps<{
         stateProps: any;
+        gameProps: any;
     }>();
 </script>

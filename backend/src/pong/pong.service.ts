@@ -39,8 +39,8 @@ export class PongService {
                 ballPositionY: 300,
                 canvasWidth: 800,
                 canvasHeight: 600,
-                velocityX: 5,
-                velocityY: 5,
+                velocityX: 4,
+                velocityY: 4,
             },
 
             isGameLoopRunning: false, // Initialize the flag as false
@@ -84,6 +84,7 @@ export class PongService {
                     ){
                         gameSession.gameState.velocityX = gameSession.gameState.velocityX * -1;
                     }
+
                     await new Promise((timeout) => setTimeout(timeout, 1000/60));
                     i++;
                 }
@@ -172,7 +173,17 @@ export class PongService {
         if (gameSession) {
             gameSession.stopGameLoop();
         }
-        // TODO: Delete the game session after stopping
+    }
+
+    deleteGameSession(gameId: string) {
+        const index = this.activeGameSessions.findIndex((gameSession) => gameSession.gameId === gameId);
+        if (index !== -1) {
+            this.activeGameSessions.splice(index, 1);
+        }
+    }
+
+    getActiveGameSessionsNumber () {
+        return this.activeGameSessions.length
     }
 
 }

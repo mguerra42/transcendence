@@ -2,10 +2,10 @@
     <div class="flex-col" v-show="stateProps.showPong.value" >
         <div class="flex justify-between p-2 mx-4">
             <div class="text-lg text-zinc-100">
-                {{ gameProps.Player1.value.name }} - <b> {{ gameProps.Player1.value.score }} </b>
+                {{ gameProps.gameState.value.playerOneName }} - <b> {{ gameProps.gameState.value.playerOneScore }} </b>
             </div>
             <div class="text-lg text-zinc-100">
-                <b> {{ gameProps.Player2.value.score }} </b> - {{ gameProps.Player2.value.name }}
+                <b> {{ gameProps.gameState.value.playerTwoName }} </b> - {{ gameProps.gameState.value.playerTwoScore }}
             </div>
         </div>
 
@@ -119,29 +119,6 @@
         stateProps.context.value.fillRect(gameProps.Player2.value.x, gameProps.Player2.value.y, gameProps.Player2.value.width, gameProps.Player2.value.height)
         stateProps.context.value.fillRect(gameProps.Ball.value.x, gameProps.Ball.value.y, gameProps.Ball.value.width, gameProps.Ball.value.height)
 
-        socket.on('playerMovementResponse', (data: any) => {
-            if (data.player === stateProps.opponentProfile.value.username)
-            {
-                if (data.move === 'moveUp')
-                    gameProps.player2MoveUp();
-                else
-                    gameProps.player2MoveDown();
-            }
-        });
-        
-        socket.on('challengePlayerResponse', async (data: any) => {
-            if (data.challenger === stateProps.opponentProfile.value.username)
-            {
-                if (stateProps.gameLobbyId.value !== data.lobbyId)
-                    await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
-                stateProps.gameLobbyId.value = data.lobbyId
-                console.log('socketChallengePlayerResponse: Received challenge socket from ', data.challenger, ' with lobby ', data.lobbyId)
-                console.log('i am player 2 !')
-                //TODO : persist this value after refresh
-                gameProps.isPlayerTwo.value = true
-            }
-        })
-
         socket.on('matchmakingConfirmResponse', (data: any) => {
             if (data.lobby === stateProps.gameLobbyId.value && data.player !== auth.session.username)
             {
@@ -157,17 +134,24 @@
 
             if (data.player !== auth.session.username && data.lobbyId === stateProps.gameLobbyId.value)
             {
-                console.log('socketquitMatchButtonResponse: Aborting match between ', auth.session.username, ' and ', data.player, ' in lobby ', stateProps.gameLobbyId.value)
-                gameProps.resetGame();
                 cancelAnimationFrame(stateProps.animationFrameId.value);
-                console.log('value of endGameLoop in quitMatchButton response', stateProps.endGameLoop.value)
                 stateProps.endGameLoop.value = true;
-                stateProps.showPong.value = false;
-                stateProps.showPlayButton.value = true;
+
+                socket.emit('quitMatchButton', {
+                    player: auth.session.username,
+                    lobbyId: stateProps.gameLobbyId.value
+                })
+                socket.emit('stopGameSession', {
+                    gameId: stateProps.gameLobbyId.value
+                })
+                socket.emit('deleteGameSession', {
+                    gameId: stateProps.gameLobbyId.value
+                })
+                
                 stateProps.resetMatchmakingWindow()
-                await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
-                await client.game.removeFromGameQueue(auth.session.username)
+                stateProps.showPong.value = false;
                 gameProps.gameState.value = {}
+                stateProps.gameLobbyId.value = ""
                 stateProps.gameLobbyId.value = ""
             }
 

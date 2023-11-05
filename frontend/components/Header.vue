@@ -10,23 +10,28 @@ const { stateProps, gameProps } = defineProps<{
 
 const quitMatchButton = async () => {
     console.log('quitMatchButton: Sending abort match socket from ', auth.session.username)
-    stateProps.matchDeclined.value = true;
+    cancelAnimationFrame(stateProps.animationFrameId.value);
     stateProps.endGameLoop.value = true;
+
     socket.emit('quitMatchButton', {
         player: auth.session.username,
         lobbyId: stateProps.gameLobbyId.value
     })
     socket.emit('stopGameSession', {
-            gameId: stateProps.gameLobbyId.value
+        gameId: stateProps.gameLobbyId.value
     })
-    stateProps.showPong.value = false;
-    stateProps.showPlayButton.value = true;
-
-    await client.game.removeFromGameQueue(auth.session.username)
+    socket.emit('deleteGameSession', {
+        gameId: stateProps.gameLobbyId.value
+    })
+    
+    await client.game.removeFromGameQueue(gameProps.gameState.value.playerOneName)
+    await client.game.removeFromGameQueue(gameProps.gameState.value.playerTwoName)
+    
     stateProps.resetMatchmakingWindow()
+    stateProps.showPong.value = false;
     gameProps.gameState.value = {}
     stateProps.gameLobbyId.value = ""
-
+    stateProps.gameLobbyId.value = ""
 }
 
 const startGameButton = async () => {
@@ -43,7 +48,6 @@ const startGameButton = async () => {
         {
             console.log('startGameButton: Could not find a match.')
             await client.game.removeFromGameQueue(auth.session.username)
-            
             if (stateProps.cancelMatch.value === true) {
                 stateProps.MatchmakingError.value = 'You have left the queue.'
             }
@@ -56,31 +60,41 @@ const startGameButton = async () => {
             stateProps.resetMatchmakingWindow()
             return ;
         }
+
         //confirm
         await stateProps.waitForConfirm();
         if (stateProps.matchAccepted.value === true && stateProps.opponentAccepted.value === true)
-        {
-            
-            //TODO 
-            //Matchmaking works, check decline and then clean up, and hten bring back pong
-            console.log('match made succesfully between ' , gameProps.gameState.value.playerOneName , ' and ', gameProps.gameState.value.playerTwoName, ' in lobby ', stateProps.gameLobbyId.value)
+        {   
+            //start game countdown 
+            stateProps.timeElapsed.value = 3;
+            const timeElapsedInterval = setInterval(() => {
+                stateProps.timeElapsed.value--;
+            }, 1000);
             await client.waitDuration(3000)
+            clearInterval(timeElapsedInterval)
+            stateProps.timeElapsed.value = 0
+
             stateProps.showPong.value = true;
             stateProps.showPlayButton.value = true;
-            // const ret = gameProps.refreshGameSession();
             socket.emit('startGameSession', {
                 gameId: stateProps.gameLobbyId.value
             })
             stateProps.endGameLoop.value = false;
-            // await client.game.setQueueStatus(auth.session.username, 'in-game')
+            gameProps.gameStatus.value = 'running';
+            socket.emit('chatStatus', {
+                sender: auth.session.username,
+                text: 'INGAME',
+            });
             gameProps.gameLoop();
             stateProps.resetMatchmakingWindow()
-            // await client.game.removeFromGameQueue(auth.session.username)
             return ;
         }
         else
         {
-            console.log('startGameButton: Match declined ', stateProps.opponentProfile.value.username)
+            socket.emit('deleteGameSession', {
+                gameId: stateProps.gameLobbyId.value
+            })
+            stateProps.gameLobbyId.value = ""
             await client.game.removeFromGameQueue(auth.session.username)
             stateProps.resetMatchmakingWindow()
         }
@@ -88,25 +102,7 @@ const startGameButton = async () => {
     else 
     {
         console.log('startGameButton: Quitting game...')
-        socket.emit('stopGameSession', {
-            gameId: stateProps.gameLobbyId.value
-        })
         await quitMatchButton();
-        // gameProps.resetGame();
-        cancelAnimationFrame(stateProps.animationFrameId.value);
-        
-        console.log('startGameButton: Removing players from queue')
-        // await client.game.removeFromGameQueue(gameProps.Player1.value.name)
-        // await client.game.removeFromGameQueue(gameProps.Player2.value.name)
-        
-        console.log('startGameButton: Deleting lobby ', stateProps.gameLobbyId.value)
-        await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
-        
-        stateProps.showPong.value = false;
-        stateProps.showPlayButton.value = true;
-        stateProps.resetMatchmakingWindow()
-
-        console.log('startGameButton: Resetting chat status to ONLINE')
         socket.emit('chatStatus', {
             sender: auth.session.username,
             text: 'ONLINE',
@@ -120,10 +116,21 @@ onBeforeUnmount(() => {
         console.log('onBeforeUnMount: Socket.io DISCONNECTED')
 })
 
+onUpdated(async () => {
+    socket.emit('getActiveGameSessions', {})
+})
+
 onMounted(async () => {
     await socket.connect()
     console.log('onMounted: Socket.io CONNECTED')
     await auth.refreshSession()
+
+    socket.on('getActiveGameSessionsResponse', (data:any) => {
+        stateProps.activeGameSessions.value = data.response
+    })
+
+
+    socket.emit('getActiveGameSessions', {})
 })
 
 </script>
@@ -135,6 +142,9 @@ onMounted(async () => {
                 Ft_transcendence
             </div>
             <div v-if="auth.logged === true" class="flex gap-5 items-center">
+                <div>
+                    <p>Active game sessions : {{ stateProps.activeGameSessions.value }}</p>
+                </div>
                 <button @click="startGameButton()" v-if="stateProps.showPlayButton.value" class="bg-zinc-700 px-3 py-1 m-1 text-zinc-200 rounded-lg">
                     {{ stateProps.showPong.value ? 'Quit' : 'Play' }} 
                 </button>

@@ -102,12 +102,17 @@ export class UsersService {
     }
 
     async removeUserFromQueue(playerUsername: string) {
-        console.log('player username in user service', playerUsername);
-        return await this.db.queue.delete({
-            where: {
-                username: playerUsername,
-            },
-        });
+        //TODO : check if user exists before deleting for all delete functions
+        const ret:any = await this.getUserFromQueue(playerUsername)
+        if (ret !== null && ret !== undefined)
+        {
+            return await this.db.queue.delete({
+                where: {
+                    username: playerUsername,
+                },
+            });
+        }
+        return null
     }
 
     async setUserQueueStatus(playerUsername: string, status: string) {

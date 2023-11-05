@@ -1,12 +1,35 @@
 <script setup lang="ts">
   import { getDefaultCompilerOptions } from 'typescript';
 import { appName } from '~/constants'
+import UserProfile from './components/Chat/UserProfile.vue';
   const isLoading = ref(true);
   
   //STORES
   const auth = useAuth()
   const client = useClient()
   const socket = useSocket()
+
+  interface UserProfile {
+    defeats?: number;
+    victories?:number;
+    email?: string;
+    id?: number;
+    ladderPoint?: number;
+    secret?:string;
+    socketId?:string;
+    status?:string;
+    twoFa?:number;
+    password?: string;
+    username?: string;
+    avatarPath?: string;
+  }
+
+  //TODO : matchmaking sometimes doesnt work on first try when first laucnhing the window
+  //TODO : trim and clean exit game, reset everything to initial status
+  //TODO : implement refresh logic to resume ongoign games
+  //TODO : implement cleanup logic to kill inactive/dropped lobbies
+  //TODO : implement cleanup logic on first login
+  
 
   //STATIC FUNCTION
   const finishGame = async (winner:string) => {
@@ -55,6 +78,7 @@ import { appName } from '~/constants'
     canvas: ref(),
     context: ref(),
     timeElapsed: ref(0),
+    activeGameSessions: ref(0),
     animationFrameId: ref(),
     MatchmakingError: ref('Matchmaking : An error occured.'),
     showEndGame: ref(false),
@@ -102,6 +126,7 @@ import { appName } from '~/constants'
             if (stateProps.gameLobbyId.value !== "" || stateProps.cancelMatch.value === true)
             {
                 socket.emit('getGameState', { gameId: stateProps.gameLobbyId.value })
+                await client.waitDuration(100)
                 break ;
             }
             await client.waitDuration(100)
@@ -156,9 +181,6 @@ import { appName } from '~/constants'
         stateProps.opponentDeclined.value = false;
         stateProps.showMatchmakingError.value = false
 
-        // stateProps.opponentProfile.value = {}
-        // stateProps.endGameLoop.value = false;
-        // stateProps.gameLobbyId.value = ""
         stateProps.timeElapsed.value = 0;
         stateProps.showPlayButton.value = true;
     },
@@ -166,11 +188,10 @@ import { appName } from '~/constants'
   
   const gameProps = {
     gameStatus: ref(''),
-    newRound: ref(false),
-    isPlayerTwo: ref(false),
-    initialDirection: ref(1),
 
     gameState: ref({
+        playerOneProfile : UserProfile,
+        playerTwoProfile : UserProfile,
         playerOneName: '',
         playerTwoName: '',
         playerOnePos: 0,
@@ -188,8 +209,8 @@ import { appName } from '~/constants'
         score: 0,
         width: 14,
         height: 70,
-        x: 25,
-        y: 20
+        x: 0,
+        y: 0
     }),
 
     Player2: ref({
@@ -197,8 +218,8 @@ import { appName } from '~/constants'
         score: 0,
         width: 14,
         height: 70,
-        x: 800 - 35,
-        y: 20
+        x: 0,
+        y: 0
     }),
 
     Ball: ref({
@@ -210,37 +231,12 @@ import { appName } from '~/constants'
         velocityY: 5  // Vertical velocity (positive moves down, negative moves up)
     }),
 
-    resetGame: () => {
-        //TODO : reinitialize values here
-    },
-
     player1MoveDown: (event:any) => {
         socket.emit('playerMovement', {
             player: auth.session.username,
             gameId: stateProps.gameLobbyId.value,
             move: 'DOWN'
         });
-        // if (gameProps.Player2.value.name === auth.session.username)
-        // {
-        //     if (event.key === 'ArrowDown' && gameProps.Player2.value.y < stateProps.canvas.value.height - gameProps.Player2.value.height) {
-        //         gameProps.Player2.value.y += 15;
-        //         socket.emit('playerMovement', {
-        //             player: auth.session.username,
-        //             move:'moveDown' 
-        //         });
-        //         gameProps.refreshCanvas();
-        //     }
-        // }
-        // else{
-        //     if (event.key === 'ArrowDown' && gameProps.Player1.value.y < stateProps.canvas.value.height - gameProps.Player1.value.height) {
-        //         gameProps.Player1.value.y += 15;
-        //         socket.emit('playerMovement', {
-        //             player: auth.session.username,
-        //             move:'moveDown' 
-        //         });
-        //         gameProps.refreshCanvas();
-        //     }
-        // }
     },
 
     player1MoveUp: (event:any) => {
@@ -249,59 +245,14 @@ import { appName } from '~/constants'
             gameId: stateProps.gameLobbyId.value,
             move: 'UP'
         });
-        // if (gameProps.Player2.value.name === auth.session.username)
-        // {
-        //     if (event.key === 'ArrowUp' && gameProps.Player2.value.y > gameProps.Player2.value.height) {
-        //         gameProps.Player2.value.y -= 15;
-        //         socket.emit('playerMovement', {
-        //             player: auth.session.username,
-        //             gameId: stateProps.gameLobbyId.value 
-        //         });
-        //         gameProps.refreshCanvas();
-        //     }
-        // }
-        // else
-        // {
-        //     if (event.key === 'ArrowUp' && gameProps.Player1.value.y > gameProps.Player1.value.height) {
-        //         gameProps.Player1.value.y -= 15;
-        //         socket.emit('playerMovement', {
-        //             player: auth.session.username,
-        //             move:'moveUp' 
-        //         });
-        //         gameProps.refreshCanvas();
-        //     }
-        // }
-    },
-
-    player2MoveDown: () => {
-        if (gameProps.Player2.value.name === auth.session.username)
-        {
-            if (gameProps.Player1.value.y < stateProps.canvas.value.height - gameProps.Player1.value.height)
-                gameProps.Player1.value.y += 15;
-        }
-        else
-        {
-            if (gameProps.Player2.value.y < stateProps.canvas.value.height - gameProps.Player2.value.height)
-                gameProps.Player2.value.y += 15;
-        }
-        gameProps.refreshCanvas();
-    },
-
-    player2MoveUp: () => {
-        if (gameProps.Player2.value.name === auth.session.username)
-        {
-            if (gameProps.Player1.value.y > gameProps.Player1.value.height)
-                gameProps.Player1.value.y -= 15;
-        }
-        else
-        {
-            if (gameProps.Player2.value.y > gameProps.Player2.value.height)
-                gameProps.Player2.value.y -= 15;
-        }
-        gameProps.refreshCanvas();
     },
 
     refreshCanvas: () => {
+        gameProps.Ball.value.x = gameProps.gameState.value.ballPositionX;
+        gameProps.Ball.value.y = gameProps.gameState.value.ballPositionY;
+        gameProps.Player1.value.y = gameProps.gameState.value.playerOnePos;
+        gameProps.Player2.value.y = gameProps.gameState.value.playerTwoPos;
+
         stateProps.context.value.clearRect(0, 0, stateProps.canvas.value.width, stateProps.canvas.value.height);
         stateProps.context.value.fillRect(gameProps.Player1.value.x, gameProps.Player1.value.y, gameProps.Player1.value.width, gameProps.Player1.value.height);
         stateProps.context.value.fillRect(gameProps.Player2.value.x, gameProps.Player2.value.y, gameProps.Player2.value.width, gameProps.Player2.value.height);
@@ -309,107 +260,19 @@ import { appName } from '~/constants'
     },
 
     gameLoop: async () => {
-        console.log('value of endGameLoop ', stateProps.endGameLoop.value)
-        if (stateProps.endGameLoop.value === true)
-        {
+        //don't enter loop if its been ended by opponent or current user
+        if (stateProps.endGameLoop.value === true){
             return ;
         }
+
+        //do not await this call for smooth animation
         socket.emit('getGameState', {
             gameId: stateProps.gameLobbyId.value
         })
-
-        new Promise(timeout => setTimeout(timeout, 1000/60))
-        gameProps.Ball.value.x = gameProps.gameState.value.ballPositionX;
-        gameProps.Ball.value.y = gameProps.gameState.value.ballPositionY;
-        gameProps.Player1.value.y = gameProps.gameState.value.playerOnePos;
-        gameProps.Player2.value.y = gameProps.gameState.value.playerTwoPos;
-        // Check for collision with Player1
-        // if (
-        //     gameProps.Ball.value.x < gameProps.Player1.value.x + gameProps.Player1.value.width &&
-        //     gameProps.Ball.value.x + gameProps.Ball.value.width > gameProps.Player1.value.x &&
-        //     gameProps.Ball.value.y < gameProps.Player1.value.y + gameProps.Player1.value.height &&
-        //     gameProps.Ball.value.y + gameProps.Ball.value.height > gameProps.Player1.value.y
-        // ) {
-        //     // Ball collided with Player1, reverse its horizontal velocity
-        //     gameProps.Ball.value.velocityX = -gameProps.Ball.value.velocityX;
-        // }
-
-        // // Check for collision with Player2
-        // if (
-        //     gameProps.Ball.value.x < gameProps.Player2.value.x + gameProps.Player2.value.width &&
-        //     gameProps.Ball.value.x + gameProps.Ball.value.width > gameProps.Player2.value.x &&
-        //     gameProps.Ball.value.y < gameProps.Player2.value.y + gameProps.Player2.value.height &&
-        //     gameProps.Ball.value.y + gameProps.Ball.value.height > gameProps.Player2.value.y
-        // ) {
-        //     // Ball collided with Player2, reverse its horizontal velocity
-        //     gameProps.Ball.value.velocityX = -gameProps.Ball.value.velocityX;
-        // }
-
-        // //Goal scenario 
-        // //TODO : Refactor into round end function
-        // if ((gameProps.Ball.value.x > stateProps.canvas.value.width + gameProps.Ball.value.width || gameProps.Ball.value.x < 0 - gameProps.Ball.value.width) || gameProps.newRound.value === true)
-        // {
-        //     if (gameProps.newRound.value === false)
-        //     {
-        //         console.log('new round !')
-        //         socket.emit('newRound', {
-        //             player: auth.session.username
-        //         })
-        //     }
-        //     let roundWinner = ''
-        //     if(gameProps.Ball.value.x > stateProps.canvas.value.width)
-        //         roundWinner = gameProps.Player1.value.name
-        //     else
-        //         roundWinner = gameProps.Player2.value.name
-    
-        //     gameProps.Ball.value.x = stateProps.canvas.value.width / 2 - 10;
-        //     gameProps.Ball.value.y = stateProps.canvas.value.height / 2 - 10;
-        //     gameProps.Ball.value.velocityX = 0;
-        //     gameProps.Ball.value.velocityY = 0;
-
-        //     // setTimeout(() => {
-        //         // if (gameProps.newRound.value === true)
-        //         // {
-        //             gameProps.Ball.value.velocityX = 5 * gameProps.initialDirection.value ;
-        //             gameProps.Ball.value.velocityY = 5 * gameProps.initialDirection.value ;
-        //             gameProps.newRound.value = false
-        //         // }
-        //         // else
-        //         // {
-        //         //     gameProps.Ball.value.velocityX = 5 * gameProps.initialDirection.value * -1;
-        //         //     gameProps.Ball.value.velocityY = 5 * gameProps.initialDirection.value;
-        //         // }
-        //     // }, 1000)
-        //     await new Promise (timeout => setTimeout(timeout, 1000))
-        //     //TODO : score are reversed
-        //     if (roundWinner === gameProps.Player1.value.name)
-        //     {
-        //         gameProps.Player1.value.score++;
-        //         if (gameProps.Player1.value.score === 5)
-        //         {
-        //             console.log("app.vue: Player 1 Win !")
-        //             finishGame('P1');
-        //             return ;
-        //         }
-        //     }
-        //     else
-        //     {
-        //         gameProps.Player2.value.score++;
-        //         if (gameProps.Player2.value.score === 5)
-        //         {
-        //             console.log("app.vue: Player 2 Win !")
-        //             finishGame('P2');
-        //             return ;
-        //         }
-        //     }
-        //     //TODO : fix velocity difference on small canvas
-        //     //check if still in gameloop, else return
-
-
-        // }
+        new Promise(timeout => setTimeout(timeout, 1000/10))
 
         gameProps.refreshCanvas()
-        stateProps.animationFrameId.value = requestAnimationFrame(gameProps.gameLoop);
+        stateProps.animationFrameId.value = requestAnimationFrame(gameProps.gameLoop);        
     },
 
     refreshGameSession: async () => {
@@ -433,11 +296,7 @@ import { appName } from '~/constants'
         // gameProps.Player2.value.score = data.value.player2Score;
         // gameProps.gameStatus.value = 'running';
 
-        console.log('refreshGameSession: Updated chat status to INGAME for player ', auth.session.username)
-        socket.emit('chatStatus', {
-            sender: auth.session.username,
-            text: 'INGAME',
-        });
+        // console.log('refreshGameSession: Updated chat status to INGAME for player ', auth.session.username)
     },
   };
 
@@ -460,22 +319,16 @@ import { appName } from '~/constants'
     await socket.connect()
     console.log('onMounted: Socket.io CONNECTED')
 
-    socket.on('newRoundResponse', (data:any) => {
-        if (data.player !== auth.session.username)
-        {
-            gameProps.newRound.value = true
-        }
-        console.log(gameProps.initialDirection.value)
-    })
-
     socket.on('readyForMatchmakingResponse', (data:any) => {
-        stateProps.gameLobbyId.value = data.lobbyId
+        if (auth.session.username === data.player1 || auth.session.username === data.player2){
+            stateProps.gameLobbyId.value = data.lobbyId
+        }
     })
 
     socket.on('getGameStateResponse', (data:any) => {
-        console.log('return of getGameStateResponse : ')
-        console.log(data.gameState)
-        gameProps.gameState.value = data.gameState
+        if (stateProps.gameLobbyId.value === data.gameId){
+            gameProps.gameState.value = data.gameState
+        }
     })
   });
 </script>
@@ -500,7 +353,6 @@ import { appName } from '~/constants'
 </template>
 
 <style>
-  /* Define the fade transition */
   .fade-enter-active, .fade-leave-active {
     transition: opacity 0.3s;
   }
@@ -508,7 +360,6 @@ import { appName } from '~/constants'
     opacity: 0;
   }
 
-  /* Rest of your styles */
   html, body, #__nuxt {
     height: 100vh;
     margin: 0;
