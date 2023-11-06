@@ -10,6 +10,8 @@ import { connect } from 'http2';
 
 @Injectable()
 export class UsersService {
+    
+
     constructor(private db: DBService) {}
     async create(data: CreateUserDto) {
         const hash = bcrypt.hashSync(data.password, 10);
@@ -100,16 +102,22 @@ export class UsersService {
     }
 
     async removeUserFromQueue(playerUsername: string) {
-        console.log('player username in user service', playerUsername);
-        return await this.db.queue.delete({
-            where: {
-                username: playerUsername,
-            },
-        });
+        //TODO : check if user exists before deleting for all delete functions
+        const ret:any = await this.getUserFromQueue(playerUsername)
+        if (ret !== null && ret !== undefined)
+        {
+            return await this.db.queue.delete({
+                where: {
+                    username: playerUsername,
+                },
+            });
+        }
+        return null
     }
 
-    setUserQueueStatus(playerUsername: string, status: string) {
-        return this.db.queue.update({
+    async setUserQueueStatus(playerUsername: string, status: string) {
+        console.log('updating user status in user service')
+        const ret:any = await this.db.queue.update({
             where: {
                 username: playerUsername,
             },
@@ -117,6 +125,8 @@ export class UsersService {
                 confirmed: status,
             },
         });
+        console.log(ret)
+        return ret
     }
 
     setUserToConfirmMatch(playerUsername: string) {
@@ -357,31 +367,33 @@ export class UsersService {
     }
 
     async createEndGame(
-        winner: string,
-        loser: string,
-        winnerScore: number,
-        loserScore: number,
+        gameState: any
     ) {
-        const winnerUser = await this.db.user.findUnique({
-            where: { username: winner },
-        });
-
-        const loserUser = await this.db.user.findUnique({
-            where: { username: loser },
-        });
-
-        if (!winnerUser || !loserUser) {
-            console.error('Invalid winner or loser');
-            return null;
+        let winner:any = {}
+        let winnerScore = 0
+        let loser:any = {}
+        let loserScore = 0
+        
+        if (gameState.playerOneScore > gameState.playerTwoScore){
+            winner = gameState.playerOneProfile
+            winnerScore = gameState.playerOneScore
+            loser = gameState.playerTwoProfile
+            loserScore = gameState.playerTwoScore
+        }
+        else {
+            winner = gameState.playerTwoProfile
+            winnerScore = gameState.playerTwoScore
+            loser = gameState.playerOneProfile
+            loserScore = gameState.playerOneScore
         }
 
         const newGame =  await this.db.game.create({
             data: {
                 winner: {
-                    connect: { id: winnerUser.id },
+                    connect: { id: winner.id },
                 },
                 loser: {
-                    connect: { id: loserUser.id },
+                    connect: { id: loser.id },
                 },
                 winnerScore: winnerScore,
                 loserScore: loserScore,
@@ -389,19 +401,20 @@ export class UsersService {
         });
 
         await this.db.user.update({
-            where: { username: winner },
+            where: { username: winner.username },
             data: {
-                victories: winnerUser.victories + 1,
+                victories: winner.victories + 1,
+                ladderPoint: winner.ladderPoint + 20
             },
         });
 
         await this.db.user.update({
-            where: { username: loser },
+            where: { username: loser.username },
             data: {
-                defeats: loserUser.defeats + 1,
+                defeats: loser.defeats + 1,
+                ladderPoint: loser.ladderPoint - 20
             },
         });
-
         return newGame;
     }
 
@@ -451,6 +464,33 @@ export class UsersService {
             }
         }
 
+        
+
         return games;
+    }
+
+    async findAnOpponent(playerLFG:string){
+        const res:any = await this.getUsersFromQueue();
+        let playerLfgId = 0
+        let j = 0
+        for (j = 0; j < res.length; j++)
+        {
+            if (res[j].username === playerLFG)
+                playerLfgId = j
+        }
+        for(let i = 0; i < res.length; i++)
+        {
+            if(res[i].confirmed === 'idle' && res[i].username != playerLFG)
+            {
+                await this.setUserQueueStatus(playerLFG, 'challenged')
+                await this.setUserQueueStatus(res[i].username, 'challenged')
+
+                return {
+                    player1: res[playerLfgId].profile,
+                    player2: res[i].profile,
+                }
+            }
+        }
+        return null
     }
 }

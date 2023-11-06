@@ -6,10 +6,12 @@ import {
 } from '@nestjs/websockets';
 
 import { UsersService } from '../users/users.service';
+import { PongService } from 'src/pong/pong.service';
 import { AuthService } from '../auth/auth.service';
 import { Server } from 'socket.io';
 import { UpdateUserDto } from '../users/dto/update-user.dto';
 import { ChannelService } from '../channel/channel.service';
+import { find } from 'rxjs';
 
 @WebSocketGateway({
     cors: {
@@ -21,6 +23,7 @@ export class SocketsGateway {
     constructor(
         private authService: AuthService,
         private userService: UsersService,
+        private pongService: PongService,
         private channelService: ChannelService,
     ) {}
 
@@ -94,48 +97,75 @@ export class SocketsGateway {
 
     @SubscribeMessage('playerMovement')
     handlePlayerMovement(client: any, payload: any) {
-        this.server.emit('playerMovementResponse', {
-            player: payload.player,
-            move: payload.move,
-            //gamelobby
-        });
+        if (payload.move === 'UP')
+            this.pongService.moveUp(payload.gameId, payload.player)
+        else
+            this.pongService.moveDown(payload.gameId, payload.player)
     }
 
     @SubscribeMessage('matchmakingConfirm')
     handleMatchmakingDecline(client: any, payload: any) {
         this.server.emit('matchmakingConfirmResponse', {
+            lobby: payload.lobby,
             player: payload.player,
             confirm: payload.confirm,
             //gamelobby
         });
     }
 
-    @SubscribeMessage('challengePlayer')
-    handleChallengePlayer(client: any, payload: any) {
-        this.server.emit('challengePlayerResponse', {
-            challenger: payload.challenger,
-            lobbyId: payload.lobbyId,
-            //gamelobby
+    @SubscribeMessage('quitMatchButton')
+    handlequitMatchButton(client: any, payload: any) {
+        this.server.emit('quitMatchButtonResponse', {
+            player: payload.player,
+            lobbyId: payload.lobbyId
         });
-        console.log('gamelobby : ', payload.lobbyId)
     }
 
-    @SubscribeMessage('abortMatch')
-    handleAbortMatch(client: any, payload: any) {
-        this.server.emit('abortMatchResponse', {
-            player: payload.player,
-            //gamelobby
+    @SubscribeMessage('readyForMatchmaking')
+    async handleReadyForMatchmaking(client: any, payload: any) {
+        const ret:any = await this.userService.findAnOpponent(payload.player);
+        if (ret !== null)
+        {
+            this.server.emit('readyForMatchmakingResponse', {
+                lobbyId: this.pongService.newGameSession(ret.player1, ret.player2),
+                player1: ret.player1.username,
+                player2: ret.player2.username,
+            });
+        }
+    }
+
+    @SubscribeMessage('getGameState')
+    async handleGetGameState(client: any, payload: any) {
+        const ret:any  = await this.pongService.getGameState(payload.gameId)
+        this.server.emit('getGameStateResponse', {
+            gameState: ret,
+            gameId: payload.gameId
         });
+    }
+
+    @SubscribeMessage('getActiveGameSessions')
+    async handleGetActiveGameSessions(client: any, payload: any) {
+        const ret:any  = await this.pongService.getActiveGameSessionsNumber()
+        this.server.emit('getActiveGameSessionsResponse', {
+            response: ret
+        });
+    }
+
+    @SubscribeMessage('deleteGameSession')
+    async handleDeleteGameSession(client: any, payload: any) {
+        const ret:any  = await this.pongService.deleteGameSession(payload.gameId)
+    }
+
+    @SubscribeMessage('stopGameSession')
+    async handleStopGameSession(client: any, payload: any) {
+        const ret:any  = await this.pongService.stopGameSession(payload.gameId)
+    }
+
+    @SubscribeMessage('startGameSession')
+    async handleStartGameSession(client: any, payload: any) {
+        const ret:any  = await this.pongService.startGameSession(payload.gameId)
     }
     
-    @SubscribeMessage('newRound')
-    handleNewRound(client: any, payload: any) {
-        this.server.emit('newRoundResponse', {
-            player: payload.player,
-            direction: -1,
-        });
-    }
-
     @SubscribeMessage('afk')
     async handleDisconnection(client: any, payload: any) {
         try {
