@@ -8,17 +8,6 @@
     onMounted(async() => {
     })
 
-
-  const addGlitchEffect = () => {
-    const button = document.getElementById("loginButton");
-    button.classList.add("hero", "glitch", "layers");
-  };
-
-  const removeGlitchEffect = () => {
-    const button = document.getElementById("loginButton");
-    button.classList.remove("hero", "glitch", "layers");
-  };
-
   const changeMode = (mode : string) => {
     auth.showForm = true;
     auth.mode = mode;
@@ -77,11 +66,19 @@
                 <source src="/videos/grid.mp4" type="video/mp4">
               </video>
             </div>
-            <section>
+            <section class="term-box">
               <div class="hero-container">
-                <h2 class="hero glitch layers big-title neon-text" data-text="Welcome to pong"><span>Welcome to pong</span></h2>
-                <!-- <button @click="auth.showForm = true" class="hero glitch layers little-title neon-text">Login</button> -->
-                <button class="b-1 rounded bg-blue-500 px-2 py-1 b-blue-700 cursor-pointer hover:bg-blue-600" @click="changeMode('login')">Login</button>
+                <h2 class="hero glitch layers big-title neon-text" data-text="WELCOME TO PONG"><span>WELCOME TO PONG</span></h2>
+              
+                <!-- Liste d'options -->
+                <ul class="options-list">
+                  <li><button class="home-button layers hero glitch" data-text="-login" @click="changeMode('login')"
+                    style="left : -200px; top: -90px;">-login</button>
+                  </li>
+                  <li><button class="home-button layers hero glitch" data-text="-signup" @click="changeMode('signup')"
+                    style="left : -192px; top: -70px;">-signup</button>
+                  </li>
+                </ul>
               </div>
             </section>
         </div>
@@ -103,6 +100,16 @@
     src: url('/fonts/SDGlitch_Demo.ttf') format('truetype');
     }
 
+    @font-face {
+    font-family: 'terminal';
+    src: url('/fonts/Terminal.ttf') format('truetype');
+    }
+
+    @font-face {
+    font-family: 'mono';
+    src: url('/fonts/mono.ttf') format('truetype');
+    }
+
     .scrollbar-w-2::-webkit-scrollbar {
       width: 0rem;
     }
@@ -116,16 +123,26 @@
     overflow: hidden; /* Empêche les débordements de la vidéo */
   }
 
+  .term-box {
+    border: 2px solid rgb(0, 255, 191);
+    padding: 0;
+    z-index: 1;
+    background-color: rgba(14, 64, 80, 0.781) !important;
+    width: 850px;
+    height: 400px; 
+  }
+
   .video-container {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
+    z-index: 0;
   }
 
   video {
-    object-fit: cover; /* Ajuste la vidéo pour couvrir toute la page */
+    object-fit: cover;
     width: 100%;
     height: 100%;
   }
@@ -138,17 +155,14 @@
     width: 100%;
   }
 
-  .little-title {
-    font-size: 3rem;
-  }
-
   .big-title {
-    font-size: 5rem;
+    font-size: clamp(40px, 10vw, 80px);
+    letter-spacing: 5px;
+    color: #0f0d0d;
     position: absolute;
-    top: 50%;
+    top: 30%;
     left: 50%;
-    transform: translate(-50%, -50%);
-    text-transform: uppercase;
+    transform: translate(-50%, -150%);
   }
 
   .login-modal {
@@ -161,25 +175,23 @@
     z-index: 9999;
   }
 
-  .glitch-button {
-  font-size: 1rem; /* Ajustez la taille du texte à votre convenance */
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s; /* Animation de transition en cas de survol */
-  display: block; /* Définissez le bouton comme un élément de type bloc */
+  .home-button {
+    font-size: 24px;
+    font-family: 'mono', sans-serif;
+    color: rgb(0, 255, 191);
+    position : absolute;
+    transition: color 0.3s;
+  }
 
-  /* Styles normaux */
-  color: #fff; /* Couleur du texte */
-  text-transform: uppercase;
-  font-weight: bold;
+  .home-button:not(.hero.glitch):hover {
+   /* Styles spécifiques au survol sans les classes hero et glitch */
+    color: rgb(181, 192, 189);
+  }
 
-  /* Styles d'effet "glitch" en cas de hover
-  &:hover {
-    text-shadow: 0 0 10px #00FFC6, 0 0 20px #00FFC6, 0 0 30px #00FFC6;
-    color: #00FFC6; /* Couleur du texte pendant le hover */
-  /* } */
-}
+  .home-button.hero.glitch.layers:hover {
+    color : rgb(181, 192, 189);
+    font-weight: bold;
+  }
 
   body {
   color: #ccc;
@@ -201,12 +213,9 @@ section {
 }
 
 .hero {
-  font-size: clamp(40px, 10vw, 100px);
   line-height: 1;
   display: inline-block;
-  color: #0f0d0d;
   z-index: 2;
-  letter-spacing: 10px;
 
   /* Bright things in dark environments usually cast that light, giving off a glow */
   filter: drop-shadow(0 1px 3px);
