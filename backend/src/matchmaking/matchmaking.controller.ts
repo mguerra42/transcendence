@@ -157,15 +157,15 @@ export class MatchmakingController {
         return ret
     }
 
-    @Post ('createEndGame')
-    async createEndGame(@Body() req:any){
-        return await this.userService.createEndGame(
-            req.winner,
-            req.loser,
-            req.winnerScore,
-            req.loserScore,
-        );
-    }
+    // @Post ('createEndGame')
+    // async createEndGame(@Body() req:any){
+    //     return await this.userService.createEndGame(
+    //         req.winner,
+    //         req.loser,
+    //         req.winnerScore,
+    //         req.loserScore,
+    //     );
+    // }
 
     @Post ('getGameArray')
     async getGameArray(@Body() req:any){

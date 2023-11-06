@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { DBService } from 'src/db/db.service';
+import { UsersService } from 'src/users/users.service';
 import { User, Prisma, Role } from '@prisma/client';
+// import { SocketsGateway } from 'src/sockets/sockets.gateway';
 
 import * as bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
@@ -10,7 +11,6 @@ import { connect } from 'http2';
 interface GameSession {
     gameId: string;
     gameState: any;
-    isGameLoopRunning: boolean; // Add a flag
     stopGameLoop: () => void;
     startGameLoop: () => void;
     endRound: (roundWinner:string) => void;
@@ -18,7 +18,9 @@ interface GameSession {
 
 @Injectable()
 export class PongService {
-    constructor(private db: DBService) {}
+    constructor(
+        private userService: UsersService,
+        ) {}
 
     private activeGameSessions: GameSession[] = [];
 
@@ -27,6 +29,7 @@ export class PongService {
         let gameSession: GameSession = {
             gameId,
             gameState: {
+                running : false,
                 playerOneProfile : playerProfile,
                 playerTwoProfile : opponentProfile,
                 playerOneName: playerProfile.username,
@@ -43,16 +46,15 @@ export class PongService {
                 velocityY: 4,
             },
 
-            isGameLoopRunning: false, // Initialize the flag as false
             startGameLoop: async () => {
-                if (gameSession.isGameLoopRunning) {
+                if (gameSession.gameState.running) {
                     console.log(gameSession.gameState.playerOneName ,' - Game loop is already running');
                     return ;
                 }
                 
-                gameSession.isGameLoopRunning = true;
                 let i = 0;
-                while (gameSession.isGameLoopRunning) {
+                gameSession.gameState.running = true
+                while (gameSession.gameState.running) {
                     gameSession.gameState.ballPositionX += gameSession.gameState.velocityX;
                     gameSession.gameState.ballPositionY += gameSession.gameState.velocityY;
 
@@ -88,7 +90,7 @@ export class PongService {
                     await new Promise((timeout) => setTimeout(timeout, 1000/60));
                     i++;
                 }
-                gameSession.isGameLoopRunning = false; // Set the flag to false when the loop is done
+                gameSession.gameState.running = false;
             },
 
             endRound: async (roundWinner:string) => {
@@ -98,15 +100,22 @@ export class PongService {
                 else {
                     gameSession.gameState.playerTwoScore += 1
                 }
-                gameSession.gameState.ballPositionX = 400;
-                gameSession.gameState.ballPositionY = 300;
-                gameSession.gameState.playerOnePos = 20,
-                gameSession.gameState.playerTwoPos = 20,
-                await new Promise (timeout => setTimeout(timeout, 1000))
+                gameSession.gameState.ballPositionX = 400
+                gameSession.gameState.ballPositionY = 300
+                gameSession.gameState.playerOnePos = 20
+                gameSession.gameState.playerTwoPos = 20
+
+                if (gameSession.gameState.playerOneScore === 5 || gameSession.gameState.playerTwoScore === 5){
+                    this.userService.createEndGame(gameSession.gameState)
+                    gameSession.gameState.running = false
+                }
+                else {
+                    await new Promise (timeout => setTimeout(timeout, 1000))
+                }
             },
 
             stopGameLoop: () => {
-                gameSession.isGameLoopRunning = false;
+                gameSession.gameState.running = false;
             },
         };
 
@@ -138,7 +147,7 @@ export class PongService {
                 gameSession.gameState.playerOnePos -= 10
             }
             else {
-                if (gameSession.gameState.playerTwoPos > 10){
+                if (player === gameSession.gameState.playerTwoName && gameSession.gameState.playerTwoPos > 10){
                     gameSession.gameState.playerTwoPos -= 10
                 }
             }
@@ -153,7 +162,7 @@ export class PongService {
                 gameSession.gameState.playerOnePos += 10
             }
             else{
-                if (gameSession.gameState.playerTwoPos < 600 - 70 - 10){
+                if (player === gameSession.gameState.playerTwoName && gameSession.gameState.playerTwoPos < 600 - 70 - 10){
                     gameSession.gameState.playerTwoPos += 10
                 }
             }
@@ -163,7 +172,6 @@ export class PongService {
     async startGameSession(gameId: string) {
         const gameSession = this.findGameSessionById(gameId);
         if (gameSession) {
-            console.log('new gameLoop in session : ', gameSession)
             gameSession.startGameLoop();
         }
     }

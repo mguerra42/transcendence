@@ -37,8 +37,8 @@
                 <div class="flex justify-center">
                     <div class="flex-col flex justify-center">
                         <p class="text-lg text-center text-zinc-200" >{{ gameProps.gameState.value.playerOneName }}</p>
-                        <p class="text-xs text-center text-zinc-400" >W/L : 10-3</p>
-                        <p class="text-xs text-center text-zinc-400" >Elo : 1230</p>
+                        <p class="text-xs text-center text-zinc-400" >W/L : {{ gameProps.gameState.value.playerOneProfile.victories }} - {{ gameProps.gameState.value.playerOneProfile.defeats }}</p>
+                        <p class="text-xs text-center text-zinc-400" >Elo : {{ gameProps.gameState.value.playerOneProfile.ladderPoint }}</p>
                     </div>
                 </div>
                 <img :src="gameProps.gameState.value.playerOneProfile.avatarPath" class="w-30 h-30 m-2 border-8 border-zinc-100 rounded-full" />
@@ -53,8 +53,8 @@
                 <div class="flex justify-center">
                     <div class="flex-col flex justify-center">
                         <p class="text-lg text-center text-zinc-200" >{{ gameProps.gameState.value.playerTwoName }}</p>
-                        <p class="text-xs text-center text-zinc-400" >W/L : 10-3</p>
-                        <p class="text-xs text-center text-zinc-400" >Elo : 1230</p>
+                        <p class="text-xs text-center text-zinc-400" >W/L : {{ gameProps.gameState.value.playerTwoProfile.victories }} - {{ gameProps.gameState.value.playerTwoProfile.defeats }}</p>
+                        <p class="text-xs text-center text-zinc-400" >Elo : {{ gameProps.gameState.value.playerTwoProfile.ladderPoint }}</p>
                     </div>
                 </div>
             </div>

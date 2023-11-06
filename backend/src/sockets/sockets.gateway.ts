@@ -165,7 +165,7 @@ export class SocketsGateway {
     async handleStartGameSession(client: any, payload: any) {
         const ret:any  = await this.pongService.startGameSession(payload.gameId)
     }
-
+    
     @SubscribeMessage('afk')
     async handleDisconnection(client: any, payload: any) {
         try {

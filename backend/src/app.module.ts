@@ -13,9 +13,11 @@ import { MatchmakingController } from './matchmaking/matchmaking.controller';
 import { MatchmakingModule } from './matchmaking/matchmaking.module';
 import { PongService } from './pong/pong.service';
 
+import { SocketsGateway } from 'src/sockets/sockets.gateway';
+
 @Module({
   controllers: [AppController, MatchmakingController],
-  providers: [AppService, PongService],
+  providers: [AppService, PongService ],
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,

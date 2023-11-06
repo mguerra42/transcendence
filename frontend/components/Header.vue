@@ -24,13 +24,10 @@ const quitMatchButton = async () => {
         gameId: stateProps.gameLobbyId.value
     })
     
-    await client.game.removeFromGameQueue(gameProps.gameState.value.playerOneName)
-    await client.game.removeFromGameQueue(gameProps.gameState.value.playerTwoName)
+    await client.game.removeFromGameQueue(auth.session.username)
     
     stateProps.resetMatchmakingWindow()
     stateProps.showPong.value = false;
-    gameProps.gameState.value = {}
-    stateProps.gameLobbyId.value = ""
     stateProps.gameLobbyId.value = ""
 }
 

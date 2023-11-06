@@ -25,57 +25,45 @@ import UserProfile from './components/Chat/UserProfile.vue';
   }
 
   //TODO : matchmaking sometimes doesnt work on first try when first laucnhing the window
-  //TODO : trim and clean exit game, reset everything to initial status
-  //TODO : implement refresh logic to resume ongoign games
+  //TODO : implement refresh logic to persist and resume ongoign games
   //TODO : implement cleanup logic to kill inactive/dropped lobbies
-  //TODO : implement cleanup logic on first login
+  //TODO : slight refactor queue sysytem
   
 
   //STATIC FUNCTION
-  const finishGame = async (winner:string) => {
-        // socket.emit('stopGameSession', {
-        //     gameId: stateProps.gameLobbyId.value
-        // })
-        // //clean up backend
-        // console.log('finishGame: Game finished, removing ', auth.session.username, ' from queue and deleting lobby ', stateProps.gameLobbyId.value)
-        // await client.game.removeFromGameQueue(auth.session.username)
-        // //await client.game.deleteLobbyById(stateProps.gameLobbyId.value)
-
-        // //le winner crée l'objet game dans la DB pour eviter doublon
-        // if (winner == 'P1' && auth.session.username == gameProps.Player1.value.name)
-        //     await client.game.createEndGame(gameProps.Player1.value.name, gameProps.Player2.value.name, gameProps.Player1.value.score, gameProps.Player2.value.score);
-        // else if (winner == 'P2' && auth.session.username == gameProps.Player2.value.name)
-        //     await client.game.createEndGame(gameProps.Player2.value.name, gameProps.Player1.value.name, gameProps.Player2.value.score, gameProps.Player1.value.score);
-        // //else, le user est perdant donc n'a pas a crée l'objet game.
-            
-        // //reset frontend
-        // cancelAnimationFrame(stateProps.animationFrameId.value);
-        // gameProps.resetGame();
-        // auth.refreshSession();
-
-        // stateProps.showPong.value = false;
-        // stateProps.showPlayButton.value = true;
-
-        // stateProps.showEndGame.value = true;
-        // await new Promise (timeout => setTimeout(timeout, 2000))
-        // stateProps.showEndGame.value = false;
+  const finishGame = async () => {
+        cancelAnimationFrame(stateProps.animationFrameId.value);
+        stateProps.showPong.value = false;
         
-        // stateProps.resetMatchmakingWindow()
-        // console.log('finishGame: Resetting chat status to ONLINE')
-        // socket.emit('chatStatus', {
-        //     sender: auth.session.username,
-        //     text: 'ONLINE',
-        // });
-        // console.log('finishGame: Reset game status')
-        // gameProps.gameStatus.value = '';
+        socket.emit('deleteGameSession', {
+          gameId: stateProps.gameLobbyId.value
+        })
+        
+        stateProps.showEndGame.value = true;
+        await client.waitDuration(5000)
+        stateProps.showEndGame.value = false;
+        
+        await client.game.removeFromGameQueue(auth.session.username)
+        
+        stateProps.resetMatchmakingWindow()
+        stateProps.gameLobbyId.value = ""
 
-        // client.game.gameArray = await client.game.getGameArray();
+        console.log('finishGame: Reset game status')
+        gameProps.gameStatus.value = '';
+        console.log('finishGame: Resetting chat status to ONLINE')
+        socket.emit('chatStatus', {
+            sender: auth.session.username,
+            text: 'ONLINE',
+        });
+
+        client.game.gameArray = await client.game.getGameArray();
   }
   //PROPS
   const stateProps = {
 
     //MISC. VARIABLES
     canvas: ref(),
+    canvasMode: ref('BIG'),
     context: ref(),
     timeElapsed: ref(0),
     activeGameSessions: ref(0),
@@ -114,8 +102,9 @@ import UserProfile from './components/Chat/UserProfile.vue';
     //MATCHMAKING FUNCTIONS
     waitForMatch: async() => {
         const timeoutLimit = 100;
-        await client.game.addToGameQueue(auth.session.username)
+        gameProps.resetGameState()
 
+        await client.game.addToGameQueue(auth.session.username)
         socket.emit('readyForMatchmaking', { player: auth.session.username })
         console.log('waitForMatch: Waiting for an opponent...')
         const timeElapsedInterval = setInterval(() => {
@@ -188,8 +177,21 @@ import UserProfile from './components/Chat/UserProfile.vue';
   
   const gameProps = {
     gameStatus: ref(''),
+    
+    gameDimensions: ref({
+        playerOneWidth: 14,
+        playerTwoWidth: 14,
+        playerOneHeight: 70,
+        playerTwoHeight: 70,
+        ballSize: 20,
+        playerOneXPos: 20,
+        playerTwoXPos: 800 - 35,
+        canvasWidth: 800,
+        canvasHeight: 600,
+    }),
 
     gameState: ref({
+        running : false,
         playerOneProfile : UserProfile,
         playerTwoProfile : UserProfile,
         playerOneName: '',
@@ -205,26 +207,16 @@ import UserProfile from './components/Chat/UserProfile.vue';
     }),
 
     Player1: ref({
-        name : "",
-        score: 0,
-        width: 14,
-        height: 70,
         x: 0,
         y: 0
     }),
 
     Player2: ref({
-        name : "",
-        score: 0,
-        width: 14,
-        height: 70,
         x: 0,
         y: 0
     }),
 
     Ball: ref({
-        width: 20,
-        height: 20,
         x: 0,
         y: 0,
         velocityX: 5, // Horizontal velocity (positive moves right, negative moves left)
@@ -247,21 +239,50 @@ import UserProfile from './components/Chat/UserProfile.vue';
         });
     },
 
-    refreshCanvas: () => {
+    resetGameState : () => {
+        gameProps.gameState.value.running = false
+        gameProps.gameState.value.playerOneProfile = UserProfile
+        gameProps.gameState.value.playerTwoProfile = UserProfile
+        gameProps.gameState.value.playerOneName = ''
+        gameProps.gameState.value.playerTwoName = ''
+        gameProps.gameState.value.playerOnePos = 0
+        gameProps.gameState.value.playerTwoPos = 0
+        gameProps.gameState.value.playerOneScore = 0
+        gameProps.gameState.value.playerTwoScore = 0
+        gameProps.gameState.value.ballPositionX = 0
+        gameProps.gameState.value.ballPositionY = 0
+        gameProps.gameState.value.canvasWidth = 0
+        gameProps.gameState.value.canvasHeight = 0
+    },
+
+    refreshCanvas: () => { 
+      if (stateProps.canvasMode.value === 'BIG')
+      {
         gameProps.Ball.value.x = gameProps.gameState.value.ballPositionX;
         gameProps.Ball.value.y = gameProps.gameState.value.ballPositionY;
         gameProps.Player1.value.y = gameProps.gameState.value.playerOnePos;
         gameProps.Player2.value.y = gameProps.gameState.value.playerTwoPos;
+      }
+      else
+      {
+        gameProps.Ball.value.x = gameProps.gameState.value.ballPositionX / 2;
+        gameProps.Ball.value.y = gameProps.gameState.value.ballPositionY / 2;
+        gameProps.Player1.value.y = gameProps.gameState.value.playerOnePos / 2;
+        gameProps.Player2.value.y = gameProps.gameState.value.playerTwoPos / 2;  
+      }
 
-        stateProps.context.value.clearRect(0, 0, stateProps.canvas.value.width, stateProps.canvas.value.height);
-        stateProps.context.value.fillRect(gameProps.Player1.value.x, gameProps.Player1.value.y, gameProps.Player1.value.width, gameProps.Player1.value.height);
-        stateProps.context.value.fillRect(gameProps.Player2.value.x, gameProps.Player2.value.y, gameProps.Player2.value.width, gameProps.Player2.value.height);
-        stateProps.context.value.fillRect(gameProps.Ball.value.x, gameProps.Ball.value.y, gameProps.Ball.value.width, gameProps.Ball.value.height)
+      stateProps.context.value.clearRect(0, 0, gameProps.gameDimensions.value.canvasWidth, gameProps.gameDimensions.value.canvasHeight);
+      stateProps.context.value.fillRect(gameProps.gameDimensions.value.playerOneXPos, gameProps.Player1.value.y, gameProps.gameDimensions.value.playerOneWidth, gameProps.gameDimensions.value.playerOneHeight);
+      stateProps.context.value.fillRect(gameProps.gameDimensions.value.playerTwoXPos, gameProps.Player2.value.y, gameProps.gameDimensions.value.playerTwoWidth, gameProps.gameDimensions.value.playerTwoHeight);
+      stateProps.context.value.fillRect(gameProps.Ball.value.x, gameProps.Ball.value.y, gameProps.gameDimensions.value.ballSize, gameProps.gameDimensions.value.ballSize)
     },
 
     gameLoop: async () => {
         //don't enter loop if its been ended by opponent or current user
         if (stateProps.endGameLoop.value === true){
+            if (gameProps.gameState.value.playerOneScore === 5 || gameProps.gameState.value.playerTwoScore === 5){
+              finishGame();
+            }
             return ;
         }
 
@@ -315,21 +336,9 @@ import UserProfile from './components/Chat/UserProfile.vue';
   
   onMounted(async() => {
     isLoading.value = false;
-    await auth.refreshSession();
     await socket.connect()
     console.log('onMounted: Socket.io CONNECTED')
-
-    socket.on('readyForMatchmakingResponse', (data:any) => {
-        if (auth.session.username === data.player1 || auth.session.username === data.player2){
-            stateProps.gameLobbyId.value = data.lobbyId
-        }
-    })
-
-    socket.on('getGameStateResponse', (data:any) => {
-        if (stateProps.gameLobbyId.value === data.gameId){
-            gameProps.gameState.value = data.gameState
-        }
-    })
+    await auth.refreshSession();
   });
 </script>
 

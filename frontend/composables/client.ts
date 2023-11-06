@@ -507,7 +507,6 @@ export const useClient = defineStore('client', () => {
         },
 
         removeFromGameQueue: async (playerUsername: string): Promise<any> => {
-            await client.waitDuration(100)
             console.log('removeFromGameQueue: Removing ', playerUsername, ' from queue')
             const userExists: any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${playerUsername}`, {
                 method: 'GET',

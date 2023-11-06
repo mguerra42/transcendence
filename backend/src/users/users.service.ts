@@ -367,31 +367,33 @@ export class UsersService {
     }
 
     async createEndGame(
-        winner: string,
-        loser: string,
-        winnerScore: number,
-        loserScore: number,
+        gameState: any
     ) {
-        const winnerUser = await this.db.user.findUnique({
-            where: { username: winner },
-        });
-
-        const loserUser = await this.db.user.findUnique({
-            where: { username: loser },
-        });
-
-        if (!winnerUser || !loserUser) {
-            console.error('Invalid winner or loser');
-            return null;
+        let winner:any = {}
+        let winnerScore = 0
+        let loser:any = {}
+        let loserScore = 0
+        
+        if (gameState.playerOneScore > gameState.playerTwoScore){
+            winner = gameState.playerOneProfile
+            winnerScore = gameState.playerOneScore
+            loser = gameState.playerTwoProfile
+            loserScore = gameState.playerTwoScore
+        }
+        else {
+            winner = gameState.playerTwoProfile
+            winnerScore = gameState.playerTwoScore
+            loser = gameState.playerOneProfile
+            loserScore = gameState.playerOneScore
         }
 
         const newGame =  await this.db.game.create({
             data: {
                 winner: {
-                    connect: { id: winnerUser.id },
+                    connect: { id: winner.id },
                 },
                 loser: {
-                    connect: { id: loserUser.id },
+                    connect: { id: loser.id },
                 },
                 winnerScore: winnerScore,
                 loserScore: loserScore,
@@ -399,19 +401,20 @@ export class UsersService {
         });
 
         await this.db.user.update({
-            where: { username: winner },
+            where: { username: winner.username },
             data: {
-                victories: winnerUser.victories + 1,
+                victories: winner.victories + 1,
+                ladderPoint: winner.ladderPoint + 20
             },
         });
 
         await this.db.user.update({
-            where: { username: loser },
+            where: { username: loser.username },
             data: {
-                defeats: loserUser.defeats + 1,
+                defeats: loser.defeats + 1,
+                ladderPoint: loser.ladderPoint - 20
             },
         });
-
         return newGame;
     }
 

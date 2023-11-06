@@ -1,6 +1,6 @@
 <template >
     <div class="flex-col" v-show="stateProps.showPong.value" >
-        <div class="flex justify-between p-2 mx-4">
+        <div v-if="gameProps.gameState.value" class="flex justify-between p-2 mx-4">
             <div class="text-lg text-zinc-100">
                 {{ gameProps.gameState.value.playerOneName }} - <b> {{ gameProps.gameState.value.playerOneScore }} </b>
             </div>
@@ -10,7 +10,7 @@
         </div>
 
         <div class="" >
-            <canvas tabindex="0" @keydown.down="gameProps.player1MoveDown" @keydown.up="gameProps.player1MoveUp" class="bg-zinc-300 focus-outline-none rounded-lg cursor-crosshair" id="canvas"></canvas>
+            <canvas tabindex="0" @keydown.down="gameProps.player1MoveDown" @keydown.up="gameProps.player1MoveUp" class="bg-zinc-300 focus-outline-none autofocus rounded-lg cursor-crosshair" id="canvas"></canvas>
         </div>
     </div>
 </template>
@@ -57,55 +57,38 @@
         const windowSize = stateProps.getWindowSize()
         if (windowSize.width >= 800 && windowSize.height >= 600)
         {
-            stateProps.canvas.value.width = 800;
-            stateProps.canvas.value.height = 600;
-            
-            gameProps.Player1.value.width = 14;
-            gameProps.Player1.value.height = 70;
-            gameProps.Player1.value.x = 25;
-            gameProps.Player1.value.y = 20;
-
-            gameProps.Player2.value.width = 14;
-            gameProps.Player2.value.height = 70;
-            gameProps.Player2.value.x = 800 - 35;
-            gameProps.Player2.value.y = 20;
-
-            gameProps.Ball.value.width = 20;
-            gameProps.Ball.value.height = 20;
-            gameProps.Ball.value.x = 390;
-            gameProps.Ball.value.y = 290;
-            gameProps.Ball.value.velocityX = 6;
-            gameProps.Ball.value.velocityY = 6;
+            stateProps.canvasMode.value = 'BIG'
+            gameProps.gameDimensions.value.canvasWidth = 800
+            gameProps.gameDimensions.value.canvasHeight = 600
+            gameProps.gameDimensions.value.playerOneWidth = 14
+            gameProps.gameDimensions.value.playerOneHeight = 70
+            gameProps.gameDimensions.value.playerTwoWidth = 14
+            gameProps.gameDimensions.value.playerTwoHeight = 70
+            gameProps.gameDimensions.value.playerOneXPos = 20
+            gameProps.gameDimensions.value.playerTwoXPos = 800 - 20 - gameProps.gameDimensions.value.playerTwoWidth
+            gameProps.gameDimensions.value.ballSize = 20
+            stateProps.canvas.value.width = gameProps.gameDimensions.value.canvasWidth
+            stateProps.canvas.value.height = gameProps.gameDimensions.value.canvasHeight
         }
         else
         {
-            stateProps.canvas.value.width = 400;
-            stateProps.canvas.value.height = 300;
-            
-            gameProps.Player1.value.width = 7;
-            gameProps.Player1.value.height = 35;
-            gameProps.Player1.value.x = 12;
-            gameProps.Player1.value.y = 10;
-        
-            gameProps.Player2.value.width = 7;
-            gameProps.Player2.value.height = 35;
-            gameProps.Player2.value.x = 400 - 17;
-            gameProps.Player2.value.y = 10;
-
-            gameProps.Ball.value.width = 15;
-            gameProps.Ball.value.height = 15;
-            gameProps.Ball.value.x = 190;
-            gameProps.Ball.value.y = 140;
-            gameProps.Ball.value.velocityX = 3;
-            gameProps.Ball.value.velocityY = 3;
+            stateProps.canvasMode.value = 'SMALL'
+            gameProps.gameDimensions.value.canvasWidth = 400
+            gameProps.gameDimensions.value.canvasHeight = 300
+            gameProps.gameDimensions.value.playerOneWidth = 7
+            gameProps.gameDimensions.value.playerOneHeight = 35
+            gameProps.gameDimensions.value.playerTwoWidth = 7
+            gameProps.gameDimensions.value.playerTwoHeight = 35
+            gameProps.gameDimensions.value.playerOneXPos = 10
+            gameProps.gameDimensions.value.playerTwoXPos = 400 - 10 - gameProps.gameDimensions.value.playerTwoWidth
+            gameProps.gameDimensions.value.ballSize = 10
+            stateProps.canvas.value.width = gameProps.gameDimensions.value.canvasWidth
+            stateProps.canvas.value.height = gameProps.gameDimensions.value.canvasHeight
         }
     }
 
     const handleResize = () => {
-            // The window has been resized
-            console.log('Window resized');
-            // setCanvasSize()
-
+        setCanvasSize()
     };
     
     onMounted( async () => {
@@ -113,54 +96,6 @@
         stateProps.context.value = stateProps.canvas.value.getContext("2d");
 
         setCanvasSize()
-
-        stateProps.context.value.fillStyle = "blue";
-        stateProps.context.value.fillRect(gameProps.Player1.value.x, gameProps.Player1.value.y, gameProps.Player1.value.width, gameProps.Player1.value.height)
-        stateProps.context.value.fillRect(gameProps.Player2.value.x, gameProps.Player2.value.y, gameProps.Player2.value.width, gameProps.Player2.value.height)
-        stateProps.context.value.fillRect(gameProps.Ball.value.x, gameProps.Ball.value.y, gameProps.Ball.value.width, gameProps.Ball.value.height)
-
-        socket.on('matchmakingConfirmResponse', (data: any) => {
-            if (data.lobby === stateProps.gameLobbyId.value && data.player !== auth.session.username)
-            {
-                if (data.confirm === 'decline')
-                    stateProps.opponentDeclined.value = true;
-                if (data.confirm === 'accept')
-                    stateProps.opponentAccepted.value = true;
-            }
-        });
-
-        socket.on('quitMatchButtonResponse', async (data: any) => {
-            console.log('socketquitMatchButtonResponse: Received abort match socket from ', data.player)
-
-            if (data.player !== auth.session.username && data.lobbyId === stateProps.gameLobbyId.value)
-            {
-                cancelAnimationFrame(stateProps.animationFrameId.value);
-                stateProps.endGameLoop.value = true;
-
-                socket.emit('quitMatchButton', {
-                    player: auth.session.username,
-                    lobbyId: stateProps.gameLobbyId.value
-                })
-                socket.emit('stopGameSession', {
-                    gameId: stateProps.gameLobbyId.value
-                })
-                socket.emit('deleteGameSession', {
-                    gameId: stateProps.gameLobbyId.value
-                })
-                
-                stateProps.resetMatchmakingWindow()
-                stateProps.showPong.value = false;
-                gameProps.gameState.value = {}
-                stateProps.gameLobbyId.value = ""
-                stateProps.gameLobbyId.value = ""
-            }
-
-            console.log('socketquitMatchButtonResponse: Resetting chat status to ONLINE')
-            socket.emit('chatStatus', {
-                sender: auth.session.username,
-                text: 'ONLINE',
-            });
-        });
 
         await hasRefresh();
         if (auth.refresh === true) {
