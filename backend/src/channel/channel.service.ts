@@ -99,6 +99,7 @@ export class ChannelService {
         });
         if (channel !== null) {
             throw new Error('Channel already exists');
+            return null;
         }
 
         return this.db.channel.create({
