@@ -117,6 +117,7 @@ interface AppClient {
         newMessage: string
         messages: any[]
         showUserProfile: boolean
+        showChannelProfile: boolean
         showAdd: string
     }
 

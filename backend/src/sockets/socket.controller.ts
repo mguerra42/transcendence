@@ -2,6 +2,7 @@ import { Body, Controller, Get, Post } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { ChannelService } from '../channel/channel.service';
 import { find } from 'rxjs';
+import { Access } from '@prisma/client';
 //import { ChannelService } from '../channel/channel.service';
 
 @Controller('socket')
@@ -55,9 +56,23 @@ export class SocketController {
         return history;
     }
 
+    //todo Anaïs
+    //gérer le fait de rejoindre des channels privés
+    //gérer le fait de rejoindre des channels protégés
     @Post('createchannel')
-    async CreateChannel(@Body() body: { name: string }) {
-        const channel = await this.channelService.createChannel(body.name);
+    async CreateChannel(
+        @Body() body: { name: string; access: Access; password: string },
+    ) {
+        //console.log('in socket controller, create channel : BODY = ', body);
+        const channel = await this.channelService.createChannel(
+            body.name,
+            body.access,
+            body.password,
+        );
+        // console.log(
+        //     'in socket controller, create channel : CHANNEL = ',
+        //     channel,
+        // );
         return channel;
     }
 

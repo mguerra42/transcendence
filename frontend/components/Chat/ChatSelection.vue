@@ -4,6 +4,7 @@
   const socket = useSocket();
   const friend = useFriend();
   const channel = useChannel();
+  client.chat.showUserProfile = false;
 
   const { gameProps } = defineProps<{
       gameProps: any
@@ -60,6 +61,10 @@
       client.chat.channelArray = await channel.getChannels()
     }
   };
+
+  const showNewChannel = () => {
+    client.chat.showChannelProfile = !client.chat.showChannelProfile;
+  }
 
   onMounted(async () => {
     await socket.connect();
@@ -121,7 +126,7 @@
             </button>
           </div>
         </div>
-        <button @click="channel.createChannel" class=" bg-zinc-800 hover:bg-zinc-700 text-white  py-1 mt-2 rounded flex ">
+        <button @click="showNewChannel" class=" bg-zinc-800 hover:bg-zinc-700 text-white  py-1 mt-2 rounded flex ">
           <div class="i-mdi-plus-box-multiple ml-2"></div>
           <div class="text-sm ml-2">New</div>
         </button>

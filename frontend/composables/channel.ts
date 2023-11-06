@@ -8,7 +8,7 @@ interface AppChannel {
 
     getAllChannels: () => any // get all channels
     getChannels: () => any // get channels
-    createChannel: () => any // create channel
+    createChannel: (name: string, access: string,) => any // create channel
     leaveChannel: () => any // leave channel
     getOnlineUsers: () => any // get online users
     getUserCount: () => any // get user count
@@ -52,10 +52,12 @@ export const useChannel = defineStore('channel', () => {
         return data.value
     }
 
-    channel.createChannel = async () => {
-        const name = prompt('Enter channel name')
-        if (name === null || name === '')
-            return null
+    channel.createChannel = async (name: string, access: string) => {
+        let password = null
+        if (access === 'PROTECTED')
+            password = prompt('Enter password')
+            // ajouter une validation de password
+            // ajouter controle de password
 
         if (name.length > 20) {
             alert('Channel name too long')
@@ -66,6 +68,8 @@ export const useChannel = defineStore('channel', () => {
             method: 'POST',
             body: {
                 name,
+                access,
+                password,
             },
         })
         if (error.value?.statusCode || data.value === null) {

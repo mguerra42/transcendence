@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DBService } from 'src/db/db.service';
 import { User, Prisma, Role } from '@prisma/client';
+import { Access } from '@prisma/client';
 
 @Injectable()
 export class ChannelService {
@@ -90,7 +91,7 @@ export class ChannelService {
         return ret;
     }
 
-    async createChannel(name: string) {
+    async createChannel(name: string, access: Access, password: string) {
         const channel = await this.db.channel.findUnique({
             where: {
                 name,
@@ -98,13 +99,13 @@ export class ChannelService {
         });
         if (channel !== null) {
             throw new Error('Channel already exists');
-            return null;
         }
 
         return this.db.channel.create({
             data: {
                 name,
-                access: 'PUBLIC',
+                access,
+                password,
             },
         });
     }
