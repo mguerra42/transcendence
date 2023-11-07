@@ -151,6 +151,20 @@ export class SocketsGateway {
         });
     }
 
+    @SubscribeMessage('resumeGame')
+    async handleResumeGame(client: any, payload: any) {
+        const ret:any  = await this.pongService.isPlayerInGame(payload.username)
+        if (ret !== null){
+            this.server.emit('resumeGameResponse', {
+                gameState: ret.gameState,
+                gameId: ret.gameId
+            });
+        }
+        else {
+            this.server.emit('resumeGameResponse', null)
+        }
+    }
+
     @SubscribeMessage('deleteGameSession')
     async handleDeleteGameSession(client: any, payload: any) {
         const ret:any  = await this.pongService.deleteGameSession(payload.gameId)

@@ -79,5 +79,15 @@
               }
           }
       })
+
+      socket.on('resumeGameResponse', (data:any) => {
+        console.log("resume game response received : ", data)
+            if (data !== null)
+            {
+                gameProps.gameState.value = data.gameState
+                stateProps.gameLobbyId.value = data.gameId
+                console.log("new value ofo gamelobbyid : ", stateProps.gameLobbyId.value)     
+            }
+        })
     })
 </script>

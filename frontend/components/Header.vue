@@ -49,7 +49,12 @@ const startGameButton = async () => {
                 stateProps.MatchmakingError.value = 'You have left the queue.'
             }
             else {
-                stateProps.MatchmakingError.value = 'No players available.'
+                if (stateProps.timeElapsed.value < 5){
+                    stateProps.MatchmakingError.value = 'Something went wrong. Please try again !'
+                }
+                else {
+                    stateProps.MatchmakingError.value = 'No players available.'
+                }
             }
             stateProps.showCancelButton.value = false
             stateProps.showMatchmakingError.value = true
@@ -125,7 +130,6 @@ onMounted(async () => {
     socket.on('getActiveGameSessionsResponse', (data:any) => {
         stateProps.activeGameSessions.value = data.response
     })
-
 
     socket.emit('getActiveGameSessions', {})
 })

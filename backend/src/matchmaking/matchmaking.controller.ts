@@ -1,10 +1,12 @@
 import { Controller, Get, Post, Body, Query } from '@nestjs/common';
+import { PongService } from 'src/pong/pong.service';
 import { UsersService } from 'src/users/users.service';
 
 @Controller('matchmaking')
 export class MatchmakingController {
     constructor(
         private readonly userService: UsersService,
+        private readonly pongService: PongService
     ) {}
 
     @Get ('getNormalGameQueue')
@@ -117,7 +119,7 @@ export class MatchmakingController {
         // }
         return await this.userService.createGameLobby(req.playerOneId, req.playerTwoId);
     }
- 
+    
     @Get ('getLobbiesForPlayer')
     async getLobbiesForPlayer(@Query('playerId') playerId:string){
         return await this.userService.getLobbiesForUser(parseInt(playerId, 10)); 

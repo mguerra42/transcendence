@@ -24,11 +24,7 @@ import UserProfile from './components/Chat/UserProfile.vue';
     avatarPath?: string;
   }
 
-  //TODO : matchmaking sometimes doesnt work on first try when first laucnhing the window
-  //TODO : implement refresh logic to persist and resume ongoign games
-  //TODO : implement cleanup logic to kill inactive/dropped lobbies
-  //TODO : slight refactor queue sysytem
-  
+  //TODO : send signal to opponent if unmounted while game is running
 
   //STATIC FUNCTION
   const finishGame = async () => {
@@ -102,9 +98,21 @@ import UserProfile from './components/Chat/UserProfile.vue';
     //MATCHMAKING FUNCTIONS
     waitForMatch: async() => {
         const timeoutLimit = 100;
+        let   joinQueue:any = null;
         gameProps.resetGameState()
 
-        await client.game.addToGameQueue(auth.session.username)
+        for (let attempts = 0; attempts < 3; attempts++)
+        {
+          joinQueue = await client.game.addToGameQueue(auth.session.username)
+          if (joinQueue !== null){
+            break ;
+          }
+          await client.waitDuration(1000)
+        }
+        if (joinQueue === null){
+          return null
+        }
+
         socket.emit('readyForMatchmaking', { player: auth.session.username })
         console.log('waitForMatch: Waiting for an opponent...')
         const timeElapsedInterval = setInterval(() => {
@@ -297,27 +305,11 @@ import UserProfile from './components/Chat/UserProfile.vue';
     },
 
     refreshGameSession: async () => {
-        //TODO : Put this call into a function
-        // const { data, error }:any = await useRequest('/matchmaking/getPlayersInGame', {
-        //     method: 'POST',
-        //     body: {
-        //             playerId: auth.session.id,
-        //     },
-        // })
-        // if (error.value?.statusCode || data.value === null) {
-        //     alert(`refreshGameSession: Game Lobby no longer exists for player ${auth.session.username}`)
-        //     auth.error = error.value?.statusMessage as string
-        //     return null
-        // }
-  
-        // console.log('refreshGameSession: Found existing Game Lobby for player ', auth.session.username)
-        // gameProps.Player1.value.name = data.value.player1Name;
-        // gameProps.Player2.value.name = data.value.player2Name;
-        // gameProps.Player1.value.score = data.value.player1Score;
-        // gameProps.Player2.value.score = data.value.player2Score;
-        // gameProps.gameStatus.value = 'running';
-
-        // console.log('refreshGameSession: Updated chat status to INGAME for player ', auth.session.username)
+      stateProps.endGameLoop.value === false
+      socket.emit('getGameState', {
+        gameId: stateProps.gameLobbyId.value
+      })
+      await client.waitDuration(100)
     },
   };
 

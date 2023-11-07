@@ -27,29 +27,40 @@
     }>();
 
     const hasRefresh = async() => {
-        console.log('hasRefresh: Refreshing Pong status...')
+        socket.emit('resumeGame', { username : auth.session.username })
+        for (let attempts = 0; attempts < 100; attempts++){
+            if (stateProps.gameLobbyId.value !== ""){
+                break ;
+            }
+            await client.waitDuration(10)
+        }
 
-        const userExists: any = await useRequest(`/matchmaking/getUserInGameFromQueue?playerUsername=${auth.session.username}`, {
-            method: 'GET',
-        })
-
-        if (userExists.data.value.profile !== undefined) {
-            console.log('hasRefresh: ', auth.session.username, ' is in game. Refreshing canvas...')
+        if (stateProps.gameLobbyId.value === "")
+        {
+            console.log("no game to resume")
+        }
+        else
+        {
+            console.log("found a game running : ", stateProps.gameLobbyId.value)
             auth.refresh = true
-        }
-        else {
-            const userInQueue: any = await useRequest(`/matchmaking/getUserFromQueue?playerUsername=${auth.session.username}`, {
-                method: 'GET',
-            })
-            if (userInQueue.data.value.profile !== undefined) {
-                console.log('hasRefresh: ', auth.session.username,' is not in game. Removing from game queue...')
-                await client.game.removeFromGameQueue(auth.session.username)
-            }
-            else
-            {
-                console.log('hasRefresh: ', auth.session.username,' is not in game or in queue.')
-            }
-        }
+        } 
+        // console.log('hasRefresh: Refreshing Pong status...')
+        // const { data, error }:any = await useRequest(`/matchmaking/resumeGame?username=${auth.session.username}`, {
+        //     method: 'GET'
+        // })
+        // if (error.value?.statusCode || data.value === null) {
+        //     alert(`refreshGameSession: Game Lobby no longer exists for player ${auth.session.username}`)
+        //     auth.error = error.value?.statusMessage as string
+        //     client.game.removeFromGameQueue(auth.session.username)
+        //     return null
+        // }
+        // if (data.value === ""){
+        //     console.log("no lobbies found for ", auth.session.username)
+        // }
+        // else{
+        //     console.log(data)
+        // }
+        return null
     }
 
     const setCanvasSize = () => {

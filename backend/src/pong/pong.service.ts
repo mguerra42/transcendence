@@ -194,4 +194,20 @@ export class PongService {
         return this.activeGameSessions.length
     }
 
+    isPlayerInGame (username : string){
+        for (const game of this.activeGameSessions){
+            if (game.gameState.playerOneName === username || game.gameState.playerTwoName === username){
+                if (game.gameState.running === true){
+                    return {
+                        gameState: game.gameState,
+                        gameId: game.gameId
+                    }
+                }
+                this.deleteGameSession(game.gameId)
+                return null
+            }
+        }
+        return null
+    }
+
 }
