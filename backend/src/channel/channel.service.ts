@@ -7,8 +7,15 @@ import { Access } from '@prisma/client';
 export class ChannelService {
     constructor(private db: DBService) {}
 
-    findAllChannels() {
-        return this.db.channel.findMany();
+    async findAllChannels() {
+        const channelList = await this.db.channel.findMany({
+            select: {
+                id: true,
+                name: true,
+                access: true,
+            },
+        });
+        return channelList;
     }
 
     //find a channel with the user id
@@ -69,6 +76,8 @@ export class ChannelService {
                 name: true,
                 creationDate: true,
                 userList: true,
+                access: true,
+                password: true,
             },
         });
     }

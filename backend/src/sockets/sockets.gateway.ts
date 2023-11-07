@@ -82,6 +82,15 @@ export class SocketsGateway {
                 }
             }
             if (!userIsInChannel) {
+
+                if (channelToJoin.access === 'PROTECTED')
+                {
+                    if (payload.password !== channelToJoin.password) {
+                        throw new Error('Wrong password');
+                        return;
+                    }
+                }
+
                 await this.channelService.addChannelUser(
                     channelToJoin.id,
                     userToSubscribe.id,

@@ -85,10 +85,11 @@ export const useChannel = defineStore('channel', () => {
             socket.emit('joinChannel', {
                 sender: authStore.session.username,
                 receiver: data.value.name,
+                password,
             })
         }
 
-        channel.refresh()
+        await channel.refresh()
     }
 
     channel.leaveChannel = async () => {
