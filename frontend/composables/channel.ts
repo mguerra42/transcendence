@@ -25,7 +25,10 @@ export const useChannel = defineStore('channel', () => {
 
     channel.getAllChannels = async () => {
         const { data, error } = await useRequest('/socket/getallchannels', {
-            method: 'GET',
+            method: 'POST',
+            body: {
+                userId: authStore.session.id,
+            },
         })
 
         if (error.value?.statusCode) {

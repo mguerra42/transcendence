@@ -27,6 +27,7 @@ model User {
   wonGames       Game[]        @relation("winner")
   lostGames      Game[]        @relation("loser")
   channels       ChannelUser[] //channels the user is in
+  inviteChannels Channel[]     @relation("userInvited")
   history        history[]    //history of DMs, and maybe channels soon
   gameLobby      GameLobby[]   
   messages       Message[]     @relation("sender")
@@ -66,12 +67,9 @@ model Queue {
   profile    User     @relation(fields: [username], references: [username])
 }
 
-//Message history (may be used for group chat ?)
 model history {
   id        Int      @id @default(autoincrement())
   users     User[]    
-  // channelId Int
-  // channel   Channel? @relation(fields: [channelId], references: [id])
   content   Message[]
   date      DateTime @default(now())
 }
@@ -129,6 +127,7 @@ model Channel {
   password     String? //if access is defined as protected
   userList     ChannelUser[] //users in the channel        //lists mutes
   messages     Message[]     //messages in the channel
+  userInvited  User[]        @relation("userInvited")
   creationDate DateTime      @default(now())
 }
 

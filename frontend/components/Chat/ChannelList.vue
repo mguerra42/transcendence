@@ -16,7 +16,7 @@ const joinChannel = async (channelList : any) => {
       receiver: channelList.name,
       password: password,
     });
-    setTimeout(() => {}, 100);
+    setTimeout(() => {}, 200);
     await channel.refresh();
     //console.log(client.chat.channelArray);
     for (let i = 0; i < client.chat.channelArray.length; i++) {
@@ -44,12 +44,30 @@ const joinChannel = async (channelList : any) => {
             Available channels
         </div>
         <div v-for="channelList in channel.allChannelArray" class="bg-zinc-700 cursor-pointer hover:bg-zinc-600 rounded flex mb-2" >
-                <button @click="joinChannel(channelList)" class="bg-zinc-600  hover:bg-zinc-800 rounded px-2 py-2 w-full text-sm text-left text-zinc-200 cursor-pointer':user.status flex">
-                  #{{ channelList.name }} 
-                  <div v-if="channelList.access == 'PROTECTED'" class="text-xs text-zinc-400 ml-2">
-                    <div class="i-mdi:lock"></div>
-                  </div>
-                </button>   
+          <!-- CHANNELS PUBLIC -->
+          <button v-if="channelList.access == 'PUBLIC'" @click="joinChannel(channelList)" class="bg-zinc-600  hover:bg-zinc-800 rounded px-2 py-2 w-full text-sm text-left text-zinc-200 cursor-pointer':user.status flex">
+                  #{{ channelList.name }}
+                </button>
+
+          <!-- CHANNELS PROTECTED -->
+          <button v-if="channelList.access == 'PROTECTED'" @click="joinChannel(channelList)" class="bg-zinc-600  hover:bg-zinc-800 rounded px-2 py-2 w-full text-sm text-left text-zinc-200 cursor-pointer':user.status flex">
+            #{{ channelList.name }} 
+              <div class="i-mdi:lock ml-2"></div>
+          </button>   
+
+          <!-- CHANNELS PRIVATE -->
+          <!-- not invited -->
+          <button v-if="channelList.access == 'PRIVATE' && channelList.id == -1" class="bg-zinc-600  hover:bg-zinc-800 rounded px-2 py-2 w-full text-sm text-left text-zinc-200 cursor-pointer':user.status flex">
+            #{{ channelList.name }} 
+              <div class="i-mdi:email-lock ml-2"></div>
+          </button>
+
+          <!-- invited -->
+          <button v-if="channelList.access == 'PRIVATE' && channelList.id > 0" @click="joinChannel(channelList)" class="bg-zinc-600  hover:bg-zinc-800 rounded px-2 py-2 w-full text-sm text-left text-zinc-200 cursor-pointer':user.status flex">
+            #{{ channelList.name }} 
+              <div class="i-mdi:email-check-outline ml-2"></div>
+          </button>
+          
         </div>
     </div>
 </template>

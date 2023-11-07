@@ -3,6 +3,7 @@ import { UsersService } from '../users/users.service';
 import { ChannelService } from '../channel/channel.service';
 import { find } from 'rxjs';
 import { Access } from '@prisma/client';
+import { channel } from 'diagnostics_channel';
 //import { ChannelService } from '../channel/channel.service';
 
 @Controller('socket')
@@ -30,9 +31,23 @@ export class SocketController {
         return offlineUsersArray;
     }
 
-    @Get('getallchannels')
-    async GetOnlineChannels() {
+    @Post('getallchannels')
+    async GetOnlineChannels(@Body() body: any) {
         const channelsList = await this.channelService.findAllChannels();
+        let temp = -1;
+        for (let i = 0; i < channelsList.length; i++) {
+            if (channelsList[i].access === 'PRIVATE') {
+                for (let j = 0; j < channelsList[i].userInvited.length; j++) {
+                    if (channelsList[i].userInvited[j].id === body.userId) {
+                        temp = channelsList[i].id;
+                    }
+                }
+                channelsList[i].id = temp;
+                temp = -1;
+            }
+            delete channelsList[i].userInvited;
+        }
+        console.log('channelsList = ', channelsList);
         return channelsList;
     }
 

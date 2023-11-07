@@ -13,6 +13,7 @@ export class ChannelService {
                 id: true,
                 name: true,
                 access: true,
+                userInvited: true,
             },
         });
         return channelList;
