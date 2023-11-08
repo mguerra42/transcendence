@@ -112,7 +112,12 @@ export class AuthController {
             sameSite: 'lax',
             maxAge: 1000 * 60 * 60 * 24 * 7,
         });
-        res.redirect('http://localhost:3000?require2FA='+userAccount.require2FA);
+        //if(userAccount.require2FA == false){
+        //    res.redirect('http://localhost:3000');
+        //} else {
+        //    res.redirect('http://localhost:3000/login?require2FA='+userAccount.require2FA);
+        //}
+        res.redirect('http://localhost:3000/?require2FA='+userAccount.require2FA);
     }
 
 

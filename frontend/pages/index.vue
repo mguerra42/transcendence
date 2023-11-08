@@ -1,18 +1,19 @@
 <template>
-    <div class="bg-gray flex items-center h-full justify-center flex-col">
+    <!--<div class="bg-gray flex items-center h-full justify-center flex-col">
       <PongContainer v-if="auth.logged" :gameProps="gameProps" :stateProps="stateProps"/>
-    </div>
+    </div>-->
+    <div>Home</div>
 </template>
 
 <script setup lang="ts">
 
-  const auth = useAuth()
-  const { stateProps, gameProps } = defineProps<{
-    stateProps: any,
-    gameProps: any
-  }>();
+//  const auth = useAuth()
+//  const { stateProps, gameProps } = defineProps<{
+//    stateProps: any,
+//    gameProps: any
+//  }>();
 
-  onMounted(() => {
-  })
+//  onMounted(() => {
+//  })
 </script>
 
