@@ -13,21 +13,21 @@ const quitMatchButton = async () => {
     cancelAnimationFrame(stateProps.animationFrameId.value);
     stateProps.endGameLoop.value = true;
 
-    socket.emit('quitMatchButton', {
-        player: auth.session.username,
-        lobbyId: stateProps.gameLobbyId.value
-    })
-    socket.emit('stopGameSession', {
-        gameId: stateProps.gameLobbyId.value
-    })
-    socket.emit('deleteGameSession', {
-        gameId: stateProps.gameLobbyId.value
-    })
+    // socket.emit('quitMatchButton', {
+    //     player: auth.session.username,
+    //     lobbyId: stateProps.gameLobbyId.value
+    // })
+    // socket.emit('stopGameSession', {
+    //     gameId: stateProps.gameLobbyId.value
+    // })
+    // socket.emit('deleteGameSession', {
+    //     gameId: stateProps.gameLobbyId.value
+    // })
     
     await client.game.removeFromGameQueue(auth.session.username)
     
     stateProps.resetMatchmakingWindow()
-    stateProps.showPong.value = false;
+    stateProps.showPong.value = false
     stateProps.gameLobbyId.value = ""
 }
 
@@ -35,6 +35,8 @@ const startGameButton = async () => {
     console.log('startGameButton: Looking for a match for ', auth.session.username, '...')
     if (stateProps.showPong.value === false) {
 
+        stateProps.showEndGame.value = false;
+        stateProps.opponentForfeit.value = false;
         stateProps.showCancelButton.value = true;
         stateProps.showLoader.value = true;
         stateProps.showPlayButton.value = false;
@@ -82,6 +84,8 @@ const startGameButton = async () => {
                 gameId: stateProps.gameLobbyId.value
             })
             stateProps.endGameLoop.value = false;
+            stateProps.showQuitGame.value = false
+        
             gameProps.gameStatus.value = 'running';
             socket.emit('chatStatus', {
                 sender: auth.session.username,
@@ -103,6 +107,32 @@ const startGameButton = async () => {
     }
     else 
     {
+        if (gameProps.gameState.value.running === true){
+            stateProps.showQuitGame.value = true
+            let attempts = 0
+            stateProps.timeElapsed.value = 10
+            const timeElapsedInterval = setInterval(() => {
+                if (stateProps.timeElapsed.value >= 0){
+                    stateProps.timeElapsed.value--;
+                }
+            }, 1000);
+            for ( attempts = 0; attempts < 90; attempts++){
+                if (stateProps.returnToGame.value === true){
+                    stateProps.showQuitGame.value = false
+                    stateProps.returnToGame.value = false
+                    clearInterval(timeElapsedInterval);
+                    stateProps.timeElapsed.value = 0
+                    return ;
+                }
+                await client.waitDuration(100)
+            }
+            socket.emit('opponentForfeit', {
+                username: auth.session.username,
+                lobbyId: stateProps.gameLobbyId.value
+            })
+            clearInterval(timeElapsedInterval);
+            stateProps.timeElapsed.value = 0
+        }
         console.log('startGameButton: Quitting game...')
         await quitMatchButton();
         socket.emit('chatStatus', {

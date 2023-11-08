@@ -165,6 +165,12 @@ export class SocketsGateway {
         }
     }
 
+    @SubscribeMessage('opponentForfeit')
+    async handleOpponentForfeit(client: any, payload: any) {
+        await this.pongService.abortMatch(payload.lobbyId, payload.username)
+        this.server.emit('opponentForfeitResponse', payload)
+    }
+
     @SubscribeMessage('deleteGameSession')
     async handleDeleteGameSession(client: any, payload: any) {
         const ret:any  = await this.pongService.deleteGameSession(payload.gameId)

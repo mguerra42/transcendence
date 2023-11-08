@@ -176,6 +176,23 @@ export class PongService {
         }
     }
 
+    abortMatch(gameId: string, forfeitPlayer: string) {
+        const gameSession = this.findGameSessionById(gameId);
+        if (gameSession) {
+            gameSession.stopGameLoop();
+            if (gameSession.gameState.playerOneName === forfeitPlayer){
+                gameSession.gameState.playerOneScore = 0
+                gameSession.gameState.playerTwoScore = 5
+            }
+            else{
+                gameSession.gameState.playerOneScore = 5
+                gameSession.gameState.playerTwoScore = 0
+            }
+            this.userService.createEndGame(gameSession.gameState)
+            this.deleteGameSession(gameId)
+        }
+    }
+
     stopGameSession(gameId: string) {
         const gameSession = this.findGameSessionById(gameId);
         if (gameSession) {

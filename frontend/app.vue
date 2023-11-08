@@ -24,7 +24,8 @@ import UserProfile from './components/Chat/UserProfile.vue';
     avatarPath?: string;
   }
 
-  //TODO : send signal to opponent if unmounted while game is running
+  //TODO : add game invite
+  //TOOD : clean up queue and active game sessions when aborting match during queue before confirm
 
   //STATIC FUNCTION
   const finishGame = async () => {
@@ -36,8 +37,6 @@ import UserProfile from './components/Chat/UserProfile.vue';
         })
         
         stateProps.showEndGame.value = true;
-        await client.waitDuration(5000)
-        stateProps.showEndGame.value = false;
         
         await client.game.removeFromGameQueue(auth.session.username)
         
@@ -63,6 +62,8 @@ import UserProfile from './components/Chat/UserProfile.vue';
     context: ref(),
     timeElapsed: ref(0),
     activeGameSessions: ref(0),
+    showQuitGame: ref(false),
+    returnToGame: ref(false),
     animationFrameId: ref(),
     MatchmakingError: ref('Matchmaking : An error occured.'),
     showEndGame: ref(false),
@@ -82,6 +83,7 @@ import UserProfile from './components/Chat/UserProfile.vue';
     matchDeclined: ref(false),
     opponentDeclined: ref(false),
     opponentAccepted: ref(false),
+    opponentForfeit: ref(false),
     endGameLoop: ref(false),
     opponentProfile: ref<{ username?: string; id?: string; socketId?: string; avatarPath?: string; }>({}),
     
@@ -288,12 +290,11 @@ import UserProfile from './components/Chat/UserProfile.vue';
     gameLoop: async () => {
         //don't enter loop if its been ended by opponent or current user
         if (stateProps.endGameLoop.value === true){
-            if (gameProps.gameState.value.playerOneScore === 5 || gameProps.gameState.value.playerTwoScore === 5){
+            if (gameProps.gameState.value.playerOneScore === 5 || gameProps.gameState.value.playerTwoScore === 5 || stateProps.opponentForfeit.value === true){
               finishGame();
             }
             return ;
         }
-
         //do not await this call for smooth animation
         socket.emit('getGameState', {
             gameId: stateProps.gameLobbyId.value

@@ -9,6 +9,17 @@
             </div>
         </div>
 
+        <div v-if="stateProps.showQuitGame.value === true" class="absolute top-0 bottom-0 left-0 right-0 z-10 flex justify-center items-center bg-black/60 backdrop-blur-sm" >
+            <div class="w-80 bg-zinc-800 p-6 rounded-lg flex-col items-center justify-center relative">
+                <p class="text-center m-2"> Leave Game</p>
+                <p class="text-center"> Warning : If you leave, you will forfeit to your opponent.</p>
+                <div class="flex m-4 items-center justify-center">
+                    <button @click="returnToGame" class="w-1/3 rounded m-2 bg-zinc-600">Return</button>
+                </div>
+                <p class="text-center font-bold"> {{ stateProps.timeElapsed.value }}</p>
+            </div>
+        </div>
+
         <div class="" >
             <canvas tabindex="0" @keydown.down="gameProps.player1MoveDown" @keydown.up="gameProps.player1MoveUp" class="bg-zinc-300 focus-outline-none autofocus rounded-lg cursor-crosshair" id="canvas"></canvas>
         </div>
@@ -26,6 +37,9 @@
         gameProps: any;
     }>();
 
+    const returnToGame = () => {
+        stateProps.returnToGame.value = true
+    }
     const hasRefresh = async() => {
         socket.emit('resumeGame', { username : auth.session.username })
         for (let attempts = 0; attempts < 100; attempts++){
@@ -35,31 +49,9 @@
             await client.waitDuration(10)
         }
 
-        if (stateProps.gameLobbyId.value === "")
-        {
-            console.log("no game to resume")
-        }
-        else
-        {
-            console.log("found a game running : ", stateProps.gameLobbyId.value)
+        if (stateProps.gameLobbyId.value !== ""){
             auth.refresh = true
-        } 
-        // console.log('hasRefresh: Refreshing Pong status...')
-        // const { data, error }:any = await useRequest(`/matchmaking/resumeGame?username=${auth.session.username}`, {
-        //     method: 'GET'
-        // })
-        // if (error.value?.statusCode || data.value === null) {
-        //     alert(`refreshGameSession: Game Lobby no longer exists for player ${auth.session.username}`)
-        //     auth.error = error.value?.statusMessage as string
-        //     client.game.removeFromGameQueue(auth.session.username)
-        //     return null
-        // }
-        // if (data.value === ""){
-        //     console.log("no lobbies found for ", auth.session.username)
-        // }
-        // else{
-        //     console.log(data)
-        // }
+        }
         return null
     }
 
@@ -116,7 +108,6 @@
             gameProps.refreshGameSession();
             gameProps.gameLoop();    
         }
-
         window.addEventListener('resize', handleResize);
     });
     

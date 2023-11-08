@@ -81,12 +81,17 @@
       })
 
       socket.on('resumeGameResponse', (data:any) => {
-        console.log("resume game response received : ", data)
             if (data !== null)
             {
                 gameProps.gameState.value = data.gameState
                 stateProps.gameLobbyId.value = data.gameId
-                console.log("new value ofo gamelobbyid : ", stateProps.gameLobbyId.value)     
+            }
+        })
+
+      socket.on('opponentForfeitResponse', (data:any) => {
+            if (data.lobbyId === stateProps.gameLobbyId.value){
+                stateProps.endGameLoop.value = true
+                stateProps.opponentForfeit.value = true
             }
         })
     })
