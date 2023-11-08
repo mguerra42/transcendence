@@ -8,7 +8,7 @@ import {
     UseGuards,
     UseInterceptors,
     UploadedFile,
-HttpException,
+    HttpException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthService } from './auth.service';
@@ -26,7 +26,7 @@ import { FortyTwoStrategy } from './intra42.strategy';
 import { AuthGuard } from '@nestjs/passport';
 import { async } from 'rxjs';
 import { UsersService } from 'src/users/users.service';
-import {FortyTwoAuthGuard} from './42.guard';
+import { FortyTwoAuthGuard } from './42.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -102,9 +102,8 @@ export class AuthController {
     ) {
         const userAccount = await this.authService.login42(req.user);
 
-        if(userAccount == false)
-        {
-            throw new HttpException("Cannot get user info from 42 ?", 401);
+        if (userAccount == false) {
+            throw new HttpException('Cannot get user info from 42 ?', 401);
         }
 
         res.cookie('access_token', userAccount.access_token, {
@@ -117,34 +116,39 @@ export class AuthController {
         //} else {
         //    res.redirect('http://localhost:3000/login?require2FA='+userAccount.require2FA);
         //}
-        res.redirect('http://localhost:3000/?require2FA='+userAccount.require2FA);
+        res.redirect(
+            'http://localhost:3000/?require2FA=' + userAccount.require2FA,
+        );
     }
-
 
     @UseGuards(JwtAuthGuard)
     @Post('2fa')
-    async check2fa(@Request() req, @Body() requestBody: { code: string }, 
-    @Res({ passthrough: true }) res: Response) {
+    async check2fa(
+        @Request() req,
+        @Body() requestBody: { code: string },
+        @Res({ passthrough: true }) res: Response,
+    ) {
         const { code } = requestBody;
-        
-        const {verified, access_token} = await this.authService.verify2fa(req.user, code);
-        if(verified == true){
+
+        const { verified, access_token } = await this.authService.verify2fa(
+            req.user,
+            code,
+        );
+        if (verified == true) {
             res.cookie('access_token', access_token, {
                 httpOnly: true,
                 sameSite: 'lax',
                 maxAge: 1000 * 60 * 60 * 24 * 7,
             });
         }
-        return {verified: verified};
+        return { verified: verified };
     }
 
     @UseGuards(JwtAuthGuard)
     @Get('session')
     async session(@Request() req) {
-        console.log('session', req.user)
-        const user: sessionDto = await this.usersService.findOne(
-            req.user.id,
-        );
+        console.log('session', req.user);
+        const user: sessionDto = await this.usersService.findOne(req.user.id);
         return {
             id: user.id,
             username: user.username,
@@ -152,7 +156,7 @@ export class AuthController {
             avatarPath: user.avatarPath,
             twoFA: user.twoFa,
             verified2FA: req.user.verified2FA,
-        }
+        };
     }
 
     @UseGuards(JwtAuthGuard)
@@ -201,10 +205,12 @@ export class AuthController {
     @Post('findByUsername')
     @UseGuards(JwtAuthGuard)
     async findUser(@Request() req, @Body() obj) {
-        const user = await this.usersService.findByEmailOrUsername('', obj.username);
-        return (user);
+        const user = await this.usersService.findByEmailOrUsername(
+            '',
+            obj.username,
+        );
+        return user;
     }
-
 
     //TODO : connect to frontend
     @UseGuards(AuthGuard('google'))
@@ -224,35 +230,38 @@ export class AuthController {
     @UseGuards(JwtAuthGuard)
     @Post('onOff2FA')
     async onOff2FA(@Request() req) {
-      const userId = req.user.id;
-      const updatedTwoFa = await this.authService.toggle2FA(userId);
-      return updatedTwoFa;
+        const userId = req.user.id;
+        const updatedTwoFa = await this.authService.toggle2FA(userId);
+        return updatedTwoFa;
     }
-  
+
     @UseGuards(JwtAuthGuard)
     @Get('get2FA')
     async get2FA(@Request() req) {
-      const userId = req.user.id;
-      const currentTwoFa = await this.authService.get2FA(userId);
-      return currentTwoFa;
+        const userId = req.user.id;
+        const currentTwoFa = await this.authService.get2FA(userId);
+        return currentTwoFa;
     }
 
     @UseGuards(JwtAuthGuard)
     @Get('get2FAQr')
     async get2FAQr(@Request() req) {
-      const userId = req.user.id;
-      const Qrcode2fa = await this.authService.get2faQrCode(userId);
-      return Qrcode2fa;
+        const userId = req.user.id;
+        const Qrcode2fa = await this.authService.get2faQrCode(userId);
+        return Qrcode2fa;
     }
 
     @UseGuards(JwtAuthGuard)
     @Post('verify-2fa')
-    async verify2fa(@Request() req, @Body() requestBody: { twoFactorCode: string }) {
-      const userId = req.user.id; // Accédez à l'ID de l'utilisateur à partir de req.user.id
-      const { twoFactorCode } = requestBody;
-      
-      const ret = await this.authService.verify2fa(userId, twoFactorCode);
-      console.log('Code bon ?', ret);
-      return ret;
+    async verify2fa(
+        @Request() req,
+        @Body() requestBody: { twoFactorCode: string },
+    ) {
+        const userId = req.user.id; // Accédez à l'ID de l'utilisateur à partir de req.user.id
+        const { twoFactorCode } = requestBody;
+
+        const ret = await this.authService.verify2fa(userId, twoFactorCode);
+        console.log('Code bon ?', ret);
+        return ret;
     }
 }

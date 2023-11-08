@@ -1,12 +1,12 @@
 <script setup lang="ts">
-    
+    const chat = useChat()
 </script>
 <template>
     <div class="absolute bottom-0 left-0">
         <div class="relative">
-            <ChatToggle/>
+            <ChatToggle @click="chat.setVisible(true)"/>
         </div>
-        <div class="fixed bottom-3 left-3 bg-zinc-700 h-80vh w-60vw rounded-lg">
+        <div v-if="chat.visible" class="fixed bottom-3 left-3 bg-zinc-700 h-85vh w-60vw rounded-lg">
             <ChatBox/>
         </div>
     </div>

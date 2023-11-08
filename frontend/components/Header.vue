@@ -10,6 +10,10 @@ import { onClickOutside } from '@vueuse/core';
 onClickOutside(menu, () => {
     showUserMenu.value = false
 })
+const socket = useSocket()
+onMounted(async () => {
+    await socket.connect()
+})
 </script>
 <template>
     <div class="h-61px flex items-center justify-between px-5 relative">

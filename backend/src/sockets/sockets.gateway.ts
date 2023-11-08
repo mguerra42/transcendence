@@ -18,14 +18,22 @@ import { ChannelService } from '../channel/channel.service';
     },
 })
 export class SocketsGateway {
+    clients: object;
     constructor(
         private authService: AuthService,
         private userService: UsersService,
         private channelService: ChannelService,
-    ) {}
+    ) {
+        this.clients = {};
+    }
 
     @WebSocketServer()
     public server: Server;
+
+    @SubscribeMessage('channels:create')
+    async createChannel(client: any, payload: any) {
+        console.log('check create channel', client.user, payload);
+    }
 
     @SubscribeMessage('sendPrivateMessage')
     async handlePrivateMessage(client: any, payload: any) {
@@ -117,7 +125,7 @@ export class SocketsGateway {
             lobbyId: payload.lobbyId,
             //gamelobby
         });
-        console.log('gamelobby : ', payload.lobbyId)
+        console.log('gamelobby : ', payload.lobbyId);
     }
 
     @SubscribeMessage('abortMatch')
@@ -127,7 +135,7 @@ export class SocketsGateway {
             //gamelobby
         });
     }
-    
+
     @SubscribeMessage('updateBallPosition')
     handleUpdateBallPosition(client: any, payload: any) {
         this.server.emit('updateBallPositionResponse', payload);
@@ -157,61 +165,59 @@ export class SocketsGateway {
         const channelUserList = await this.channelService.findChannelUserList(
             payload.channelId,
         );
-        console.log('refresh in socket gateway')
+        console.log('refresh in socket gateway');
         for (let i = 0; i < channelUserList.length; i++) {
             const user = await this.userService.findOne(
                 channelUserList[i].userId,
             );
-            console.log('refresh for user = ', user.username)
+            console.log('refresh for user = ', user.username);
             this.server.to(user.socketId).emit('hasToRefresh', {});
         }
     }
 
     @SubscribeMessage('refreshPrivateChannel')
     async handleRefreshPrivateChannel(client: any, payload: any) {
-
-        console.log('refreshPrivateChannel in socket gateway')
-        console.log("other user id = ", payload.otherUserId);
-        const otherUser = await this.userService.findOne(
-            payload.otherUserId
-        );
+        console.log('refreshPrivateChannel in socket gateway');
+        console.log('other user id = ', payload.otherUserId);
+        const otherUser = await this.userService.findOne(payload.otherUserId);
         this.server.to(otherUser.socketId).emit('refreshPrivateChannel', {});
     }
 
     @SubscribeMessage('refreshUserProfile')
     async handleRefreshUserProfile(client: any, payload: any) {
-
-        console.log('refreshUserProfile in socket gateway')
+        console.log('refreshUserProfile in socket gateway');
         const currentUser = await this.userService.findOne(
-            payload.currentUserId
+            payload.currentUserId,
         );
-        console.log("other user id = ", payload.otherUserId);
-        const otherUser = await this.userService.findOne(
-            payload.otherUserId
-        );
+        console.log('other user id = ', payload.otherUserId);
+        const otherUser = await this.userService.findOne(payload.otherUserId);
         this.server.to(currentUser.socketId).emit('refreshUserProfile', {});
         this.server.to(otherUser.socketId).emit('refreshUserProfile', {});
     }
 
     @SubscribeMessage('deletePrivateChannel')
     async handleDeletePrivateChannel(client: any, payload: any) {
-
-        console.log('deletePrivateChannel in socket gateway')
+        console.log('deletePrivateChannel in socket gateway');
         const currentUser = await this.userService.findOne(
-            payload.currentUserId
+            payload.currentUserId,
         );
-        console.log("other user id = ", payload.otherUserId);
-        const otherUser = await this.userService.findOne(
-            payload.otherUserId
-        );
-        this.server.to(currentUser.socketId).emit('deletePrivateChannel',{
+        console.log('other user id = ', payload.otherUserId);
+        const otherUser = await this.userService.findOne(payload.otherUserId);
+        this.server.to(currentUser.socketId).emit('deletePrivateChannel', {
             currentUserId: payload.currentUserId,
-            otherUserId: payload.otherUserId
+            otherUserId: payload.otherUserId,
         });
         this.server.to(otherUser.socketId).emit('deletePrivateChannel', {
             currentUserId: payload.currentUserId,
-            otherUserId: payload.otherUserId
+            otherUserId: payload.otherUserId,
         });
+    }
+
+    async handleDisconnect(client) {
+        console.log('disconnect', client.user);
+        this.clients[client.user.id] = this.clients[client.user.id].filter(
+            (id) => id !== client.id,
+        );
     }
 
     async handleConnection(client) {
@@ -232,18 +238,22 @@ export class SocketsGateway {
             // throw new Error('Invalid access token');
         }
         client.user = {
-            id: payload.id,
+            id: payload.sub,
             email: payload.email,
         };
-        const user = await this.userService.findByEmail(payload.email);
-        if (user !== null) {
-            const userToUpdate: UpdateUserDto = {};
-            userToUpdate.socketId = client.id;
-            userToUpdate.status = 'ONLINE';
-            await this.userService.update(user.id, userToUpdate);
-        } else {
-            // throw new Error('User not found in database');
-        }
+        this.clients[payload.sub] = this.clients[payload.sub] || [];
+        this.clients[payload.sub].push(client.id);
+        console.log('clients', this.clients);
+
+        //const user = await this.userService.findByEmail(payload.email);
+        //if (user !== null) {
+        //    const userToUpdate: UpdateUserDto = {};
+        //    userToUpdate.socketId = client.id;
+        //    userToUpdate.status = 'ONLINE';
+        //    await this.userService.update(user.id, userToUpdate);
+        //} else {
+        //    // throw new Error('User not found in database');
+        //}
         // } catch (e) {
         //     throw new WsException((e as Error).message);
         // }

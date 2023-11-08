@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const chat = useChat()
     const channels = ref([
         {
             id: 1,
@@ -70,7 +71,7 @@
     <div class="h-50% text-white flex flex-col ">
         <div class="font-bold capitalize flex justify-between items-center p-2.5">
             <div>Channels</div>
-            <div class="bg-gray p-1 rounded">
+            <div @click="chat.current = 'new_channel'" class="bg-gray p-1 rounded cursor-pointer hover:scale-110">
                 <div class="i-mdi:plus"></div>
             </div>
         </div>
