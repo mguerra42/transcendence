@@ -55,7 +55,7 @@
           <!-- Right Sidebar -->
           
           <!-- TODO : Remove Chat components from AuthModal -->
-          <AuthModal :gameProps="gameProps"/>
+          <AuthModal :gameProps="gameProps" :stateProps="stateProps"/>
         </div>
       <Footer/>
     </div>

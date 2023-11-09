@@ -4,6 +4,8 @@ import {
     HttpException,
     HttpStatus,
 } from '@nestjs/common';
+import { UpdateUserDto } from '../users/dto/update-user.dto';
+
 import { UsersService } from 'src/users/users.service';
 import { SignUpDto } from './dto/signup.dto';
 import { JwtService } from '@nestjs/jwt';
@@ -23,6 +25,9 @@ export class AuthService {
         const isTwoFAEnabled = await this.get2FA(user.id);
         const payload = { sub: user.id, email: user.email };
         const access_token = await this.jwtService.signAsync(payload);
+        const userToUpdate: UpdateUserDto = {};
+        userToUpdate.status = 'OFFLINE';
+        await this.usersService.update(user.id, userToUpdate);
         return {
             access_token: access_token,
             isTwoFAEnabled: isTwoFAEnabled,

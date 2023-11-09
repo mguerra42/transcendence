@@ -100,6 +100,8 @@
 
         setCanvasSize()
 
+        console.log("pong gamestate : ", gameProps.gameState.value)
+
         await hasRefresh();
         if (auth.refresh === true) {
             stateProps.showPong.value = true;

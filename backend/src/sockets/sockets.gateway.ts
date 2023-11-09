@@ -123,20 +123,37 @@ export class SocketsGateway {
 
     @SubscribeMessage('readyForMatchmaking')
     async handleReadyForMatchmaking(client: any, payload: any) {
-        const ret:any = await this.userService.findAnOpponent(payload.player);
-        if (ret !== null)
-        {
-            this.server.emit('readyForMatchmakingResponse', {
-                lobbyId: this.pongService.newGameSession(ret.player1, ret.player2),
-                player1: ret.player1.username,
-                player2: ret.player2.username,
-            });
+        if (payload.mode === 'ranked'){
+            const playerProfile:any = await this.userService.findAnOpponent(payload.player);
+            if (playerProfile !== null)
+            {
+                this.server.emit('readyForMatchmakingResponse', {
+                    lobbyId: this.pongService.newGameSession(playerProfile.player1, playerProfile.player2, payload.mode),
+                    player1: playerProfile.player1.username,
+                    player2: playerProfile.player2.username,
+                });
+            }
+        }
+        if (payload.mode === 'normal'){
+            const playerOneProfile = await this.userService.findByUsername(payload.player)
+            const playerTwoProfile = await this.userService.findByUsername(payload.opponent)
+            if (playerOneProfile !== null && playerTwoProfile !== null){
+                if (playerOneProfile.username !== payload.player && playerTwoProfile.username !== payload.opponent){
+                    return ;
+                }
+                this.server.emit('readyForMatchmakingResponse', {
+                    lobbyId: this.pongService.newGameSession(playerOneProfile, playerTwoProfile, payload.mode),
+                    player1: payload.player,
+                    player2: payload.opponent,
+                });
+            }
         }
     }
 
     @SubscribeMessage('getGameState')
     async handleGetGameState(client: any, payload: any) {
         const ret:any  = await this.pongService.getGameState(payload.gameId)
+        console.log("game state : ", ret)
         this.server.emit('getGameStateResponse', {
             gameState: ret,
             gameId: payload.gameId
@@ -165,9 +182,46 @@ export class SocketsGateway {
         }
     }
 
+    @SubscribeMessage('cancelFriendlyMatch')
+    async handleCancelFriendlyMatch(client: any, payload: any) {
+        // await this.pongService.abortMatch(payload.lobbyId, payload.username)
+        this.server.emit('cancelFriendlyMatchResponse', payload)
+    }
+
+    @SubscribeMessage('startFriendlyMatchCountdown')
+    async handleStartFriendlyMatchCountdown(client: any, payload: any) {
+        // await this.pongService.abortMatch(payload.lobbyId, payload.username)
+        this.server.emit('startFriendlyMatchCountdownResponse', payload)
+    }
+
+    startFriendlyMatchCountdown
+    @SubscribeMessage('sendGameInvite')
+    async handleSendGameInvite(client: any, payload: any) {
+        // await this.pongService.abortMatch(payload.lobbyId, payload.username)
+        this.server.emit('sendGameInviteResponse', payload)
+    }
+
+    @SubscribeMessage('acceptGameInvite')
+    async handleAcceptGameInvite(client: any, payload: any) {
+        // await this.pongService.abortMatch(payload.lobbyId, payload.username)
+        this.server.emit('acceptGameInviteResponse', payload)
+    }
+
+    @SubscribeMessage('declineGameInvite')
+    async handleDeclineGameInvite(client: any, payload: any) {
+        // await this.pongService.abortMatch(payload.lobbyId, payload.username)
+        this.server.emit('declineGameInviteResponse', payload)
+    }
+
+    @SubscribeMessage('inviteExpired')
+    async handleInviteExpired(client: any, payload: any) {
+        // await this.pongService.abortMatch(payload.lobbyId, payload.username)
+        this.server.emit('inviteExpiredResponse', payload)
+    }
+
     @SubscribeMessage('opponentForfeit')
     async handleOpponentForfeit(client: any, payload: any) {
-        await this.pongService.abortMatch(payload.lobbyId, payload.username)
+        await this.pongService.abortMatch(payload.lobbyId, payload.username, payload.mode)
         this.server.emit('opponentForfeitResponse', payload)
     }
 

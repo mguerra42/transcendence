@@ -40,6 +40,8 @@
       client.chat.chatState.receiver.victories = userToMessage.victories;
       client.chat.chatState.receiver.defeats = userToMessage.defeats;
       client.chat.chatState.receiver.ladderPoint = userToMessage.ladderPoint;
+      client.chat.chatState.receiver.status = userToMessage.status;
+      console.log(client.chat.chatState.receiver)
     }
   };
 
@@ -63,6 +65,8 @@
 
   onMounted(async () => {
     await socket.connect();
+
+    await channel.refresh();
     socket.on('hasToRefresh', async () => {
       console.log("REFRESH HASTOREFRESH");
       await channel.refresh();
@@ -71,6 +75,8 @@
     socket.on('chatStatusResponse', async () => {
       await channel.refresh();
     });
+
+    console.log(client.chat.usersArray)
 
   })
 </script>

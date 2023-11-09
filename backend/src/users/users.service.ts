@@ -367,13 +367,19 @@ export class UsersService {
     }
 
     async createEndGame(
-        gameState: any
+        gameState: any,
+        gameMode: string
     ) {
+        let LP:number = 0;
         let winner:any = {}
         let winnerScore = 0
         let loser:any = {}
         let loserScore = 0
         
+        if (gameMode ===  'ranked'){
+            LP = 20;
+        }
+
         if (gameState.playerOneScore > gameState.playerTwoScore){
             winner = gameState.playerOneProfile
             winnerScore = gameState.playerOneScore
@@ -400,19 +406,26 @@ export class UsersService {
             },
         });
 
+
+
         await this.db.user.update({
             where: { username: winner.username },
             data: {
                 victories: winner.victories + 1,
-                ladderPoint: winner.ladderPoint + 20
+                ladderPoint: winner.ladderPoint + (LP + LP * winner.victories/winner.defeats)
             },
         });
+
+        let newLP = loser.ladderPoint - (LP + LP * loser.victories/loser.defeats)
+        if (newLP <= 0){
+            newLP = 0
+        }
 
         await this.db.user.update({
             where: { username: loser.username },
             data: {
                 defeats: loser.defeats + 1,
-                ladderPoint: loser.ladderPoint - 20
+                ladderPoint: newLP
             },
         });
         return newGame;

@@ -24,6 +24,7 @@ import UserProfile from './components/Chat/UserProfile.vue';
     avatarPath?: string;
   }
 
+  //TODO : chat activity status seems broken
   //TODO : add game invite
   //TOOD : clean up queue and active game sessions when aborting match during queue before confirm
 
@@ -62,13 +63,13 @@ import UserProfile from './components/Chat/UserProfile.vue';
     context: ref(),
     timeElapsed: ref(0),
     activeGameSessions: ref(0),
-    showQuitGame: ref(false),
     returnToGame: ref(false),
     animationFrameId: ref(),
     MatchmakingError: ref('Matchmaking : An error occured.'),
-    showEndGame: ref(false),
-
+    
     //COMPONENTS
+    showQuitGame: ref(false),
+    showEndGame: ref(false),
     showCancelButton: ref(false),
     showMatchmakingError: ref(false),
     showPlayButton: ref(true),
@@ -115,7 +116,7 @@ import UserProfile from './components/Chat/UserProfile.vue';
           return null
         }
 
-        socket.emit('readyForMatchmaking', { player: auth.session.username })
+        socket.emit('readyForMatchmaking', { player: auth.session.username, mode: 'ranked' })
         console.log('waitForMatch: Waiting for an opponent...')
         const timeElapsedInterval = setInterval(() => {
             stateProps.timeElapsed.value++;
@@ -187,6 +188,7 @@ import UserProfile from './components/Chat/UserProfile.vue';
   
   const gameProps = {
     gameStatus: ref(''),
+    gameMode: ref(''),
     
     gameDimensions: ref({
         playerOneWidth: 14,
@@ -202,6 +204,7 @@ import UserProfile from './components/Chat/UserProfile.vue';
 
     gameState: ref({
         running : false,
+        gameMode : '',
         playerOneProfile : UserProfile,
         playerTwoProfile : UserProfile,
         playerOneName: '',
@@ -332,6 +335,7 @@ import UserProfile from './components/Chat/UserProfile.vue';
     await socket.connect()
     console.log('onMounted: Socket.io CONNECTED')
     await auth.refreshSession();
+
   });
 </script>
 

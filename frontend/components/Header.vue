@@ -34,7 +34,6 @@ const quitMatchButton = async () => {
 const startGameButton = async () => {
     console.log('startGameButton: Looking for a match for ', auth.session.username, '...')
     if (stateProps.showPong.value === false) {
-
         stateProps.showEndGame.value = false;
         stateProps.opponentForfeit.value = false;
         stateProps.showCancelButton.value = true;
@@ -128,7 +127,8 @@ const startGameButton = async () => {
             }
             socket.emit('opponentForfeit', {
                 username: auth.session.username,
-                lobbyId: stateProps.gameLobbyId.value
+                lobbyId: stateProps.gameLobbyId.value,
+                mode: gameProps.gameState.value.gameMode
             })
             clearInterval(timeElapsedInterval);
             stateProps.timeElapsed.value = 0

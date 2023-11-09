@@ -3,8 +3,9 @@ const auth = useAuth()
 const socket = useSocket();
 const client = useClient();
 
-const { gameProps } = defineProps<{
-      gameProps: any
+const { gameProps, stateProps } = defineProps<{
+      gameProps: any,
+      stateProps:any
   }>();
 
 </script>
@@ -18,7 +19,7 @@ const { gameProps } = defineProps<{
   </div>
 
   <div v-if="client.chat.showUserProfile" class="absolute top-0 bottom-0 left-0 right-0 z-10 flex justify-center items-center bg-black/82 backdrop-blur-sm" >
-    <ChatUserProfile/>
+    <ChatUserProfile :stateProps="stateProps" :gameProps="gameProps"/>
   </div>
   
   <div v-if="auth.showUserForm" class="absolute top-0 bottom-0 left-0 right-0 z-10 flex justify-center items-center bg-black/60 backdrop-blur-sm" >

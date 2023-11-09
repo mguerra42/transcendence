@@ -24,12 +24,13 @@ export class PongService {
 
     private activeGameSessions: GameSession[] = [];
 
-    newGameSession(playerProfile:any, opponentProfile:any): string {
+    newGameSession(playerProfile:any, opponentProfile:any, mode:string): string {
         const gameId = uuidv4();
         let gameSession: GameSession = {
             gameId,
             gameState: {
                 running : false,
+                gameMode : mode,
                 playerOneProfile : playerProfile,
                 playerTwoProfile : opponentProfile,
                 playerOneName: playerProfile.username,
@@ -106,7 +107,7 @@ export class PongService {
                 gameSession.gameState.playerTwoPos = 20
 
                 if (gameSession.gameState.playerOneScore === 5 || gameSession.gameState.playerTwoScore === 5){
-                    this.userService.createEndGame(gameSession.gameState)
+                    this.userService.createEndGame(gameSession.gameState, gameSession.gameState.gameMode)
                     gameSession.gameState.running = false
                 }
                 else {
@@ -176,7 +177,7 @@ export class PongService {
         }
     }
 
-    abortMatch(gameId: string, forfeitPlayer: string) {
+    abortMatch(gameId: string, forfeitPlayer: string, mode:string) {
         const gameSession = this.findGameSessionById(gameId);
         if (gameSession) {
             gameSession.stopGameLoop();
@@ -188,7 +189,7 @@ export class PongService {
                 gameSession.gameState.playerOneScore = 5
                 gameSession.gameState.playerTwoScore = 0
             }
-            this.userService.createEndGame(gameSession.gameState)
+            this.userService.createEndGame(gameSession.gameState, mode)
             this.deleteGameSession(gameId)
         }
     }
