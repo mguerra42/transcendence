@@ -4,6 +4,7 @@ import { io } from 'socket.io-client'
 export const useSocket = defineStore('socket', () => {
     const socket = ref()
     const auth = useAuth()
+	const chat = useChat()
 
     const disconnect = async () => {
         if (auth.logged === true)
@@ -18,6 +19,7 @@ export const useSocket = defineStore('socket', () => {
         })
         _socket.on('connect', () => {
             console.log('Socket connected')
+			chat.init()
         })
         _socket.on('disconnect', () => {
             console.log('Socket disconnected')

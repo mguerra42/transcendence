@@ -27,9 +27,9 @@ model User {
   wonGames       Game[]        @relation("winner")
   lostGames      Game[]        @relation("loser")
   channels       ChannelUser[] //channels the user is in
-  history        history[]    //history of DMs, and maybe channels soon
+//  history        history[]    //history of DMs, and maybe channels soon
   gameLobby      GameLobby[]   
-  messages       Message[]     @relation("sender")
+//  messages       Message[]     @relation("sender")
   socketId       String        @default("") //socket id for the user
   queue          Queue?        // Define the Queue relation here
   twoFa           Int          @default(0) //'on' = 1  or 'off' = 0
@@ -67,26 +67,26 @@ model Queue {
 }
 
 //Message history (may be used for group chat ?)
-model history {
-  id        Int      @id @default(autoincrement())
-  users     User[]    
-  // channelId Int
-  // channel   Channel? @relation(fields: [channelId], references: [id])
-  content   Message[]
-  date      DateTime @default(now())
-}
+//model history {
+//  id        Int      @id @default(autoincrement())
+//  users     User[]    
+//  // channelId Int
+//  // channel   Channel? @relation(fields: [channelId], references: [id])
+//  content   Message[]
+//  date      DateTime @default(now())
+//}
 
 //Message content
 model Message {
   id          Int       @id @default(autoincrement())
   content     String
-  senderId    Int
-  receiverId  Int?
-  sender      User      @relation("sender", fields: [senderId], references: [id])
-  receiver    history?   @relation(fields: [receiverId], references: [id])
-  channelId   Int?
-  channel     Channel?  @relation(fields: [channelId], references: [id])
-  date        DateTime  @default(now())
+  from    Int
+//  receiverId  Int?
+//  sender      User      @relation("sender", fields: [senderId], references: [id])
+//////  receiver    history?   @relation(fields: [receiverId], references: [id])
+  channelId   Int
+  channel     Channel  @relation(fields: [channelId], references: [id])
+  timestamp        DateTime  @default(now())
 
 }
 
@@ -125,9 +125,10 @@ model Game {
 model Channel {
   id           Int           @id @default(autoincrement())
   name         String        @unique
-  access       Access //public, private, protected
+  description  String?
+  type         ChannelType //public, private, protected or dm
   password     String? //if access is defined as protected
-  userList     ChannelUser[] //users in the channel        //lists mutes
+  users        ChannelUser[] //users in the channel
   messages     Message[]     //messages in the channel
   creationDate DateTime      @default(now())
 }
@@ -159,7 +160,8 @@ enum Role {
 // }
 
 //Channel accessibility
-enum Access {
+enum ChannelType {
+  DM
   PUBLIC
   PRIVATE
   PROTECTED
