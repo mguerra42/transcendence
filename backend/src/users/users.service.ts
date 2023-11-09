@@ -406,8 +406,6 @@ export class UsersService {
             },
         });
 
-
-
         await this.db.user.update({
             where: { username: winner.username },
             data: {

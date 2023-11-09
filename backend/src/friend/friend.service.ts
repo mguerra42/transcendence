@@ -17,11 +17,14 @@ export class FriendService {
     const friend = await this.usersService.findByEmailOrUsername('', newFriendUsername);
 
     if (!friend) {
-      throw new Error(`L'ami avec le nom d'utilisateur ${newFriendUsername} n'a pas été trouvé.`);
+      console.log(`L'ami avec le nom d'utilisateur ${newFriendUsername} n'a pas été trouvé.`);
+      return ;
     }
 
     if (friend.id === currentUserId) {
-        throw new Error(`Erreur : vous ne pouvez pas vous ajouter vous même en ami.`);
+        console.log(`Erreur : vous ne pouvez pas vous ajouter vous même en ami.`);
+        return ;
+
       }
     
     // Vérifier si une relation "friend" existe déjà entre les deux utilisateurs pour l'utilisateur actuel
@@ -33,7 +36,8 @@ export class FriendService {
       });
       
       if (existingFriendship) {
-        throw new Error(`Vous avez déjà ajouté l'utilisateur ${newFriendUsername} en tant qu'ami précédemment.`);
+        console.log(`Vous avez déjà ajouté l'utilisateur ${newFriendUsername} en tant qu'ami précédemment.`);
+        return ;
       }
 
     // Créez une nouvelle entrée dans le modèle Friend
@@ -64,7 +68,9 @@ export class FriendService {
         });
 
         if (!user) {
-            throw new Error('Utilisateur non trouvé');
+            console.log('Utilisateur non trouvé');
+            return ;
+
         }
 
         // Filtrer les amis qui sont à la fois dans friends et inverseFriends
@@ -102,7 +108,9 @@ export class FriendService {
         });
 
         if (!user) {
-            throw new Error('Utilisateur non trouvé');
+            console.log('Utilisateur non trouvé');
+            return ;
+
         }
 
         // Filtrer les amis qui sont dans inverseFriends mais pas dans friends
@@ -140,7 +148,9 @@ async getFriendRequestsReceived(userId: number): Promise<User[]> {
       });
 
       if (!user) {
-          throw new Error('Utilisateur non trouvé');
+          console.log('Utilisateur non trouvé');
+          return ;
+
       }
 
       // Filtrer les amis qui sont dans friends mais pas dans inverseFriends
@@ -214,7 +224,9 @@ async areMutualFriends(currentUserId: number, otherUserName: string): Promise<bo
       });
 
       if (!otherUser) {
-          throw new Error('Autre utilisateur non trouvé');
+          console.log('Autre utilisateur non trouvé');
+          return ;
+
       }
 
       // Obtenez la liste des amis mutuels de l'utilisateur actuel

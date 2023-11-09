@@ -153,7 +153,6 @@ export class SocketsGateway {
     @SubscribeMessage('getGameState')
     async handleGetGameState(client: any, payload: any) {
         const ret:any  = await this.pongService.getGameState(payload.gameId)
-        console.log("game state : ", ret)
         this.server.emit('getGameStateResponse', {
             gameState: ret,
             gameId: payload.gameId
@@ -279,6 +278,9 @@ export class SocketsGateway {
 
         console.log('refreshPrivateChannel in socket gateway')
         console.log("other user id = ", payload.otherUserId);
+        if (payload.otherUserId === undefined){
+            return ;
+        }
         const otherUser = await this.userService.findOne(
             payload.otherUserId
         );
@@ -293,6 +295,9 @@ export class SocketsGateway {
             payload.currentUserId
         );
         console.log("other user id = ", payload.otherUserId);
+        if (payload.otherUserId === undefined){
+            return ;
+        }
         const otherUser = await this.userService.findOne(
             payload.otherUserId
         );
@@ -308,6 +313,9 @@ export class SocketsGateway {
             payload.currentUserId
         );
         console.log("other user id = ", payload.otherUserId);
+        if (payload.otherUserId === undefined){
+            return ;
+        }
         const otherUser = await this.userService.findOne(
             payload.otherUserId
         );
