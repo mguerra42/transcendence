@@ -41,6 +41,7 @@
       client.chat.chatState.receiver.victories = userToMessage.victories;
       client.chat.chatState.receiver.defeats = userToMessage.defeats;
       client.chat.chatState.receiver.ladderPoint = userToMessage.ladderPoint;
+      client.chat.chatState.receiver.channelAccess = null;
     }
   };
 
@@ -51,6 +52,7 @@
       client.chat.chatState.select = 'CHANNEL';
       client.chat.chatState.receiver.id = channelToMessage.id;
       client.chat.chatState.receiver.name = channelToMessage.name;
+      client.chat.chatState.receiver.channelAccess = channelToMessage.access;
       client.chat.chatState.receiver.userCount = channelToMessage.userCount;
       client.chat.chatState.receiver.onlineUsers = channelToMessage.onlineUsers;
       socket.emit('joinChannel', {

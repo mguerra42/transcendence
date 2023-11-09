@@ -112,7 +112,7 @@ export class ChannelService {
             return null;
         }
 
-        return this.db.channel.create({
+        return await this.db.channel.create({
             data: {
                 name,
                 access,
@@ -165,6 +165,68 @@ export class ChannelService {
                 role,
                 user: { connect: { id: userId } }, // Connect the user by ID
                 channel: { connect: { id: channelId } }, // Connect the channel by ID
+            },
+        });
+    }
+
+    async addUserToChannel(channelName: string, username: string) {
+        const user = await this.db.user.findUnique({
+            where: {
+                username: username,
+            },
+        });
+
+        const channel = await this.db.channel.findUnique({
+            where: {
+                name: channelName,
+            },
+        });
+
+        if (user === null || channel === null) {
+            return null;
+        }
+
+        return await this.db.channel.update({
+            where: {
+                id: channel.id,
+            },
+            data: {
+                userInvited: {
+                    connect: {
+                        id: user.id,
+                    },
+                },
+            },
+        });
+    }
+
+    async deleteUserFromChannel(channelName: string, username: string) {
+        const user = await this.db.user.findUnique({
+            where: {
+                username: username,
+            },
+        });
+
+        const channel = await this.db.channel.findUnique({
+            where: {
+                name: channelName,
+            },
+        });
+
+        if (user === null || channel === null) {
+            return null;
+        }
+
+        return await this.db.channel.update({
+            where: {
+                id: channel.id,
+            },
+            data: {
+                userInvited: {
+                    disconnect: {
+                        id: user.id,
+                    },
+                },
             },
         });
     }

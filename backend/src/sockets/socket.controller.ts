@@ -11,7 +11,7 @@ export class SocketController {
     constructor(
         private readonly userService: UsersService,
         private channelService: ChannelService,
-    ) {}
+    ) { }
 
     @Get('getonlineusers')
     async GetOnlineUsers() {
@@ -47,7 +47,7 @@ export class SocketController {
             }
             delete channelsList[i].userInvited;
         }
-        console.log('channelsList = ', channelsList);
+        //console.log('channelsList = ', channelsList);
         return channelsList;
     }
 
@@ -84,6 +84,7 @@ export class SocketController {
             body.access,
             body.password,
         );
+
         // console.log(
         //     'in socket controller, create channel : CHANNEL = ',
         //     channel,
@@ -106,5 +107,27 @@ export class SocketController {
             body.userId,
         );
         return channelUser.count;
+    }
+
+    @Post('addusertochannel')
+    async AddUserToChannel(
+        @Body() body: { channelName: string; username: string },
+    ) {
+        const channelUser = await this.channelService.addUserToChannel(
+            body.channelName,
+            body.username,
+        );
+        return channelUser;
+    }
+
+    @Post('deleteuserfromchannel')
+    async DeleteUserFromChannel(
+        @Body() body: { channelName: string; username: string },
+    ) {
+        const channelUser = await this.channelService.deleteUserFromChannel(
+            body.channelName,
+            body.username,
+        );
+        return channelUser;
     }
 }

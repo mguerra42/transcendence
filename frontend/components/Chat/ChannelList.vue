@@ -6,9 +6,18 @@ const channel = useChannel()
 
 channel.allChannelArray = [];
 
+const isInChannel = (channelName : string) => {
+  for (let i = 0; i < client.chat.channelArray.length; i++) {
+    if (client.chat.channelArray[i].name == channelName) {
+      return true;
+    }
+  }
+  return false;
+}
+
 const joinChannel = async (channelList : any) => {
     let password = null;
-    if (channelList.access == 'PROTECTED') {
+    if (channelList.access == 'PROTECTED' && isInChannel(channelList.name) == false) {
       password = prompt('Enter password');
     }
     socket.emit('joinChannel', {
@@ -25,6 +34,7 @@ const joinChannel = async (channelList : any) => {
         client.chat.chatState.select = 'CHANNEL';
         client.chat.chatState.receiver.id = channelList.id;
         client.chat.chatState.receiver.name = channelList.name;
+        client.chat.chatState.receiver.access = channelList.access;
         client.chat.messages = await client.chat.currentHistory();
         socket.emit('refresh', { channelId: client.chat.chatState.receiver.id }) 
       }

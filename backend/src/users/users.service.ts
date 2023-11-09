@@ -464,7 +464,7 @@ export class UsersService {
             }
         }
 
-        
+        games.reverse();        
 
         return games;
     }

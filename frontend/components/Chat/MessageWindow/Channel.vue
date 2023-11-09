@@ -66,6 +66,23 @@ import { Socket } from 'socket.io-client';
     chatMessages.value.scrollTop = chatMessages.value.scrollHeight;
   };
 
+  const inviteUserInPrivateChannel = async () => {
+    const username = prompt('Enter username to invite');
+    if (username != null)
+    {
+      await channel.addUserToChannel(client.chat.chatState.receiver.name, username);
+    }
+
+  }
+
+  const leavePrivateChannel = async () => {
+    const result = confirm('Are you sure you want to leave this private channel ?');
+    if (result == false)
+      return ;
+    await channel.deleteUserToChannel(client.chat.chatState.receiver.name, auth.session.username);
+    channel.leaveChannel();
+  }
+
   onUpdated(() => {
     scrollToBottom();
   })
@@ -108,12 +125,22 @@ import { Socket } from 'socket.io-client';
       <!-- </div> -->
         <div class="flex flex-col justify-center">
           <p class="ml-3 text-lg text-zinc-200 font-bold" >#{{ client.chat.chatState.receiver.name }}</p>
-          <p class="ml-3 text-xs text-zinc-400" >Subscribed : {{ client.chat.chatState.receiver.userCount }} users</p>
-          <p class="ml-3 text-xs text-zinc-400" >Online : {{ client.chat.chatState.receiver.onlineUsers }} users</p>
+          <p v-if="client.chat.chatState.receiver.userCount === 1" class="ml-3 text-xs text-zinc-400" >Subscribed : {{ client.chat.chatState.receiver.userCount }} user</p>
+          <p v-else class="ml-3 text-xs text-zinc-400" >Subscribed : {{ client.chat.chatState.receiver.userCount }} users</p>
+          <p v-if="client.chat.chatState.receiver.onlineUsers === 1" class="ml-3 text-xs text-zinc-400" >Online : {{ client.chat.chatState.receiver.onlineUsers }} user</p>
+          <p v-else class="ml-3 text-xs text-zinc-400" >Online : {{ client.chat.chatState.receiver.onlineUsers }} users</p>
+          <p class="ml-3 text-xs text-zinc-400" >Access : {{ client.chat.chatState.receiver.channelAccess }} </p>
         </div>
         <div class="flex-end">
           <button @click="channel.leaveChannel" class=" hover:bg-zinc-700 text-white py-1 px-1 rounded flex ">
             <div class="i-mdi-close-box-multiple-outline"></div>
+          </button>
+          <!-- //to do il faudra modif ici pour que seulement les owner et admin aient accès a ce bouton -->
+          <button v-if="client.chat.chatState.receiver.channelAccess === 'PRIVATE'" @click="inviteUserInPrivateChannel" class=" hover:bg-zinc-700 text-white py-1 px-1 rounded flex ">
+            <div class="i-mdi-account-plus"></div>
+          </button>
+          <button v-if="client.chat.chatState.receiver.channelAccess === 'PRIVATE'" @click="leavePrivateChannel" class=" hover:bg-zinc-700 text-white py-1 px-1 rounded flex ">
+            <div class="i-mdi-account-minus"></div>
           </button>
         </div>
     </div>

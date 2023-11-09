@@ -9,9 +9,12 @@ interface AppChannel {
     getAllChannels: () => any // get all channels
     getChannels: () => any // get channels
     createChannel: (name: string, access: string,) => any // create channel
+    addUserToChannel: (channelName: string, username: string) => any // add user to channel (private
+    deleteUserToChannel: (channelName: string, username: string) => any // delete user from channel (private
     leaveChannel: () => any // leave channel
     getOnlineUsers: () => any // get online users
     getUserCount: () => any // get user count
+    getChannelAccess: () => any // get channel access
     refresh: () => any // refresh users
     allChannelArray: globalThis.Ref<any[]> // all channel array
 }
@@ -73,6 +76,7 @@ export const useChannel = defineStore('channel', () => {
                 name,
                 access,
                 password,
+                userId: authStore.session.id,
             },
         })
         if (error.value?.statusCode || data.value === null) {
@@ -81,6 +85,9 @@ export const useChannel = defineStore('channel', () => {
             return null
         }
         if (data.value !== null && data.value !== undefined) {
+            if (access === 'PRIVATE')
+                await channel.addUserToChannel(data.value.name, authStore.session.username)
+
             client.chat.messages = []
             client.chat.chatState.select = 'CHANNEL'
             client.chat.chatState.receiver.id = data.value.id
@@ -93,6 +100,43 @@ export const useChannel = defineStore('channel', () => {
         }
 
         await channel.refresh()
+    }
+
+    //for private channel
+    channel.addUserToChannel = async (channelName: string, username: string) => {
+        const { data, error } = await useRequest('/socket/addusertochannel', {
+            method: 'POST',
+            body: {
+                channelName,
+                username,
+            },
+        })
+
+        if (error.value?.statusCode) {
+            authStore.error = error.value?.statusMessage as string
+            return null
+        }
+
+        if (data.value === null) {
+            alert('User not found');
+            return null
+        }
+    }
+
+    //for private channel
+    channel.deleteUserToChannel = async (channelName: string, username: string) => {
+        const { data, error } = await useRequest('/socket/deleteuserfromchannel', {
+            method: 'POST',
+            body: {
+                channelName,
+                username,
+            },
+        })
+
+        if (error.value?.statusCode) {
+            authStore.error = error.value?.statusMessage as string
+            return null
+        }
     }
 
     channel.leaveChannel = async () => {
@@ -116,6 +160,7 @@ export const useChannel = defineStore('channel', () => {
             client.chat.chatState.select = 'EMPTY'
             client.chat.chatState.receiver.id = null
             client.chat.chatState.receiver.name = null
+            client.chat.chatState.receiver.channelAccess = null
             client.chat.messages = []
         }
 
@@ -147,6 +192,17 @@ export const useChannel = defineStore('channel', () => {
         return null
     }
 
+    channel.getChannelAccess = async () => {
+        if (client.chat.chatState.select !== 'CHANNEL')
+            return null
+
+        for (let i = 0; i < client.chat.channelArray.length; i++) {
+            if (client.chat.channelArray[i].name === client.chat.chatState.receiver.name)
+                return client.chat.channelArray[i].access
+        }
+        return null
+    }
+
     channel.refresh = async () => {
         client.chat.messages = await client.chat.currentHistory()
         client.chat.usersArray = await friend.getFriends()
@@ -154,6 +210,7 @@ export const useChannel = defineStore('channel', () => {
         if (client.chat.chatState.select === 'CHANNEL') {
             client.chat.chatState.receiver.onlineUsers = await channel.getOnlineUsers()
             client.chat.chatState.receiver.userCount = await channel.getUserCount()
+            client.chat.chatState.receiver.channelAccess = await channel.getChannelAccess()
         }
     }
 

@@ -22,6 +22,7 @@ const chatWithUser = async (userToMessage : any) => {
       client.chat.chatState.receiver.victories = userToMessage.victories;
       client.chat.chatState.receiver.defeats = userToMessage.defeats;
       client.chat.chatState.receiver.ladderPoint = userToMessage.ladderPoint;
+      client.chat.chatState.receiver.channelAccess = null;
       displayUserProfile(userToMessage);
     }
   };

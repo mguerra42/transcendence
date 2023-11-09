@@ -23,6 +23,7 @@
       client.chat.chatState.receiver.victories = userToMessage.victories;
       client.chat.chatState.receiver.defeats = userToMessage.defeats;
       client.chat.chatState.receiver.ladderPoint = userToMessage.ladderPoint;
+      client.chat.chatState.receiver.channelAccess = null;
     }
 
     client.chat.showUserProfile = !client.chat.showUserProfile;
