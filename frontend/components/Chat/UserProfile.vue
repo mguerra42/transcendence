@@ -1,6 +1,66 @@
 <script setup lang="ts">
 const client = useClient();
+const channel = useChannel();
+const friend = useFriend();
+const auth = useAuth();
+const socket = useSocket();
 
+const displayUserProfile = async (userToMessage : any) => {
+    console.log("ENTERED Friendlist/displayUserProfile");
+    client.chat.showUserProfile = !client.chat.showUserProfile;
+}
+
+const chatWithUser = async (userToMessage : any) => {
+    if (client.chat.chatState.receiver.id != userToMessage.id || client.chat.chatState.select != 'DM')
+    {
+      client.chat.messages = [];
+      client.chat.chatState.select = 'DM';
+      client.chat.chatState.receiver.id = userToMessage.id;
+      client.chat.chatState.receiver.username = userToMessage.username;
+      client.chat.messages = await client.chat.currentHistory();
+      client.chat.chatState.receiver.avatarPath = userToMessage.avatarPath;
+      client.chat.chatState.receiver.victories = userToMessage.victories;
+      client.chat.chatState.receiver.defeats = userToMessage.defeats;
+      client.chat.chatState.receiver.ladderPoint = userToMessage.ladderPoint;
+      displayUserProfile(userToMessage);
+    }
+  };
+
+  const addFriend = async (newFriendUsername: string) => {
+    await client.friend.add(newFriendUsername);
+    socket.emit('refreshUserProfile', {
+        currentUserId: auth.session.id,
+        otherUserId: client.chat.chatState.receiver.id
+        })
+  };
+
+  const removeFriend = async (newFriendUsername: string) => {
+    await client.friend.remove(newFriendUsername);
+    if (client.chat.chatState.select == 'DM')
+        {
+          client.chat.chatState.select = '';
+        }
+
+    socket.emit('refreshUserProfile', {
+        currentUserId: auth.session.id,
+        otherUserId: client.chat.chatState.receiver.id
+    });
+    socket.emit('deletePrivateChannel', {
+        currentUserId: auth.session.id,
+        otherUserId: client.chat.chatState.receiver.id
+    });
+  };
+
+    onMounted (async () => {
+    await socket.connect();
+    socket.on('refreshUserProfile', async () => {
+        friend.toggleCategory(client.friend.categoryName);
+        if (client.chat.showUserProfile) {
+            client.chat.showAdd = await friend.showAddOption(client.chat.chatState.receiver.username);
+        }
+        await channel.refresh();
+    });
+  });
 </script>
 
 <template>
@@ -19,12 +79,16 @@ const client = useClient();
             </div>
             <!-- div bouton -->
             <div class=" p-2 ">
-                <button class="bg-zinc-600 hover:bg-zinc-500 rounded-lg text-zinc-200 text-sm px-4 py-2 mt-2">
-                    <div class="flex">
-                        <div class="i-mdi:account-multiple-plus"></div>
-                        <p class=" text-md text-zinc-200 pl-3" >Add friend</p>
-                    </div>
-                </button>
+                <div v-if="client.chat.showAdd === 'none' && auth.session.username != client.chat.chatState.receiver.username" class=" p-2">
+                    <button class="i-mdi:account-multiple-plus" @click="addFriend(client.chat.chatState.receiver.username)">Add a friend</button>
+                </div>
+                <div v-else-if="client.chat.showAdd === 'mutual' && auth.session.username != client.chat.chatState.receiver.username" class=" p-2">
+                    <button class="i-material-symbols:chat-add-on" @click="chatWithUser(client.chat.chatState.receiver)">Start a chat</button>
+                    <button class="i-material-symbols:person-remove-rounded" @click="removeFriend(client.chat.chatState.receiver.username)">Delete a friend</button>
+                </div>
+                <div v-else-if="client.chat.showAdd === 'justFriend' && auth.session.username != client.chat.chatState.receiver.username" class=" p-2">
+                    <button class="i-material-symbols:person-remove-rounded" @click="removeFriend(client.chat.chatState.receiver.username)">Delete a friend</button>
+                </div>
             </div>
         </div>
 

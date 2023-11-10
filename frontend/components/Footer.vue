@@ -2,8 +2,8 @@
     
 </script>
 <template>
-    <div class="h-40px b-1">
-        <div class="container mx-auto h-full flex justify-center  items-center px-5">
+    <div class="h-40px">
+        <div class="container mx-auto h-full flex justify-center items-center px-5">
             <div>
                 Footer
             </div>

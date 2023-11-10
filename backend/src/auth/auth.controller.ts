@@ -26,6 +26,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { async } from 'rxjs';
 import { UsersService } from 'src/users/users.service';
 
+
 @Controller('auth')
 export class AuthController {
     constructor(
@@ -47,6 +48,7 @@ export class AuthController {
             sameSite: 'strict',
             maxAge: 1000 * 60 * 60 * 24 * 7,
         });
+        console.log('controler2fa',data.isTwoFAEnabled)
         res.send(data);
     }
 
@@ -172,6 +174,15 @@ export class AuthController {
 
         return newUser;
     }
+
+    @Post('findByUsername')
+    @UseGuards(JwtAuthGuard)
+    async findUser(@Request() req, @Body() obj) {
+        const user = await this.usersService.findByEmailOrUsername('', obj.username);
+        return (user);
+    }
+
+
     //TODO : connect to frontend
     @UseGuards(AuthGuard('google'))
     @Post('google/logout')
@@ -185,5 +196,40 @@ export class AuthController {
     async fortyTwoLogout(@Res({ passthrough: true }) res: Response) {
         res.clearCookie('accessToken');
         return { message: 'Logged out from 42' };
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('onOff2FA')
+    async onOff2FA(@Request() req) {
+      const userId = req.user.id;
+      const updatedTwoFa = await this.authService.toggle2FA(userId);
+      return updatedTwoFa;
+    }
+  
+    @UseGuards(JwtAuthGuard)
+    @Get('get2FA')
+    async get2FA(@Request() req) {
+      const userId = req.user.id;
+      const currentTwoFa = await this.authService.get2FA(userId);
+      return currentTwoFa;
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('get2FAQr')
+    async get2FAQr(@Request() req) {
+      const userId = req.user.id;
+      const Qrcode2fa = await this.authService.get2faQrCode(userId);
+      return Qrcode2fa;
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('verify-2fa')
+    async verify2fa(@Request() req, @Body() requestBody: { twoFactorCode: string }) {
+      const userId = req.user.id; // Accédez à l'ID de l'utilisateur à partir de req.user.id
+      const { twoFactorCode } = requestBody;
+      
+      const ret = await this.authService.verify2fa(userId, twoFactorCode);
+      console.log('Code bon ?', ret);
+      return ret;
     }
 }

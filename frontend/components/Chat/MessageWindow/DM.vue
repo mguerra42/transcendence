@@ -1,12 +1,51 @@
 <script setup lang="ts">
 const client = useClient();
 const auth = useAuth();
+const friend = useFriend();
+const socket = useSocket();
+const channel = useChannel();
 client.chat.showUserProfile = false;
 
-const displayUserProfile = () => {
+const chatMessages = ref();
+
+const scrollToBottom = () => {
+    if (chatMessages.value === undefined)
+      return ;
+    chatMessages.value.scrollTop = chatMessages.value.scrollHeight;
+  };
+
+const displayUserProfile = async () => {
     client.chat.showUserProfile = !client.chat.showUserProfile;
-    //console.log('showUserProfile', client.chat.showUserProfile)
-}
+    client.chat.showAdd = await friend.showAddOption(client.chat.chatState.receiver.username);
+  }
+
+onUpdated(async () => {
+  // if(auth.logged)
+  // {
+  //   client.chat.messages = await client.chat.currentHistory()
+    scrollToBottom();
+  // }
+})
+
+onMounted(async () => {
+  await socket.connect();
+  socket.on('refreshPrivateChannel', async () => {
+    setInterval(() => {}, 20);
+    client.chat.messages = await client.chat.currentHistory();
+  });
+  socket.on('deletePrivateChannel', async (currentUserId : number, otherUserId : number) => {
+    console.log("socket.on delete DM");
+    console.log("client.chat.chatState.select = ", client.chat.chatState.select);
+    console.log("auth.session.id = ", auth.session.id);
+    console.log("client.chat.chatState.receiver.id", client.chat.chatState.receiver.id);
+    if (client.chat.chatState.select == 'DM'
+      && auth.session.id == currentUserId
+      && client.chat.chatState.receiver.id == otherUserId)
+      {
+        client.chat.chatState.select = '';
+      }
+  });
+});
 </script>
 
 <template>
@@ -25,11 +64,13 @@ const displayUserProfile = () => {
 
     <div id="chatMessages" ref="chatMessages" class="overflow-y-auto max-w-full scrollbar-w-2 h-[3/5] px-1 rounded-lg">
       <div class="flex flex-col">
-        <div v-if="client.chat.chatState.select === 'DM'" v-for="message in client.chat.messages" class="mb-2">
-          <div :class="{ 'text-left': message.sender === auth.session.username, 'text-right': message.sender !== auth.session.username }">
-            <p class="text-sm text-zinc-300 w-full break-all rounded-lg hover:bg-zinc-600 inline-block p-2">
-              {{ message.text }}
-            </p>
+        <div v-if="client.chat.chatState.select === 'DM'">
+          <div v-for="message in client.chat.messages" class="mb-2">
+            <div :class="{ 'text-left': message.senderId !== auth.session.id, 'text-right': message.senderId === auth.session.id }">
+              <p class="text-sm text-zinc-300 w-full break-all rounded-lg hover:bg-zinc-600 inline-block p-2">
+                {{ message.content }} 
+              </p>
+            </div>
           </div>
         </div>
       </div>

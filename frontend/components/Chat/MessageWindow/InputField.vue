@@ -2,40 +2,47 @@
 const client = useClient();
 const auth = useAuth();
 const socket = useSocket();
+const channel = useChannel();
 
-const sendMessage = () => {
-    if (client.chat.newMessage.trim() === '') 
-        return;
-    socket.emit('sendPrivateMessage', {
-      sender: auth.session.username,
-      receiver: client.chat.chatState.receiver.username,
-      text: client.chat.newMessage 
-    });
-
-    client.chat.messages.push({
-      sender: auth.session.username,
-      text: client.chat.newMessage,
-    });
-    client.chat.newMessage = '';
-
-    setTimeout(() => {
-      client.chat.scrollToBottom();
-    }, 0);
-  };
-
-const sendMessageInChannel = () => {
+const sendMessage = async () => {
   if (client.chat.newMessage.trim() === '') 
       return;
-    socket.emit('sendMessageToChannel', {
-    sender: auth.session.username,
-    avatar: auth.session.avatarPath,
+  socket.emit('sendPrivateMessage', {
+    senderId: auth.session.id,
+    receiverId: client.chat.chatState.receiver.id,
+    text: client.chat.newMessage 
+  });
+  client.chat.newMessage = '';
+  setInterval(() => {}, 20);
+  client.chat.messages = await client.chat.currentHistory();
+  console.log("CURRENT HISTORY 1");
+  setInterval(() => {}, 20);
+  client.chat.messages = await client.chat.currentHistory();
+  socket.emit('refreshPrivateChannel', {
+    otherUserId: client.chat.chatState.receiver.id
+  });
+  channel.refresh();
+};
+
+const sendMessageInChannel = async () => {
+  if (client.chat.newMessage.trim() === '') 
+      return;
+  socket.emit('sendMessageToChannel', {
+    senderId: auth.session.id,
+    //avatar: auth.session.avatarPath,
+    receiverId: client.chat.chatState.receiver.id,
     receiver: client.chat.chatState.receiver.name,
     text: client.chat.newMessage 
   });
   client.chat.newMessage = '';
-  setTimeout(() => {
-    client.chat.scrollToBottom();
-  }, 0);
+  setInterval(() => {}, 20);
+  client.chat.messages = await client.chat.currentHistory();
+  console.log("CURRENT HISTORY CHANNEL 1");
+  setInterval(() => {}, 20);
+  client.chat.messages = await client.chat.currentHistory();
+  socket.emit('refresh', { channelId: client.chat.chatState.receiver.id }) 
+  channel.refresh();
+  //console.log('sendMessageInChannel (InputField.vue) , client.chat.messages = ', client.chat.messages);
 }
 </script>
 

@@ -27,7 +27,67 @@ model User {
   wonGames       Game[]        @relation("winner")
   lostGames      Game[]        @relation("loser")
   channels       ChannelUser[] //channels the user is in
+  history        history[]    //history of DMs, and maybe channels soon
+  gameLobby      GameLobby[]   
+  messages       Message[]     @relation("sender")
   socketId       String        @default("") //socket id for the user
+  queue          Queue?        // Define the Queue relation here
+  twoFa           Int          @default(0) //'on' = 1  or 'off' = 0
+  secret         String?       // Field to store the 2FA secret
+}
+
+model GameLobby {
+  id              Int      @id @default(autoincrement())
+  lobbyId         String   @unique
+  players         User[]    
+  playerOneScore  String
+  playerTwoScore  String
+}
+
+//Client 1 -> Server (joinLobby : user1, user2) -> user2 hasLobby(user1) -> cancel
+//Client 2 -> Server (joinLobby : user1, user2) -> user1 hasLobby(user2) -> cancel
+
+//Timing
+
+
+//Match
+//Define leader
+//if not leader wait ping
+//if leader create lobby and send socket to follower
+
+//Loop database for match in queues
+
+
+
+model Queue {
+  id         Int      @id @default(autoincrement())
+  confirmed  String   @default("idle")
+  username   String   @unique
+  profile    User     @relation(fields: [username], references: [username])
+}
+
+//Message history (may be used for group chat ?)
+model history {
+  id        Int      @id @default(autoincrement())
+  users     User[]    
+  // channelId Int
+  // channel   Channel? @relation(fields: [channelId], references: [id])
+  content   Message[]
+  date      DateTime @default(now())
+}
+
+//Message content
+model Message {
+  id          Int       @id @default(autoincrement())
+  content     String
+  senderId    Int
+  receiverId  Int?
+  sender      User      @relation("sender", fields: [senderId], references: [id])
+  receiver    history?   @relation(fields: [receiverId], references: [id])
+  channelId   Int?
+  channel     Channel?  @relation(fields: [channelId], references: [id])
+  date        DateTime  @default(now())
+
 }
 
 //Friend list
@@ -68,6 +128,7 @@ model Channel {
   access       Access //public, private, protected
   password     String? //if access is defined as protected
   userList     ChannelUser[] //users in the channel        //lists mutes
+  messages     Message[]     //messages in the channel
   creationDate DateTime      @default(now())
 }
 

@@ -15,14 +15,4 @@ export class UsersController {
     return this.usersService.findOne(+id);
   }
 
-  @Get('getallchannels')
-    async GetOnlineChannels() {
-        console.log(
-            '------------------------enter in channel.controller !------------------------------',
-        );
-        const channelsList = await this.usersService.findAllChannels();
-        console.log('channel List = ', channelsList);
-        return channelsList;
-    }
-
 }
