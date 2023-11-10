@@ -33,6 +33,7 @@
   }
 
     const addFriend = async (newFriendUsername: string) => {
+      showClosestUserList.value = false;
       client.chat.chatState.receiver.username = newFriendUsername;
       const friendUser = await client.auth.findByUsername(newFriendUsername);
       client.chat.chatState.receiver.id = friendUser.id;
