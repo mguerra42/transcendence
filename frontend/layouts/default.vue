@@ -71,7 +71,7 @@
 
             <div class="relative z-100 flex items-center flex-col gap-5 justify-start w-full h-full py-30 px-5">
               <div class="flex w-full max-w-1900px items-center h-100px">
-                <button class="w-full big-title layers hero glitch neon-text text-7rem =" data-text="WELCOME TO PONG">WELCOME TO PONG</button>
+                <button class="w-full big-title layers hero glitch neon-text text-7rem" data-text="WELCOME TO PONG">WELCOME TO PONG</button>
               </div>
               <div class="grid sm:grid-cols-2 gap-5 max-w-1900px max-h-1500px h-700px h-full w-full">
                 <div class="term-box" >

@@ -77,7 +77,7 @@
   }
 
   .home-button {
-    font-family: 'terminal', sans-serif;
+    /* font-family: 'terminal', sans-serif; */
     color: rgb(0, 255, 191);
     transition: color 0.3s;
   }
@@ -102,7 +102,7 @@
 
   .big-title:hover .glitch span{
   animation-play-state: running !important;
-  animation: paths 5s step-end infinite;
+  animation: paths 1s step-end infinite;
 }
 
 
@@ -595,13 +595,13 @@ section {
 }
 
 .glitch::before {
-  animation: paths 5s step-end infinite, opacity 5s step-end infinite,
+  animation: paths 2s step-end infinite, opacity 5s step-end infinite,
     font 8s step-end infinite, movement 10s step-end infinite;
     animation-play-state:paused;
 }
 
 .glitch::after {
-  animation: paths 5s step-end infinite, opacity 5s step-end infinite,
+  animation: paths 2s step-end infinite, opacity 5s step-end infinite,
     font 7s step-end infinite, movement 8s step-end infinite;
     animation-play-state:paused;
 }

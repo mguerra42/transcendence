@@ -42,7 +42,7 @@ import '/frontend/public/styles/home.css';
             <div class="flex flex-cols-2 w-full">
                 <span class="home-font text-2xl">Email:</span>
                 <input type="email" v-model="email" name="email"
-                    class="px-3 text-2xl text-white outline-0 w-80" style="background-color: transparent; border:none; caret-color:rgb(0, 255, 191);"/>
+                    class="px-3 text-2xl text-white outline-0" style="background-color: transparent; border:none; caret-color:rgb(0, 255, 191);"/>
             </div>
 
              <!-- Password Input -->
@@ -57,15 +57,18 @@ import '/frontend/public/styles/home.css';
             </div>
 
             <!-- Default Login-->
-            <button class="home-button layers hero glitch text-2xl relative" :class="{
+            <div class="text-center">
+            <button class="home-font big-title layers hero glitch text-5xl " :class="{
                 'transition duration-300': isValid,
-            }">
+            }"  data-text="LOG IN">
                 LOG IN
-            </button>   
+            </button>
+            </div>
 
             <!-- <h1 class="home-font text-4xl text-center p-6">or</h1> -->
             <!-- Google Login-->
-            <button type="button" @click="loginGoogle" class="text-2xl home-font text-left cursor-pointer hover:color-white py-10">Sign in with Google
+            <button type="button" @click="loginGoogle" class="text-2xl home-font big-title layers hero glitch text-left cursor-pointer hover:color-white py-10"
+                data-text="Sign in with Google">Sign in with Google
             <!-- <img src="../../public/google_signin_logo.png" alt="Google Logo" class="h-6" /> Sign in with Google -->
             </button>
 
@@ -75,7 +78,7 @@ import '/frontend/public/styles/home.css';
             </button> -->
             
             <!-- <h1 class="home-font text-4xl text-center p-6">or</h1> -->
-            <a href="#" class="home-font text-2xl cursor-pointer hover:color-white" @click="auth.mode = 'signup'">
+            <a href="#" class="home-font big-title layers hero glitch text-2xl cursor-pointer hover:color-white" data-text="Sign up" @click="auth.mode = 'signup'">
                 Sign up
             </a>
         </form>
