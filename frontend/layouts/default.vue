@@ -73,14 +73,14 @@
               <div class="flex w-full max-w-1900px items-center h-100px">
                 <button class="w-full big-title layers hero glitch neon-text text-7rem =" data-text="WELCOME TO PONG">WELCOME TO PONG</button>
               </div>
-              <div class="grid sm:grid-cols-2 gap-5 max-w-1900px max-h-1500px h-900px h-full w-full">
+              <div class="grid sm:grid-cols-2 gap-5 max-w-1900px max-h-1500px h-700px h-full w-full">
                 <div class="term-box" >
                   <div class="home-font px-6 py-10 text-5xl mb-6 text-center"> READY TO FIGHT ?</div>
-                  <div class="px-5">
+                  <div class="px-5 py-5 items-center ">
                     <img src="/videos/green-pong.gif">
                   </div>
                 </div>
-                <div class="term-box" >
+                <div class="term-box w-full" >
                   <AuthLoginForm v-if="auth.mode === 'login'" />
                   <AuthSignUpForm v-else />
                 </div>

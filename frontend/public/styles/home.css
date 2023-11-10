@@ -77,10 +77,8 @@
   }
 
   .home-button {
-    font-size: 24px;
-    font-family: 'mono', sans-serif;
+    font-family: 'terminal', sans-serif;
     color: rgb(0, 255, 191);
-    position : absolute;
     transition: color 0.3s;
   }
 
@@ -104,7 +102,7 @@
 
   .big-title:hover .glitch span{
   animation-play-state: running !important;
-  animation: paths .1s step-end infinite;
+  animation: paths 5s step-end infinite;
 }
 
 
