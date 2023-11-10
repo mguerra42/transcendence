@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Request, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Query, Body, Request, UseGuards } from '@nestjs/common';
 import { FriendService } from './friend.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -71,5 +71,13 @@ export class FriendController {
 
     console.log("controller mutualfriends result : ", result);
     return { Boolean : result };
+  }
+
+  @Get('closest')
+  @UseGuards(JwtAuthGuard)
+  async getClosestUsers(@Request() req, @Query('search') search: string) {
+    const currentUserId = req.user.id;
+    const closestUsers = await this.friendService.getClosestUsers(currentUserId, search, 10);
+    return { closestUsers };
   }
 }

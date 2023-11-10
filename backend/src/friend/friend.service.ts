@@ -5,6 +5,7 @@ import { UsersService } from '../users/users.service';
 import { DBService } from 'src/db/db.service';
 import { Prisma } from '@prisma/client';
 import { User } from '@prisma/client';
+import * as levenshtein from 'fast-levenshtein';
 
 @Injectable()
 export class FriendService {
@@ -194,6 +195,7 @@ async removeFriendship(currentId: number, friendUsername: string): Promise<void>
     }
 
 
+
 async areMutualFriends(currentUserId: number, otherUserName: string): Promise<boolean> {
   try {
       // Recherche de l'utilisateur par nom
@@ -229,5 +231,73 @@ async areMutualFriends(currentUserId: number, otherUserName: string): Promise<bo
       throw error;
   }
 }
+
+async isFriend(currentUserId: number, otherUserId: number): Promise<boolean> {
+  try {
+    const existingFriendship = await this.prisma.friend.findFirst({
+      where: {
+        OR: [
+          { userOneId: currentUserId, userTwoId: otherUserId },
+          { userOneId: otherUserId, userTwoId: currentUserId },
+        ],
+      },
+    });
+
+    return existingFriendship ? true : false;
+  } catch (error) {
+    throw error;
+  }
+}
+
+async getFriendsUseTwo(userId: number): Promise<User[]> {
+  try {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        friends: {
+          include: {
+            userTwo: true
+          }
+        }
+      }
+    });
+
+    if (!user) {
+      throw new Error('Utilisateur non trouvé');
+    }
+
+    // Utilisation de optional chaining pour éviter les erreurs si friends est null ou undefined
+    const friendRequestsReceivedList = user.friends?.map(friend => friend.userTwo) || [];
+
+    return friendRequestsReceivedList;
+  } catch (error) {
+    // Gérer les erreurs (par exemple, l'utilisateur n'a pas été trouvé)
+    throw error;
+  }
+}
+
+async getClosestUsers(currentUserId: number, search: string, numberOfResults: number): Promise<User[]> {
+  try {
+    const users = await this.prisma.user.findMany();
+    const friendUsers = await this.getFriendsUseTwo(currentUserId);
+    const filteredUsers = users.filter(user => {
+      return user.id !== currentUserId && !friendUsers.some(friend => friend.id === user.id);
+    });
+    
+    const results: { user: User, distance: number }[] = [];
+    filteredUsers.forEach(user => {  
+      const distance = levenshtein.get(search, user.username);
+      results.push({ user, distance });
+    });
+
+    results.sort((a, b) => a.distance - b.distance);
+    const closestUsers: User[] = results.slice(0, numberOfResults).map(result => result.user);
+
+    return closestUsers;
+  } catch (error) {
+    throw error;
+  }
+}
+
 
 }

@@ -6,6 +6,9 @@
   const channel = useChannel();
   const auth = useAuth();
   const newFriendName = ref('')
+  const closestUsers : Ref<any[]> = ref([]);
+  const rawClosestUsers = ref([]);
+  const showClosestUserList = ref(false);
   client.friend.categoryName = 'amis';
   const selectedItem = ref<any | null>(null);
   client.chat.showUserProfile = false;
@@ -31,6 +34,7 @@
   }
 
     const addFriend = async (newFriendUsername: string) => {
+      showClosestUserList.value = false;
       client.chat.chatState.receiver.username = newFriendUsername;
       const friendUser = await client.auth.findByUsername(newFriendUsername);
       client.chat.chatState.receiver.id = friendUser.id;
@@ -60,6 +64,17 @@
         otherUserId: client.chat.chatState.receiver.id
     });
   };
+  const searchUsers = async (event: Event) => {
+    const friendName = (event.target as HTMLInputElement).value;
+    closestUsers.value = await friend.findClosestUsers(friendName);
+    rawClosestUsers.value = toRaw(closestUsers.value);
+    if (friendName === '')
+      showClosestUserList.value = false
+    else
+      showClosestUserList.value = true
+    console.log('closest', closestUsers.value)
+    // console.log(closestUsers.value[0].username)
+  };
 
   onMounted (async () => {
     friend.fetchMutualFriendList();
@@ -79,19 +94,18 @@
 <template>
   <div class="bg-zinc-700 rounded">
     <div class="flex">
-
-    <input
-      v-model="newFriendName"
-      type="text"
-      placeholder="Enter a username..."
-      class="w-full px-2 py-2 text-sm rounded-lg bg-zinc-600 focus:outline-none focus:text-zinc-300"
-    />
-    <button @click="addFriend(newFriendName)" class="ml-2 text-zinc-200 text-sm px-8 px-1 bg-zinc-600 rounded hover:bg-zinc-800">
-      Add
-    </button>
-
+        <input
+          v-model="newFriendName"
+          type="text"
+          placeholder="Enter a username..."
+          class="w-full px-2 py-2 text-sm rounded-lg bg-zinc-600 focus:outline-none focus:text-zinc-300"
+          @input="searchUsers"
+        />
+      <button @click="addFriend(newFriendName)" class="ml-2 text-zinc-200 text-sm px-8 px-1 bg-zinc-600 rounded hover:bg-zinc-800">
+        Add
+      </button>
     </div>
-      <div class="bg-zinc-600 rounded mt-2 ">
+      <div v-if="showClosestUserList === false" class="bg-zinc-600 rounded mt-2 ">
         <div class="flex justify-center ml-3 mr-3 mt-3 mb-2">
           <div class="">
             <span :class="{'text-zinc-200 text-sm mr-auto cursor-pointer hover:text-zinc-200': client.friend.categoryName === 'amis',
@@ -128,6 +142,21 @@
               </div>
           </div>
         </div>
+      </div>
+      <div v-if="showClosestUserList=== true" class="bg-zinc-600 rounded mt-2 ">
+          <div v-for="user in closestUsers" :key="user.id" class="text-zinc-200 text-sm p-2 m-1 hover:bg-zinc-500 rounded flex justify-between">
+            <div class="flex">
+              <div class="flex flex-col justify-center">
+                <img :src="user.avatarPath" class="w-6 h-6 rounded-full" />
+              </div>
+              <div class="flex flex-col justify-center">
+                <!-- Affiche le nom d'utilisateur de l'utilisateur -->
+                {{ user.username }}
+              </div>
+            </div>
+            <!-- Affiche le bouton "ADD" -->
+            <button @click="addFriend(user.username)" class="bg-green i-ic:round-check-circle hover:bg-green-200 relative"></button>
+          </div>
       </div>
     </div>
   </template>
