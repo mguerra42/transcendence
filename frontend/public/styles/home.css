@@ -18,9 +18,8 @@
     }
 
     .home {
-    position: relative;
     height: 100vh;
-    display: flex;
+    display: flex, flex cols-2;
     align-items: center;
     /* justify-content: center; */
     overflow: hidden; /* Empêche les débordements de la vidéo */
@@ -29,9 +28,8 @@
   .term-box {
     border: 2px solid rgb(0, 255, 191);
     padding: 0;
-    position :absolute;
     z-index:1;
-    background-color: rgba(14, 64, 80, 0.781) !important;
+    background-color: rgba(14, 64, 80, 0.781);
   }
 
   .video-container {
@@ -40,21 +38,12 @@
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 0;
   }
 
   video {
     object-fit: cover;
     width: 100%;
     height: 100%;
-  }
-
-  .gif-style {
-    position:absolute;
-    left: 180px;
-    top: 300px;
-    z-index : 2;
-    width : 600px;
   }
 
   .neon-text {
@@ -64,12 +53,12 @@
   }
 
   .big-title {
-    font-size: clamp(120px, 10vw, 80px);
+    /* font-size: clamp(120px, 10vw, 80px); */
     letter-spacing: 5px;
-    color: #0f0d0d;
-    position: absolute;
-    top: -350px;
-    left: 500px;
+    /* color: #0f0d0d; */
+    /* position: absolute; */
+    /* top: -350px;
+    left: 500px; */
   }
 
   /* .login-modal {
@@ -83,7 +72,7 @@
   } */
 
   .home-font {
-    font-family: 'mono', sans-serif;
+    font-family: 'terminal', sans-serif;
     color: rgb(0, 255, 191);
   }
 
@@ -115,7 +104,7 @@
 
   .big-title:hover .glitch span{
   animation-play-state: running !important;
-  animation: paths 5s step-end infinite;
+  animation: paths .1s step-end infinite;
 }
 
 
@@ -124,7 +113,6 @@
   .big-title:hover.glitch,
   .big-title:hover.hero,
   .big-title:hover.layers
-
   {
     animation-play-state:running !important;
   }
@@ -170,7 +158,7 @@ section {
 .layers::after {
   content: attr(data-text);
   position: absolute;
-  width: 110%;
+  width: 100%;
   z-index: -1;
 }
 

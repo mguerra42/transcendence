@@ -343,7 +343,7 @@ import UserProfile from './components/Chat/UserProfile.vue';
 </script>
 
 <template>
-  <div class="min-w-600px min-h-400px">
+  <div class=" min-h-400px">
     <transition name="fade" mode="out-in">
       <div v-if="isLoading" key="loading" class="min-h-screen bg-zinc-800 flex flex-col items-center justify-center">
         <div>

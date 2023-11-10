@@ -61,22 +61,35 @@
       </div>
       
       <!-- Logged Out View -->
-        <div v-else class="">
-          <div class="home">
+        <div v-else class="h-full w-full" >
             <!-- Homepage -->
             <div class="video-container">
               <video autoplay loop muted preload="auto">
                 <source src="/videos/grid2.mp4" type="video/mp4">
               </video>
-            </div>
+            </div >
 
-            <div class="gif-style">
-                <img src="/videos/green-pong.gif">
+            <div class="relative z-100 flex items-center flex-col gap-5 justify-start w-full h-full py-30 px-5">
+              <div class="flex w-full max-w-1900px items-center h-100px">
+                <button class="w-full big-title layers hero glitch neon-text text-7rem =" data-text="WELCOME TO PONG">WELCOME TO PONG</button>
+              </div>
+              <div class="grid sm:grid-cols-2 gap-5 max-w-1900px max-h-1500px h-900px h-full w-full">
+                <div class="term-box" >
+                  <div class="home-font px-6 py-10 text-5xl mb-6 text-center"> READY TO FIGHT ?</div>
+                  <div class="px-5">
+                    <img src="/videos/green-pong.gif">
+                  </div>
+                </div>
+                <div class="term-box" >
+                  <AuthLoginForm v-if="auth.mode === 'login'" />
+                  <AuthSignUpForm v-else />
+                </div>
+              </div>
             </div>
-
-            <button class="big-title layers hero glitch neon-text" data-text="WELCOME TO PONG">WELCOME TO PONG</button>
+            
+            <!-- <button class="big-title layers hero glitch neon-text" data-text="WELCOME TO PONG">WELCOME TO PONG</button>
             <section class="term-box" style="width:850px; height:700px;  top:200px; left:50px;">
-              <div class="hero-container">
+              <div class="hero-container"> -->
               
                 <!-- Liste d'options A GARDER-->
                 <!-- <ul class="options-list">
@@ -87,15 +100,29 @@
                     style="left:-192px; top:-70px;">-signup</button>
                   </li>
                 </ul> -->
+              <!-- </div> -->
+            <!-- </section> -->
+            </div> <!-- <div class="home"></div>-->
+            <!-- <div class="flex items-center flex-col gap-5 justify-center w-full h-full bg-green px-5">
+             <div class="">
+              <div class="bg-red rounded-full w-200px h-200px"></div>
+             </div>
+              <div class=" bg-blue max-w-1080px h-100px w-full relative rounded-full b-1">
+                div
               </div>
-            </section>
-            <!-- LoginForm -->
-            <div class="term-box" style="width:850px; height:700px; top:200px; right:50px; position:absolute;">
-              <AuthLoginForm v-if="auth.mode === 'login'" />
-              <AuthSignUpForm v-else />
-            </div>
-          </div> <!-- <div class="home"></div>-->
-      </div>
+              <div class=" bg-blue max-w-1080px h-250px w-full relative rounded-full b-1">
+                div
+              </div>
+              <div class="grid sm:grid-cols-2 gap-5 h-600px max-w-1080px w-full">
+                <div class=" bg-blue ">
+                  VIDEO GIF
+                </div>
+                <div class=" bg-blue ">
+                  Login form
+                </div>
+              </div>
+            </div> -->
+      <!-- </div> -->
   
     </main>
   </template>
