@@ -1,11 +1,11 @@
 <script setup lang="ts">
     const auth = useAuth()
-    await auth.refreshSession()
+    await auth.getSession()
 
 </script>
 <template>
   <main class="h-100vh">
-      <ViewLogin v-if="!auth.logged"/>
+      <ViewLogin v-if="auth.showLoginView"/>
       <div v-else class="flex flex-col h-full relative">
         <Header/>
         <div class="flex h-full">
@@ -15,7 +15,15 @@
             </section>
             <aside class="w-240px bg-green h-full">Sidebar right</aside>
         </div>
-        <ChatContainer/>
+        <ChatModule/>
     </div>
+        <notifications position="bottom center" :pauseOnHover="true" />
   </main>
 </template>
+<style scoped>
+.vue-notification-group {
+    z-index: 10000;
+    z-index: 99999;
+    bottom: 15px !important;
+}
+</style>

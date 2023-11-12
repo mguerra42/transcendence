@@ -4,10 +4,356 @@ import { User, Prisma, Role } from '@prisma/client';
 import slugify from 'slugify';
 
 import * as bcrypt from 'bcryptjs';
+import { channel } from 'diagnostics_channel';
 
 @Injectable()
 export class ChannelService {
     constructor(private db: DBService) {}
+
+    async getUserConversations(userId: number) {
+        const conversations = await this.db.channelUser.findMany({
+            where: {
+                userId,
+            },
+            select: {
+                role: true,
+                userId: true,
+                channelId: true,
+                bannedUntil: true,
+                mutedUntil: true,
+                readUntil: true,
+                user: {
+                    select: {
+                        id: true,
+                        username: true,
+                        avatar: true,
+                    },
+                },
+                channel: {
+                    select: {
+                        id: true,
+                        name: true,
+                        description: true,
+                        type: true,
+                        users: {
+                            select: {
+                                role: true,
+                                userId: true,
+                                bannedUntil: true,
+                                mutedUntil: true,
+                                user: {
+                                    select: {
+                                        id: true,
+                                        username: true,
+                                        avatar: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+            orderBy: {
+                channelId: 'desc',
+            },
+        });
+
+        return conversations;
+    }
+    async getUserConversation(userId: number, channelId: number) {
+        const conversation = await this.db.channelUser.findFirst({
+            where: {
+                userId,
+                channelId,
+            },
+            select: {
+                role: true,
+                userId: true,
+                channelId: true,
+                bannedUntil: true,
+                mutedUntil: true,
+                readUntil: true,
+                user: {
+                    select: {
+                        id: true,
+                        username: true,
+                        avatar: true,
+                    },
+                },
+                channel: {
+                    select: {
+                        id: true,
+                        name: true,
+                        description: true,
+                        type: true,
+                        users: {
+                            select: {
+                                role: true,
+                                userId: true,
+                                bannedUntil: true,
+                                mutedUntil: true,
+                                user: {
+                                    select: {
+                                        id: true,
+                                        username: true,
+                                        avatar: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        return conversation;
+    }
+
+    async getConversationMessages(userId: number, channelId: number) {
+        const conversation = await this.db.channelUser.findFirst({
+            where: {
+                userId,
+                channelId,
+                bannedUntil: {
+                    equals: null,
+                },
+            },
+            select: {
+                role: true,
+                userId: true,
+                channelId: true,
+                bannedUntil: true,
+                mutedUntil: true,
+                readUntil: true,
+            },
+        });
+        const unread = await this.db.message.findMany({
+            where: {
+                channelId: channelId,
+                id: {
+                    gt: conversation.readUntil,
+                },
+            },
+            select: {
+                id: true,
+                channelId: true,
+                content: true,
+                from: true,
+                timestamp: true,
+            },
+            orderBy: {
+                id: 'desc',
+            },
+        });
+
+        const read = await this.db.message.findMany({
+            where: {
+                channelId: channelId,
+                id: {
+                    lte: conversation.readUntil,
+                },
+            },
+            select: {
+                id: true,
+                channelId: true,
+                content: true,
+                from: true,
+                timestamp: true,
+            },
+            orderBy: {
+                id: 'desc',
+            },
+            take: 50 + Math.abs(50 - unread.length),
+            skip: 0,
+        });
+
+        return [...read, ...unread].sort((a, b) => a.id - b.id);
+    }
+
+    private sanitizeChannelName(name: string) {
+        return slugify(name, {
+            strict: true,
+            lower: true,
+        })
+            .trim()
+            .slice(0, 20);
+    }
+
+    async createConversation(userId: number, payload) {
+        console.log('createConversation', { userId, payload });
+        const channelName = this.sanitizeChannelName(payload.name);
+        const exists = await this.db.channel.findFirst({
+            where: {
+                name: channelName,
+            },
+        });
+        if (exists)
+            return { success: false, message: 'Channel already exists' };
+        const data = await this.prepareChannelData(payload, {});
+        if (data.success === false) return data;
+        const { name, description, type } = data;
+        const createdChannel = await this.db.channel.create({
+            data: {
+                name,
+                description,
+                type,
+                password: data.password,
+                users: {
+                    create: {
+                        role: 'OWNER',
+                        user: {
+                            connect: {
+                                id: userId,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+        const { password, ...channel } = createdChannel;
+
+        return {
+            success: true,
+            message: `Channel #${name} created`,
+            channel: channel,
+        };
+    }
+
+    async updateConversation(userId: number, payload) {
+        console.log({ userId, payload });
+        const channel = await this.db.channel.findFirst({
+            where: {
+                id: payload.channelId,
+            },
+            select: {
+                type: true,
+                name: true,
+                users: true,
+            },
+        });
+        if (!channel) return { success: false, message: 'Channel not found' };
+        if (this.getChannelOwner(channel).userId != userId) {
+            return {
+                success: false,
+                message: 'You are not the owner of this channel',
+            };
+        }
+        const data = await this.prepareChannelData(payload, channel);
+        if (data.success === false) return data;
+        const { name, description, type, password } = data;
+        const updatedChannel = await this.db.channel.update({
+            where: {
+                id: payload.channelId,
+            },
+            data: { name, description, type, password },
+        });
+        return {
+            success: true,
+            message: 'Channel updated',
+        };
+    }
+
+    private getChannelOwner(channel) {
+        return channel.users.find((u) => u.role == 'OWNER');
+    }
+
+    private async prepareChannelData(channel, previous = {} as any) {
+        console.log({ channel, previous });
+        const channelName = this.sanitizeChannelName(channel.name);
+        channel.type = channel.type.toUpperCase();
+        if (!previous?.name || previous.name != channelName) {
+            const exists = await this.db.channel.findFirst({
+                where: {
+                    name: channelName,
+                },
+            });
+            if (exists) {
+                return {
+                    success: false,
+                    message: 'Channel already exists with that name',
+                };
+            }
+            channel.name = channelName;
+        }
+        if (['PUBLIC', 'PRIVATE'].includes(channel.type)) {
+            channel.password = null;
+        }
+        if (channel.type == 'PROTECTED' && channel.password?.length) {
+            channel.password = bcrypt.hashSync(channel.password, 10);
+        }
+        if (channel.type == 'PROTECTED' && !channel.password?.length) {
+            return {
+                success: false,
+                message: 'Password is required for protected channels',
+            };
+        }
+        channel.description = channel.description.trim().slice(0, 160);
+        return channel;
+    }
+
+    async leaveConversation(userId: number, channelId: number) {
+        const channel = await this.db.channel.findFirst({
+            where: {
+                id: channelId,
+            },
+            select: {
+                type: true,
+                name: true,
+                users: true,
+            },
+        });
+        if (!channel) return { success: false, message: 'Channel not found' };
+
+        const user = channel.users.find((u) => u.userId == userId);
+        if (!user) return { success: true, message: 'Already left' };
+        await this.db.channelUser.delete({
+            where: {
+                userId_channelId: {
+                    userId: userId,
+                    channelId: channelId,
+                },
+            },
+        });
+        if (user.role == 'OWNER') {
+            let firstAdmin = channel.users.find((u) => u.role == 'ADMIN');
+            if (!firstAdmin) {
+                firstAdmin = channel.users.find((u) => u.role == 'USER');
+            }
+            if (!firstAdmin) {
+                await this.db.channel.delete({
+                    where: {
+                        id: channelId,
+                    },
+                });
+                return {
+                    success: true,
+                    message:
+                        'Channel left, no remaining members, so it was deleted',
+                };
+            }
+            if (firstAdmin) {
+                // Transfer ownership to first admin
+                await this.db.channelUser.update({
+                    where: {
+                        userId_channelId: {
+                            userId: firstAdmin.userId,
+                            channelId: channelId,
+                        },
+                    },
+                    data: {
+                        role: 'OWNER',
+                        mutedUntil: null,
+                        bannedUntil: null,
+                    },
+                });
+            }
+        }
+        return {
+            success: true,
+            message: 'Channel left',
+            channelId: channelId,
+        };
+    }
 
     //findAllChannels() {
     //    return this.db.channel.findMany();
@@ -160,68 +506,67 @@ export class ChannelService {
     //    });
     //}
 
-	async sendMessage(messageData)
-	{
-		return await this.db.message.create({
-			data: messageData
-		})
-	}
+    async sendMessage(messageData) {
+        return await this.db.message.create({
+            data: messageData,
+        });
+    }
 
-	async getUserChannel(userId: number, channelId: number)
-	{
-		return await this.db.channelUser.findFirst({
-			where: {
-				userId,
-				channelId
-			}
-		})
-	}
+    async getUserChannel(userId: number, channelId: number) {
+        return await this.db.channelUser.findFirst({
+            where: {
+                userId,
+                channelId,
+            },
+        });
+    }
 
     async getUserChannels(userId: number) {
         return await this.db.channelUser.findMany({
             where: {
                 userId,
             },
-			select: {
-				role: true,
-				channelId: true,
-				bannedUntil: true,
-				mutedUntil: true,
-				channel: {
-					select : {
-						id: true,
-						name: true,
-						description: true,
-						type: true,
-						users: {
-							select: {
-								role: true,
-								user: {
-									select: {
-										id: true,
-										username: true
-									}
-								}
-							}
-						},
-						messages: {
-							select: {
-								id: true,
-								content: true,
-								from: true,
-								timestamp: true
-							},
-							take: 50,
-							orderBy: {
-								timestamp: 'desc'
-							}
-						}
-					}
-				}
-			},
-			orderBy: {
-				channelId: 'desc'
-			}
+            select: {
+                role: true,
+                channelId: true,
+                bannedUntil: true,
+                mutedUntil: true,
+                readUntil: true,
+                channel: {
+                    select: {
+                        id: true,
+                        name: true,
+                        description: true,
+                        type: true,
+                        users: {
+                            select: {
+                                role: true,
+                                user: {
+                                    select: {
+                                        id: true,
+                                        username: true,
+                                    },
+                                },
+                            },
+                        },
+                        messages: {
+                            select: {
+                                id: true,
+                                content: true,
+                                from: true,
+                                timestamp: true,
+                            },
+                            take: 50,
+                            orderBy: {
+                                timestamp: 'desc',
+                            },
+                        },
+                    },
+                },
+            },
+            orderBy: {
+                channelId: 'desc',
+            },
         });
     }
     //model Channel {
@@ -252,38 +597,155 @@ export class ChannelService {
     //	ADMIN
     //	OWNER
     //  }
-    async createChannel(ownerId, payload) {
-        const channelName = slugify(payload.name, {
-            strict: true,
-            lower: true,
-        });
-        const exists = await this.db.channel.findFirst({
+
+    async searchChannel(userId, payload) {
+        //payload.name
+        const channels = await this.db.channel.findMany({
             where: {
-                name: channelName,
-            },
-        });
-        if (exists) return false;
-        const type = payload.type.toUpperCase();
-        const channel = await this.db.channel.create({
-            data: {
-                name: channelName,
-                type,
-                password:
-				type == 'PROTECTED'
-                        ? bcrypt.hashSync(payload.password, 10)
-                        : undefined,
-                description: payload.description,
-                users: {
-                    create: {
-                        role: 'OWNER',
-                        user: {
-                            connect: {
-                                id: ownerId,
-                            },
+                OR: [
+                    {
+                        name: {
+                            contains: payload.query,
+                            mode: 'insensitive',
                         },
+                    },
+                    {
+                        description: {
+                            contains: payload.query,
+                            mode: 'insensitive',
+                        },
+                    },
+                ],
+            },
+            select: {
+                id: true,
+                name: true,
+                type: true,
+                description: true,
+                users: {
+                    select: {
+                        role: true,
+                        userId: true,
                     },
                 },
             },
         });
+
+        return channels;
+    }
+    async updateChannel(userId, payload) {
+        console.log({ userId, payload });
+        const channel = await this.db.channel.findFirst({
+            where: {
+                id: payload.channelId,
+            },
+            select: {
+                type: true,
+                name: true,
+                users: true,
+            },
+        });
+        if (!channel) return { success: false, message: 'Channel not found' };
+        if (this.getChannelOwner(channel).userId != userId) {
+            return {
+                success: false,
+                message: 'You are not the owner of this channel',
+            };
+        }
+        const data = await this.prepareChannelData(payload.channel, channel);
+        if (data.success === false) return data;
+        const { name, description, type, password } = data;
+        const updatedChannel = await this.db.channel.update({
+            where: {
+                id: payload.channelId,
+            },
+            data: { name, description, type, password },
+        });
+        return {
+            success: true,
+            message: 'Channel updated',
+        };
+
+        //console.log(updatedChannel);
+    }
+
+    async joinChannel(userId, payload) {
+        console.log({ userId, payload });
+        const channel = await this.db.channel.findFirst({
+            where: {
+                id: payload.channelId,
+            },
+            select: {
+                type: true,
+                password: true,
+                name: true,
+                users: true,
+            },
+        });
+        if (!channel) return { success: false, message: 'Channel not found' };
+        const user = channel.users.find((u) => u.userId == userId);
+        if (user) return { success: true, message: 'Already joined' };
+        if (channel.type == 'PUBLIC') {
+            await this.db.channelUser.create({
+                data: {
+                    role: 'USER',
+                    user: {
+                        connect: {
+                            id: userId,
+                        },
+                    },
+                    channel: {
+                        connect: {
+                            id: payload.channelId,
+                        },
+                    },
+                },
+            });
+        }
+        if (channel.type == 'PRIVATE') {
+            return {
+                success: false,
+                message: 'This channel is private',
+            };
+        }
+
+        if (channel.type == 'PROTECTED') {
+            if (!payload.password) {
+                return {
+                    success: false,
+                    message: 'Password is required for protected channels',
+                };
+            }
+            const passwordMatch = bcrypt.compareSync(
+                payload.password,
+                channel.password,
+            );
+            if (!passwordMatch) {
+                return {
+                    success: false,
+                    message: 'Incorrect password',
+                };
+            }
+            await this.db.channelUser.create({
+                data: {
+                    role: 'USER',
+                    user: {
+                        connect: {
+                            id: userId,
+                        },
+                    },
+                    channel: {
+                        connect: {
+                            id: payload.channelId,
+                        },
+                    },
+                },
+            });
+        }
+
+        return {
+            success: true,
+            message: 'Channel joined',
+        };
     }
 }

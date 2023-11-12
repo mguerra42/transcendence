@@ -4,10 +4,8 @@
 
 	const search = ref('')
 	const members = computed(() => {
-		if(search.value) return chat.conversation.channel.users.filter(u => {
-			return u.user.username.toLowerCase().includes(search.value)
-		})
-		return chat.conversation.channel.users
+		if(search.value && chat.activeConversation) return chat.activeConversation.searchUser(search.value)
+		return chat.activeConversation?.users
 	})
 </script>
 <template>

@@ -19,87 +19,6 @@ export class AuthService {
         private jwtService: JwtService,
     ) {}
 
-    async login(user: any) {
-        const isTwoFAEnabled = await this.get2FA(user.id);
-        const payload = { sub: user.id, email: user.email };
-        const access_token = await this.jwtService.signAsync(payload);
-        return {
-            access_token: access_token,
-            isTwoFAEnabled: isTwoFAEnabled,
-        };
-    }
-
-    //TODO : move logic from controller here
-    async login42(user: any) {
-        if (!user) {
-            return false;
-        }
-        
-        let account = await this.usersService.findByEmail(user.email);
-
-        if(!account){
-            account = await this.signup({
-                email: user.email,
-                username: user.username,
-                password: this.usersService.generateRandomString(24),
-            });
-
-            await this.usersService.update(account.id, {avatarPath: user.picture});
-        }
-        
-        const payload = {
-            sub: account.id,
-            email: account.email,
-            username: account.username,
-            twoFA: account.twoFa,
-            verified2FA: false
-        }
-
-        const access_token = await this.jwtService.signAsync(payload);
-
-        return {
-            access_token: access_token,
-            require2FA: !!account.twoFa,
-        };
-    }
-
-
-    async verify2fa(user, twoFactorCode: string): Promise<any> {
-        const account = await this.usersService.findOne(user.id);
-        const secret = account.secret;
-        const verified = speakeasy.totp.verify({
-          secret: secret,
-          encoding: 'base32',
-          token: twoFactorCode,
-          window: 5,
-        });
-
-        if(verified == true){
-            const access_token = await this.jwtService.signAsync({
-                sub: account.id,
-                email: account.email,
-                username: account.username,
-                twoFA: account.twoFa,
-                verified2FA: true
-            });
-
-            return {
-                access_token: access_token,
-                verified: true
-            }
-        }
-    
-        return {verified: false};
-    }
-
-    //TODO : move logic from controller here
-    googleLogin(req) {
-        if (!req.user) {
-            return 'No user from google';
-        }
-        return req.user;
-    }
-
     async signup(credentials: SignUpDto) {
         if (!credentials.email || !credentials.username) {
             throw new HttpException(
@@ -117,11 +36,108 @@ export class AuthService {
                 HttpStatus.UNPROCESSABLE_ENTITY,
             );
         }
-        const secret = speakeasy.generateSecret({ length: 20 }); // Vous pouvez ajuster la longueur selon vos besoins
-        credentials.secret = secret.base32;
+        // Moved to enable2fa
+        //const secret = speakeasy.generateSecret({ length: 24 });
+        //credentials.secret = secret.base32;
         const user = await this.usersService.create(credentials);
-    
+
         return user;
+    }
+
+    getUserPayload(user, provider) {
+        return {
+            id: user.id,
+            provider,
+            email: user.email,
+            username: user.username,
+            avatar: user.avatar,
+            mfaEnabled: user.mfaEnabled,
+            mfaLevel: 1,
+        };
+    }
+
+    async login(user: any) {
+        console.log('login user=', user);
+        //const isTwoFAEnabled = await this.get2FA(user.id);
+        const payload = this.getUserPayload(user, 'credentials');
+        const access_token = await this.jwtService.signAsync(payload);
+        console.log('access_token=', access_token);
+        console.log('payload=', payload);
+        return {
+            access_token: access_token,
+        };
+    }
+
+    //TODO : move logic from controller here
+    async login42(user: any) {
+        if (!user) {
+            return false;
+        }
+
+        let account = await this.usersService.findByEmail(user.email);
+
+        if (!account) {
+            account = await this.signup({
+                email: user.email,
+                username: user.username,
+                password: this.usersService.generateRandomString(24),
+            });
+
+            await this.usersService.update(account.id, {
+                avatar: user.picture,
+            });
+        }
+
+        const payload = await this.getUserPayload(account, '42');
+
+        const access_token = await this.jwtService.signAsync(payload);
+
+        return {
+            access_token: access_token,
+        };
+    }
+
+    async verify2FA(user, twoFactorCode: string): Promise<any> {
+        const account = await this.usersService.findOne(user.id);
+        if (!account.secret) {
+            throw new HttpException(
+                'User does not have 2FA secret.',
+                HttpStatus.UNPROCESSABLE_ENTITY,
+            );
+        }
+        //const secret = speakeasy.generateSecret({ length: 24 });
+        //account.secret = secret.base32;
+        //console.log(account.secret);
+        const verified = speakeasy.totp.verify({
+            secret: account.secret,
+            encoding: 'base32',
+            token: twoFactorCode,
+            window: 5,
+        });
+
+        if (!verified) {
+            throw new HttpException(
+                'Invalid two-factor code.',
+                HttpStatus.UNPROCESSABLE_ENTITY,
+            );
+        }
+
+        const payload = await this.getUserPayload(account, user.provider);
+        payload.mfaLevel = 2;
+
+        const access_token = await this.jwtService.signAsync(payload);
+
+        return {
+            access_token: access_token,
+        };
+    }
+
+    //TODO : move logic from controller here
+    googleLogin(req) {
+        if (!req.user) {
+            return 'No user from google';
+        }
+        return req.user;
     }
 
     async validateUser(email: string, password: string) {
@@ -148,38 +164,32 @@ export class AuthService {
     //-Changed updateDto object to userToUpdateObject interface to allow for empty fields and dynamic add changed fields only
     async toggle2FA(userId: number): Promise<number> {
         const user = await this.usersService.findOne(userId);
-        
+
         const updatedTwoFa = user.twoFa === 0 ? 1 : 0;
-        console.log('updatedTwoFa=',updatedTwoFa)
-        
+        console.log('updatedTwoFa=', updatedTwoFa);
+
         interface userToUpdateObject {
             twoFa?: number;
         }
-        let userdata : userToUpdateObject = {};
-        userdata.twoFa = updatedTwoFa
-        const ret : any = await this.usersService.update(userId, userdata); 
+        const userdata: userToUpdateObject = {};
+        userdata.twoFa = updatedTwoFa;
+        const ret: any = await this.usersService.update(userId, userdata);
         return updatedTwoFa;
-      }
-    
-      async get2FA(userId: number): Promise<number> {
-          
-          const user = await this.usersService.findOne(userId);
-        return user.twoFa;
-      }
+    }
 
-      async get2faQrCode(userId: number): Promise<string> {
+    async get2faQrCode(userId: number): Promise<string> {
         const user = await this.usersService.findOne(userId);
         if (!user.secret) {
             throw new Error('User does not have 2FA secret.');
         }
-    
+
         const otpAuthUrl = speakeasy.otpauthURL({
             secret: user.secret,
             label: user.email,
             issuer: 'Transcsendence',
             encoding: 'base32',
         });
-    
+
         try {
             const qrCodeDataURL = await qrcode.toDataURL(otpAuthUrl);
             return qrCodeDataURL;
@@ -195,7 +205,7 @@ export class AuthService {
             email?: string;
             password?: string;
             username?: string;
-            avatarPath?: string;
+            avatar?: string;
         }
         const previousUser = await this.usersService.findOne(id);
         const userToUpdate: userToUpdateObject = {};
@@ -206,7 +216,7 @@ export class AuthService {
                 HttpStatus.UNPROCESSABLE_ENTITY,
             );
         }
-        
+
         //Update object with non-empty fields
         //Previously we had 'if (updateDto.property)' which was always true
         if (updateDto.email != '') {
@@ -244,8 +254,8 @@ export class AuthService {
             userToUpdate.password = bcrypt.hashSync(updateDto.newPassword, 10);
         }
 
-        if (updateDto.avatarPath != '') {
-            userToUpdate.avatarPath = updateDto.avatarPath;
+        if (updateDto.avatar != '') {
+            userToUpdate.avatar = updateDto.avatar;
         }
 
         //If no fields have been changed, return null

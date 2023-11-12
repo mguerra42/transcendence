@@ -4,6 +4,6 @@ export class UpdateDto {
     password: string;
     newPassword: string;
     newPasswordConfirmation: string;
-    avatarPath: string;
+    avatar: string;
     status: string;
 }

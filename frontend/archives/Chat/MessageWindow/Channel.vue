@@ -56,7 +56,7 @@ import { Socket } from 'socket.io-client';
     console.log("auth.session.id = ", auth.session.id);
     console.log("receiver.id = ", client.chat.chatState.receiver.id);
     client.chat.showUserProfile = !client.chat.showUserProfile;
-    client.chat.chatState.receiver.avatarPath = indexMessage.avatarPath;
+    client.chat.chatState.receiver.avatar = indexMessage.avatar;
     // Prevent the click event from propagating to the document
     event.stopPropagation();
   }
@@ -104,7 +104,7 @@ import { Socket } from 'socket.io-client';
 
     <div v-if="client.chat.chatState.select === 'CHANNEL'" class="p-2 h-[1/5] w-full bg-zinc-600 hover:bg-zinc-500 rounded-lg flex mr-auto mb-2  cursor-pointer justify-between">
       <!-- <div class="flex flex-col justify-center"> -->
-        <!-- <img :src="client.chat.chatState.receiver.avatarPath" class="w-10 h-10 rounded-full" /> -->
+        <!-- <img :src="client.chat.chatState.receiver.avatar" class="w-10 h-10 rounded-full" /> -->
       <!-- </div> -->
         <div class="flex flex-col justify-center">
           <p class="ml-3 text-lg text-zinc-200 font-bold" >#{{ client.chat.chatState.receiver.name }}</p>

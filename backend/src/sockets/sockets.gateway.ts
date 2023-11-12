@@ -46,26 +46,12 @@ export class SocketsGateway {
             // throw new Error('Invalid access token');
         }
         client.user = {
-            id: payload.sub,
+            id: payload.id,
             email: payload.email,
+            username: payload.username,
         };
-        console.log('connected', client.user);
-        this.clients[payload.sub] = this.clients[payload.sub] || [];
-        this.clients[payload.sub].push(client.id);
-        console.log('clients', this.clients);
-
-        //const user = await this.userService.findByEmail(payload.email);
-        //if (user !== null) {
-        //    const userToUpdate: UpdateUserDto = {};
-        //    userToUpdate.socketId = client.id;
-        //    userToUpdate.status = 'ONLINE';
-        //    await this.userService.update(user.id, userToUpdate);
-        //} else {
-        //    // throw new Error('User not found in database');
-        //}
-        // } catch (e) {
-        //     throw new WsException((e as Error).message);
-        // }
+        this.clients[payload.id] = this.clients[payload.id] || [];
+        this.clients[payload.id].push(client.id);
     }
 
     async handleDisconnect(client) {
@@ -75,54 +61,328 @@ export class SocketsGateway {
         );
     }
 
-    @SubscribeMessage('channels:create')
-    async createChannel(client: any, payload: any) {
-		let channel = await this.channelService.createChannel(client.user.id, payload)
-		if (channel === false) {
-			console.log("name already exists")
-		}
-		this.listUserChannel(client, {})
+    async sendToUser(userId: string, event: string, data: any) {
+        this.clients[userId]?.forEach((id) => {
+            this.server.to(id).emit(event, data);
+        });
+    }
+    async joinUser(userId: string, room: string) {
+        this.clients[userId]?.forEach((id) => {
+            this.server.sockets.sockets.get(id).join(room);
+        });
+    }
+
+    async notification(userId: string, message: any, type = 'info') {
+        if (typeof message === 'object') {
+            type = message.type
+                ? message.type
+                : message.success === false
+                ? 'error'
+                : 'success';
+            message = message.message;
+        }
+
+        this.sendToUser(userId, 'notification', { message, type });
+    }
+
+    @SubscribeMessage('conversations:list')
+    async syncUserConversations(client: Socket & { user: any }, payload: any) {
+        console.log('get conversation list', client.user);
+        const conversations = await this.channelService.getUserConversations(
+            client.user.id,
+        );
+
+        const answer = {
+            conversations: conversations.map((c) => {
+                //@ts-ignore
+                c.channel.users.forEach((u) => {
+                    //@ts-ignore
+                    u.online = this.clients[u.user.id]?.length > 0;
+                });
+                //@ts-ignore
+                //c.channel.messages.sort((a, b) => a.id - b.id);
+                console.log(
+                    `User ${c.userId} => client.join('conversation:${c.channelId});`,
+                );
+                this.joinUser(client.user.id, `conversation:${c.channelId}`);
+                return c;
+            }),
+        };
+        this.sendToUser(client.user.id, 'conversations:list', answer);
+
+        return answer;
+    }
+
+    @SubscribeMessage('conversations:sync')
+    async syncUserConversation(client: Socket & { user: any }, payload: any) {
+        console.log('get conversation sync', client.user);
+        const conversation = await this.channelService.getUserConversation(
+            client.user.id,
+            payload.channelId,
+        );
+        conversation.channel.users.forEach((u) => {
+            //@ts-ignore
+            u.online = this.clients[u.user.id]?.length > 0;
+        });
+        this.joinUser(client.user.id, `conversation:${conversation.channelId}`);
+        const answer = {
+            conversation: conversation,
+            show: payload.show || false,
+        };
+        this.sendToUser(client.user.id, 'conversations:sync', answer);
+
+        return answer;
+    }
+
+    @SubscribeMessage('conversations:create')
+    async createConversation(client: Socket & { user: any }, payload: any) {
+        console.log('create conversation', client.user, payload);
+        const { success, message, type, channel } =
+            await this.channelService.createConversation(
+                client.user.id,
+                payload,
+            );
+        this.notification(client.user.id, { message, success, type });
+        if (!success) return { success, message };
+        this.syncUserConversation(client, {
+            channelId: channel.id,
+            show: true,
+        });
+    }
+
+    @SubscribeMessage('conversations:update')
+    async updateConversation(client: Socket & { user: any }, payload: any) {
+        console.log('create conversation', client.user, payload);
+        const { success, message, type, channel } =
+            await this.channelService.updateConversation(
+                client.user.id,
+                payload,
+            );
+        this.notification(client.user.id, { message, success, type });
+        if (!success) return { success, message };
+        this.syncUserConversation(client, {
+            channelId: payload.channelId,
+            show: true,
+        });
+
+        this.sendChannelEvent(payload.channelId, 'conversations:syncing', {
+            channelId: payload.channelId,
+        });
+    }
+
+    @SubscribeMessage('conversations:leave')
+    async leaveConversation(client: any, payload: any) {
+        const { success, message, channelId } =
+            await this.channelService.leaveConversation(
+                client.user.id,
+                payload.channelId,
+            );
+        this.notification(client.user.id, { message, success });
+        if (!success) return { success, message };
+        this.sendToUser(
+            client.user.id,
+            'conversations:left',
+            payload.channelId,
+        );
+        this.clients[client.user.id]?.forEach((id) => {
+            this.server.sockets.sockets
+                .get(id)
+                ?.leave(`conversation:${payload.channelId}`);
+        });
+        this.sendMessage({
+            channelId: payload.channelId,
+            from: 0,
+            content: `@${client.user.username} has left the channel`,
+            timestamp: new Date(),
+        });
+        this.sendChannelEvent(channelId, 'conversations:syncing', {
+            channelId: channelId,
+        });
+
+        return {
+            success: true,
+            channelId: channelId,
+            message: 'You left the conversation',
+        };
+    }
+
+    @SubscribeMessage('conversations:join')
+    async joinConversation(client: any, payload: any) {
+        const notification = await this.channelService.joinChannel(
+            client.user.id,
+            payload,
+        );
+        this.notification(client.user.id, notification);
+        if (!notification.success) return notification;
+        this.syncUserConversation(client, {
+            channelId: payload.channelId,
+            show: true,
+        });
+
+        this.sendMessage({
+            channelId: payload.channelId,
+            from: 0,
+            content: `@${client.user.username} has joined the channel`,
+            timestamp: new Date(),
+        });
+        this.sendChannelEvent(payload.channelId, 'conversations:syncing', {
+            channelId: payload.channelId,
+        });
+    }
+
+    @SubscribeMessage('conversations:messages')
+    async getMessages(client: Socket & { user: any }, payload: any) {
+        const messages = await this.channelService.getConversationMessages(
+            client.user.id,
+            payload.channelId,
+        );
+
+        return {
+            messages: messages,
+        };
+    }
+
+    @SubscribeMessage('conversations:message')
+    async onMessage(client: Socket & { user: any }, payload: any) {
+        const userChannel = await this.channelService.getUserChannel(
+            client.user.id,
+            payload.channelId,
+        );
+
+        if (userChannel) {
+            if (
+                userChannel.mutedUntil &&
+                new Date(userChannel.mutedUntil) > new Date()
+            ) {
+                this.notification(client.user.id, {
+                    message: 'You are muted until ' + userChannel.mutedUntil,
+                    type: 'error',
+                });
+                return;
+            }
+            if (
+                userChannel.bannedUntil &&
+                new Date(userChannel.bannedUntil) > new Date()
+            ) {
+                this.notification(client.user.id, {
+                    message: 'You are banned until ' + userChannel.bannedUntil,
+                    type: 'error',
+                });
+                return;
+            }
+            this.sendMessage({
+                channelId: payload.channelId,
+                from: client.user.id,
+                content: payload.message,
+                timestamp: new Date(),
+            });
+        }
+    }
+
+    async sendMessage(messageData: any) {
+        const message = await this.channelService.sendMessage(messageData);
+        this.server
+            .in(`conversation:${message.channelId}`)
+            .emit('conversations:message', message);
+    }
+    async sendChannelEvent(channelID: number, type: string, data: any) {
+        this.server.in(`conversation:${channelID}`).emit(type, data);
+    }
+
+    @SubscribeMessage('conversations:search')
+    async searchConversation(client: Socket & { user: any }, payload: any) {
+        console.log('search conversations', client.user);
+        const channels = await this.channelService.searchChannel(
+            client.user.id,
+            payload,
+        );
+        this.sendToUser(client.user.id, 'conversations:search', channels);
+        return channels;
+    }
+
+    //@SubscribeMessage('channels:create')
+    //async createChannel(client: any, payload: any) {
+    //    const channel = await this.channelService.createChannel(
+    //        client.user.id,
+    //        payload,
+    //    );
+
+    //    this.notification(client.user.id, channel);
+    //    if (channel.success === false) {
+    //        console.log('Cannot create channel', channel);
+    //    } else {
+    //        this.syncUserConversations(client, {});
+    //    }
+    //}
+
+    @SubscribeMessage('channels:join')
+    async joinChannel(client: any, payload: any) {
+        const channel = await this.channelService.joinChannel(
+            client.user.id,
+            payload,
+        );
+        this.sendToUser(client.user.id, 'channels:status', channel);
+        if (channel.success === false) {
+            console.log('Cannot join channel', channel);
+        } else {
+            this.syncUserConversations(client, {});
+        }
+    }
+    //@SubscribeMessage('channels:leave')
+    //async leaveChannel(client: any, payload: any) {
+    //    const channel = await this.channelService.leaveChannel(
+    //        client.user.id,
+    //        payload,
+    //    );
+    //    this.sendToUser(client.user.id, 'channels:status', channel);
+    //    if (channel.success === false) {
+    //        console.log('Cannot leave channel', channel);
+    //    } else {
+    //        this.syncUserConversations(client, {});
+    //    }
+    //}
+
+    @SubscribeMessage('channels:update')
+    async updateChannel(client: any, payload: any) {
+        const channel = await this.channelService.updateChannel(
+            client.user.id,
+            payload,
+        );
+        this.sendToUser(client.user.id, 'channels:status', channel);
+        if (channel.success === false) {
+            console.log('Cannot update channel', channel);
+        } else {
+            this.syncUserConversations(client, {});
+        }
+    }
+
+    @SubscribeMessage('channels:search')
+    async searchChannel(client: any, payload: any) {
+        const channels = await this.channelService.searchChannel(
+            client.user.id,
+            payload,
+        );
+        this.sendToUser(client.user.id, 'channels:search', channels);
     }
 
     @SubscribeMessage('channels:list')
     async listUserChannel(client: Socket & { user: any }, payload: any) {
-		console.log("get channel lsit", client.user)
-		let channels = await this.channelService.getUserChannels(client.user.id)
-		console.log(`User ${client.user.id} channels`, channels.length)
-		channels = channels.map(x => {
-			console.log(x.channel)
-			x.channel.users.forEach(u => {
-				//@ts-ignore
-				u.online = this.clients[u.user.id]?.length > 0
-			})
-			x.channel.messages.sort((a,b) => a.id - b.id)
-			client.join(`channels:${x.channelId}`)
-			return x
-		})
-		client.emit("channels:list", channels)
-    }
-    @SubscribeMessage('channels:message')
-    async onNewMessage(client: any, payload: any) {
-		let userChannel = await this.channelService.getUserChannel(client.user.id, payload.channelId)
-
-		if (userChannel) {
-			if (userChannel.mutedUntil && new Date(userChannel.mutedUntil) > new Date()) {
-				console.log("User is muted, aborting")
-				return
-			}
-			if (userChannel.bannedUntil && new Date(userChannel.bannedUntil) > new Date()) {
-				console.log("User is banned, aborting")
-				return
-			}
-			let messageData = {
-				channelId: payload.channelId,
-				from: client.user.id,
-				content: payload.content,
-				timestamp: new Date()
-			}
-			let message = await this.channelService.sendMessage(messageData)
-			this.server.in(`channels:${payload.channelId}`).emit('channels:message', messageData)
-		}
+        console.log('get channel list', client.user);
+        let channels = await this.channelService.getUserChannels(
+            client.user.id,
+        );
+        console.log(`User ${client.user.id} channels`, channels.length);
+        channels = channels.map((x) => {
+            console.log(x.channel.id, x.channel.name);
+            x.channel.users.forEach((u) => {
+                //@ts-ignore
+                u.online = this.clients[u.user.id]?.length > 0;
+            });
+            x.channel.messages.sort((a, b) => a.id - b.id);
+            client.join(`channels:${x.channelId}`);
+            return x;
+        });
+        this.sendToUser(client.user.id, 'channels:list', channels);
     }
 
     @SubscribeMessage('dms:list')
@@ -307,5 +567,4 @@ export class SocketsGateway {
     //        otherUserId: payload.otherUserId,
     //    });
     //}
-
 }

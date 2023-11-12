@@ -5,6 +5,7 @@ export const useSocket = defineStore('socket', () => {
     const socket = ref()
     const auth = useAuth()
 	const chat = useChat()
+    const events = ref([])
 
     const disconnect = async () => {
         if (auth.logged === true)
@@ -23,19 +24,27 @@ export const useSocket = defineStore('socket', () => {
         })
         _socket.on('disconnect', () => {
             console.log('Socket disconnected')
+            events.value.forEach(({event, callback}) => {
+                _socket.off(event, callback)
+            })
         })
         socket.value = _socket
     }
 
-    const emit = (event: string, data: any) => {
-        socket.value.emit(event, data)
+    const emit = (event: string, data?: any, answer? :any) => {
+        if (answer === undefined)
+            return socket.value.emit(event, data)
+        else
+            return socket.value.emit(event, data, answer)
     }
 
     const on = (event: string, callback: (data: any) => void) => {
         socket.value.on(event, callback)
+        events.value.push({event, callback})
     }
 
     return {
+        socket,
         disconnect,
         connect,
         emit,

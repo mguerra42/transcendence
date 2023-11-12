@@ -41,7 +41,7 @@
                         <p class="text-xs text-center text-zinc-400" >Elo : 1230</p>
                     </div>
                 </div>
-                <img :src="auth.session.avatarPath" class="w-30 h-30 m-2 border-8 border-zinc-100 rounded-full" />
+                <img :src="auth.session.avatar" class="w-30 h-30 m-2 border-8 border-zinc-100 rounded-full" />
             </div>
             <div class="flex flex-col justify-center">
                 <p class="text-zinc-200 ml-5 mr-5 text-7xl font-bold text-center">
@@ -49,7 +49,7 @@
                 </p>
             </div>
             <div class="flex">
-                <img :src="stateProps.opponentProfile.value.avatarPath" class="w-30 h-30 m-2 border-8 border-zinc-100 rounded-full" />
+                <img :src="stateProps.opponentProfile.value.avatar" class="w-30 h-30 m-2 border-8 border-zinc-100 rounded-full" />
                 <div class="flex justify-center">
                     <div class="flex-col flex justify-center">
                         <p class="text-lg text-center text-zinc-200" >{{ stateProps.opponentProfile.value.username }}</p>

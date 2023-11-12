@@ -20,7 +20,7 @@ model User {
   victories      Int           @default(0) //number of victories for stats
   defeats        Int           @default(0) //number of defeats for stats
   ladderPoint    Int           @default(1000) //level for stats
-  avatarPath     String        @default("/avatar/default.jpg") //the path to the avatar image
+  avatar     String        @default("/avatars/default.jpg") //the path to the avatar image
   friends        Friend[]      @relation("friends")
   inverseFriends Friend[]      @relation("inverseFriends") // Only for prisma, not used
   blockedUsers   BlockedUser[] @relation("blocked")
@@ -34,6 +34,7 @@ model User {
   queue          Queue?        // Define the Queue relation here
   twoFa           Int          @default(0) //'on' = 1  or 'off' = 0
   secret         String?       // Field to store the 2FA secret
+  mfaEnabled       Boolean           @default(false)
 }
 
 model GameLobby {
@@ -85,7 +86,7 @@ model Message {
 //  sender      User      @relation("sender", fields: [senderId], references: [id])
 //////  receiver    history?   @relation(fields: [receiverId], references: [id])
   channelId   Int
-  channel     Channel  @relation(fields: [channelId], references: [id])
+  channel     Channel  @relation(fields: [channelId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   timestamp        DateTime  @default(now())
 
 }
@@ -129,7 +130,7 @@ model Channel {
   type         ChannelType //public, private, protected or dm
   password     String? //if access is defined as protected
   users        ChannelUser[] //users in the channel
-  messages     Message[]     //messages in the channel
+  messages     Message[]//messages in the channel 
   creationDate DateTime      @default(now())
 }
 
@@ -141,6 +142,7 @@ model ChannelUser {
   channel     Channel   @relation(fields: [channelId], references: [id])
   bannedUntil DateTime? //if banned
   mutedUntil  DateTime? //if muted
+  readUntil   Int @default(0) // last message read by the user 
 
   @@id([userId, channelId])
 }

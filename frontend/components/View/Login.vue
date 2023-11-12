@@ -1,15 +1,15 @@
 <script setup lang="ts">
 const auth = useAuth()
 const route = useRoute()
-const check2FA = route.query.require2FA !== undefined
-const show2FA = ref(false)
-if(check2FA === true) {
-    if (route.query.require2FA === 'true') {
-        show2FA.value = true
-    } else {
-        await auth.refreshSession()
-    }
-}
+//const check2FA = route.query.require2FA !== undefined
+//const show2FA = ref(false)
+//if(check2FA === true) {
+//    if (route.query.require2FA === 'true') {
+//        show2FA.value = true
+//    } else {
+//        await auth.refreshSession()
+//    }
+//}
 </script>
 
 <template>
@@ -21,7 +21,7 @@ if(check2FA === true) {
             </div>
         </div>
         <div class="min-h-screen w-5/5 lg:w-2/5 md:w-1/2 sm:w-5/5 xs:w-5/5 bg-zinc-800 flex flex-col items-center justify-center">
-            <Auth2FAForm v-if="show2FA" />
+            <Auth2FAForm v-if="auth.need2FA" />
             <AuthLoginForm v-else-if="auth.mode === 'login'" />
             <AuthSignUpForm v-else-if="auth.mode === 'signup'" />
         </div>

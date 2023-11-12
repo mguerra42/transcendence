@@ -65,8 +65,8 @@
     ])
 </script>
 <template>
-    <div class="h-50% text-white flex flex-col ">
-        <div class="font-bold capitalize flex justify-between items-center p-2.5">
+    <div class="h-50% text-white flex flex-col b-t-gray/20 b-t-1">
+        <div class="font-bold capitalize flex justify-between items-center p-2.5  px-5">
             <div>Friends</div>
             <div class="bg-gray p-1 rounded">
                 <div class="i-mdi:plus"></div>

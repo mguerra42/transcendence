@@ -16,14 +16,17 @@
 				<div @click="tab = 'settings'" class="text-xl bg-gray-400 rounded p-1 hover:scale-110 cursor-pointer transition-all" v-if="chat.conversation.role == 'OWNER'">
 					<div class="i-mdi:cog"></div>
 				</div>
+				<div @click="chat.leaveChannel(chat.conversation.channelId)" class="text-xl bg-gray-400 rounded p-1 hover:scale-110 cursor-pointer transition-all" >
+					<div class="i-mdi:sign-out"></div>
+				</div>
 			</div>
 			<div class="text-sm text-white px-5 flex items-center gap-2">
 				<div>En ligne: {{ chat.getChannelOnlineUsers(chat.conversation).length }}</div>
 				
 			</div>
-			<div class="text-sm text-white px-5 flex items-center gap-2">{{ chat.conversation.channel.description }}</div>
+			<div class="text-sm text-white px-5 flex items-center gap-2 break-all">{{ chat.conversation.channel.description }}</div>
 			<!-- Tabs -->
-			<div class="text-2xl text-white px-5 ">
+			<div class="text-lg sm:text-xl text-white px-5 ">
 				<div class="w-full">
 				<div class="relative right-0">
 					<ul

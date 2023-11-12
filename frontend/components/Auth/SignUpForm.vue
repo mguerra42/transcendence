@@ -18,9 +18,7 @@ const isValid = computed(() => {
             <input type="email" v-model="email" name="email" placeholder="Email" class="rounded-lg px-3 py-2 text-black b-1" />
             <input type="password" v-model="password" name="password" placeholder="Password"
                 class="rounded-lg px-3 py-2 text-black b-1" />
-            <div class="text-red">
-                {{ auth.error }}
-            </div>
+           
             <button type="submit" :disabled="!isValid" class=" text-white cursor-pointer hover:scale-105 transition rounded-lg px-4 py-2" :class="{
                 'bg-blue-500 hover:bg-blue-600 transition duration-300': isValid,
                 'bg-blue-500/50': !isValid,

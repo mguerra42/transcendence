@@ -17,10 +17,10 @@ export const useRequest: typeof useFetch = (path, options = {}) => {
 interface AppClient {
 
   auth: {
-    login: ({
+    login: (provider:string, {
       email,
       password,
-    }: {
+    }?: {
       email: string
       password: string
     }) => void // login
@@ -145,9 +145,18 @@ export const useClient = defineStore('client', () => {
   client.auth = {} as AppClient['auth']
 
 
-  client.auth.login42 = async () => {
-    const redirect = encodeURIComponent(`${config.public.baseURL}/auth/42/callback`)
-    location.href = `https://api.intra.42.fr/oauth/authorize?client_id=${config.public.INTRA_CLIENT_ID}&redirect_uri=${redirect}&response_type=code`
+  client.auth.login = async (provider, payload?) => {
+    if (provider === '42') {
+        const redirect = encodeURIComponent(`${config.public.baseURL}/auth/42/callback`)
+        location.href = `https://api.intra.42.fr/oauth/authorize?client_id=${config.public.INTRA_CLIENT_ID}&redirect_uri=${redirect}&response_type=code`
+        return
+    }
+    if (provider === 'credentials') {
+        const { data, error } = await useRequest('/auth/login', {
+            method: 'POST',
+            body: payload,
+        })
+    }
   }
 
   client.auth.session = async () => {
@@ -181,6 +190,94 @@ export const useClient = defineStore('client', () => {
         }
     }
   }
+    client.auth.logout = async () => {
+      const { data, error } = await useRequest('/auth/logout', {
+        method: 'POST',
+      })
+    }
+
+
+  client.auth.signup = async ({
+    username,
+    email,
+    password,
+  }) => {
+    await $fetch('/auth/signup', {
+      method: 'POST',
+      baseURL: config.public.baseURL,
+      body: {
+        username,
+        email,
+        password,
+      },
+    })
+    .then(async (data) => {
+        useNotification().notify({
+            text: data.message,
+            type: 'success',
+        })
+        await client.auth.login('credentials', {
+          email,
+          password,
+        })
+    })
+    .catch((error) => {
+        console.log("error", error.data)
+        useNotification().notify({
+            text: error.data.message,
+            type: 'error',
+        })
+    })
+  }
+
+    client.auth.authenticateUser = async ({
+                email,
+                password,
+            }) => {
+                console.log(
+                    email, password
+                )
+            //    const { data, error } = await useRequest('/auth/login', {
+            //        method: 'POST',
+            //        body: {
+            //            email,
+            //            password,
+            //        },
+            //    })
+            //    if (error.value?.statusCode) {
+            //        authStore.error = error.value?.statusMessage as string
+            //        return
+            //    }
+            //    console.log('2fa', data.value.isTwoFAEnabled)
+            //if (data.value.isTwoFAEnabled === 1) {
+            //        const twoFactorCode = prompt('Veuillez entrer votre code 2FA :')
+        
+            //  const { data, error } = await useRequest('/auth/verify-2fa', {
+            //            method: 'POST',
+            //            body: {
+            //                twoFactorCode,
+            //            },
+            //        })
+            //  console.log(data)
+            //        if (data.value === 'true') {
+            //            authStore.showForm = false
+            //            await authStore.refreshSession()
+            //            return data.access_token
+            //  }
+            //        else {
+            //            console.log('else')
+        
+            //            authStore.error = error.value?.statusMessage as string
+            //  }
+            //}
+            //    else {
+            //  authStore.showForm = false
+            //  await authStore.refreshSession()
+            //  return data.value.access_token
+            //    }
+          }
+        
+        
 
 
 //  client.chat = {} as AppClient['chat']
@@ -279,11 +376,6 @@ export const useClient = defineStore('client', () => {
 //    })
 //  }
 
-//  client.auth.logout = async () => {
-//    const { data, error } = await useRequest('/auth/logout', {
-//      method: 'POST',
-//    })
-//  }
 
 //  client.auth.avatarFile = ref<File>()
 //  client.auth.update = async ({
@@ -596,7 +688,7 @@ export const useClient = defineStore('client', () => {
 //          id: lookingForGame.data.value.profile.id,
 //          socketId: lookingForGame.data.value.profile.socketId,
 //          username: lookingForGame.data.value.username,
-//          avatarPath: lookingForGame.data.value.profile.avatarPath,
+//          avatar: lookingForGame.data.value.profile.avatar,
 //          lobbyId: lookingForGame.data.value.lobbyId,
 //        }
 //      }

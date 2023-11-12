@@ -19,7 +19,7 @@
       client.chat.chatState.receiver.id = userToMessage.id;
       client.chat.chatState.receiver.username = userToMessage.username;
       client.chat.messages = await client.chat.currentHistory();
-      client.chat.chatState.receiver.avatarPath = userToMessage.avatarPath;
+      client.chat.chatState.receiver.avatar = userToMessage.avatar;
       client.chat.chatState.receiver.victories = userToMessage.victories;
       client.chat.chatState.receiver.defeats = userToMessage.defeats;
       client.chat.chatState.receiver.ladderPoint = userToMessage.ladderPoint;
@@ -111,7 +111,7 @@
           <div v-for="item in client.friend.categoryArray" class="text-zinc-200 text-sm p-2 m-1 hover:bg-zinc-500 rounded flex justify-between ">
               <div class="flex">
                 <div class="flex flex-col justify-center">
-                  <img :src="item.avatarPath" class="w-6 h-6 rounded-full" />
+                  <img :src="item.avatar" class="w-6 h-6 rounded-full" />
                 </div>
                 <div class="flex flex-col justify-center">
                   <button @click="displayUserProfile(item)" class="ml-2">  {{ item.username }} </button>

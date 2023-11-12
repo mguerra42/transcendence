@@ -1,6 +1,6 @@
 export interface sessionDto {
     username?: string;
-    avatarPath?: string;
+    avatar?: string;
     id?: number;
     email?: string;
     twoFa?: number;

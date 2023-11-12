@@ -18,7 +18,7 @@ const chatWithUser = async (userToMessage : any) => {
       client.chat.chatState.receiver.id = userToMessage.id;
       client.chat.chatState.receiver.username = userToMessage.username;
       client.chat.messages = await client.chat.currentHistory();
-      client.chat.chatState.receiver.avatarPath = userToMessage.avatarPath;
+      client.chat.chatState.receiver.avatar = userToMessage.avatar;
       client.chat.chatState.receiver.victories = userToMessage.victories;
       client.chat.chatState.receiver.defeats = userToMessage.defeats;
       client.chat.chatState.receiver.ladderPoint = userToMessage.ladderPoint;
@@ -75,7 +75,7 @@ const chatWithUser = async (userToMessage : any) => {
             </div>
             <!-- div avatar user -->
             <div class="flex flex-col justify-center p-2 ">
-                <img :src="client.chat.chatState.receiver.avatarPath" class="w-14 h-14 rounded-full" />
+                <img :src="client.chat.chatState.receiver.avatar" class="w-14 h-14 rounded-full" />
             </div>
             <!-- div bouton -->
             <div class=" p-2 ">

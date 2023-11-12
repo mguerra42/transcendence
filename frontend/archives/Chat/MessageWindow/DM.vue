@@ -53,7 +53,7 @@ onMounted(async () => {
     <!-- la div ci-dessous sur laquelle t'appuie pour ouvrir le profil d'un user-->
     <div @click="displayUserProfile" v-if="client.chat.chatState.select === 'DM'" class="p-2 h-[1/5] w-full bg-zinc-600 hover:bg-zinc-500 rounded-lg flex mr-auto mb-2 cursor-pointer">
         <div class="flex flex-col justify-center">
-          <img :src="client.chat.chatState.receiver.avatarPath" class="w-12 h-12 rounded-full" />
+          <img :src="client.chat.chatState.receiver.avatar" class="w-12 h-12 rounded-full" />
         </div>
         <div class="flex flex-col justify-center">
           <p class="ml-3 text-md text-zinc-200" >{{ client.chat.chatState.receiver.username }}</p>

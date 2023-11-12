@@ -1,14 +1,9 @@
 <script setup lang="ts">
 	const auth = useAuth()
-	const props = defineProps({
-		user: {
-			type: Object,
-			required: true
-		}
-	})
+	const props = defineProps<{user: Profile}>()
 </script>
 <template>
-	<div  class="rounded-lg b-1 overflow-hidden">
+	<div  class="rounded-lg b-1  bg-zinc-700 overflow-hidden">
 		<div class="hover:bg-white/10  cursor-pointer gap-2 flex flex-col " :class="[user.user.id == auth.session.id ? 'h-full' : '']">
 			<div class="w-full flex pt-3">
 				<div class="rounded-full bg-gray p-2 relative mx-auto">
@@ -17,7 +12,7 @@
 					<div v-if="!user.online" class="i-mdi-circle text-red absolute -bottom-2px -right-2px text-16px"></div>
 				</div>
 			</div>
-			<div class="flex flex-col items-center w-full">
+			<div class="flex flex-col items-center w-280px">
 				<div>@{{ user.user.username }} <span v-if="user.user.id == auth.session.id">(You)</span></div>
 				<div class="pb-2">ELO: 123</div>
 				<div class="flex flex-wrap justify-center gap-5 b-t-1 w-full">

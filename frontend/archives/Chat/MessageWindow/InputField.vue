@@ -29,7 +29,7 @@ const sendMessageInChannel = async () => {
       return;
   socket.emit('sendMessageToChannel', {
     senderId: auth.session.id,
-    //avatar: auth.session.avatarPath,
+    //avatar: auth.session.avatar,
     receiverId: client.chat.chatState.receiver.id,
     receiver: client.chat.chatState.receiver.name,
     text: client.chat.newMessage 

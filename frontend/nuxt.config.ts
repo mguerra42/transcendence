@@ -31,6 +31,15 @@ export default defineNuxtConfig({
         },
     },
 
+    imports: {
+        presets: [
+          {
+            from: '@kyvg/vue3-notification',
+            imports: ['useNotification']
+          }
+        ]
+      },
+    
     app: {
         head: {
             viewport: 'width=device-width,initial-scale=1',
