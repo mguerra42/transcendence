@@ -22,7 +22,6 @@
 <template>
 	<div class="bg-zinc-600 overflow-y-scroll rounded h-full " ref="messagesContainer">
 		<div class="flex flex-col gap-2  pb-3 pr-3" >
-            {{ chat.activeConversation?.messages.length  }}
 			<div v-for="message,i in chat.activeConversation?.messages" class="rounded-lg  p-2.5 w-80% flex" :class="[
 				message.from === 0 ? '' : (message.from == auth.session?.id ? 'bg-green/50 ml-auto shadow-green' : 'bg-blue/50 shadow-blue'),
 			message.from != chat.activeConversation?.messages[i - 1]?.from ? 'mt-5' : ''

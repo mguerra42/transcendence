@@ -172,7 +172,7 @@ export class SocketsGateway {
 
     @SubscribeMessage('conversations:leave')
     async leaveConversation(client: any, payload: any) {
-        const { success, message, channelId } =
+        const { success, message, channelId, last } =
             await this.channelService.leaveConversation(
                 client.user.id,
                 payload.channelId,
@@ -189,15 +189,17 @@ export class SocketsGateway {
                 .get(id)
                 ?.leave(`conversation:${payload.channelId}`);
         });
-        this.sendMessage({
-            channelId: payload.channelId,
-            from: 0,
-            content: `@${client.user.username} has left the channel`,
-            timestamp: new Date(),
-        });
-        this.sendChannelEvent(channelId, 'conversations:syncing', {
-            channelId: channelId,
-        });
+        if (last !== true) {
+            this.sendMessage({
+                channelId: payload.channelId,
+                from: 0,
+                content: `@${client.user.username} has left the channel`,
+                timestamp: new Date(),
+            });
+            this.sendChannelEvent(channelId, 'conversations:syncing', {
+                channelId: channelId,
+            });
+        }
 
         return {
             success: true,

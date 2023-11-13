@@ -21,7 +21,7 @@
                     />
 			</div>
 			<div class="grid sm:grid-cols-2 gap-2">
-				<ChatProfileCard :user="user" v-for="user in members" />
+				<ChatSmallProfileCard :user="user" v-for="user in members" />
 			</div>
 		</div>
 	</div>

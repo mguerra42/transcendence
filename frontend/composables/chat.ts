@@ -299,6 +299,16 @@ export const useChat = defineStore('chat', () => {
         }
     }
 
+    const addFriend = async (userId) => {
+        console.log("addFriend", userId)
+    }
+    const challenge = async (userId) => {
+        console.log("challenge", userId)
+    }
+    const blockUser = async (userId) => {
+        console.log("blockUser", userId)
+    }
+
 
 	const init = async () => {
 	    const { notify }  = useNotification()
@@ -514,6 +524,10 @@ export const useChat = defineStore('chat', () => {
         createConversation,
         currentProfile,
         showProfile,
+
+        addFriend,
+        challenge,
+        blockUser,
 
 
         //current,

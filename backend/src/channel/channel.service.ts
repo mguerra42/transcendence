@@ -315,11 +315,11 @@ export class ChannelService {
             },
         });
         if (user.role == 'OWNER') {
-            let firstAdmin = channel.users.find((u) => u.role == 'ADMIN');
-            if (!firstAdmin) {
-                firstAdmin = channel.users.find((u) => u.role == 'USER');
+            let nextOwner = channel.users.find((u) => u.role == 'ADMIN');
+            if (!nextOwner) {
+                nextOwner = channel.users.find((u) => u.role == 'USER');
             }
-            if (!firstAdmin) {
+            if (!nextOwner) {
                 await this.db.channel.delete({
                     where: {
                         id: channelId,
@@ -327,16 +327,17 @@ export class ChannelService {
                 });
                 return {
                     success: true,
+                    last: true,
                     message:
                         'Channel left, no remaining members, so it was deleted',
                 };
             }
-            if (firstAdmin) {
+            if (nextOwner) {
                 // Transfer ownership to first admin
                 await this.db.channelUser.update({
                     where: {
                         userId_channelId: {
-                            userId: firstAdmin.userId,
+                            userId: nextOwner.userId,
                             channelId: channelId,
                         },
                     },
