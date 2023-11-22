@@ -25,18 +25,12 @@ import '/frontend/public/styles/home.css';
 </script>
 <template>
     <div class="p-6 relative w-full">
-        <!-- <div @click="auth.showForm = false"
-            class="text-2xl p-1 hover:bg-blue-500 cursor-pointer hover:text-white rounded m-1 text-black absolute right-0 top-0">
-            <div class="i-mdi:close"></div>
-        </div> -->
-        <!-- <h1 class="home-font text-2xl">
-            Welcome back ! 😊 
-        </h1> -->
-        <h1 class="home-font text-4xl mb-6">Log in to your account</h1>
+       
+        <div class="home-font px-4 py-10 text-5xl mb-6 text-center">Log in to your account</div>
         <form @submit.prevent="client.auth.authenticateUser({
                 email: email,
                 password: password
-            })" class="grid grid-rows-2 gap-2 w-full" autocomplete="off">
+            })" class="grid grid-row gap-2 w-full" autocomplete="off">
 
             <!-- Email Input -->
             <div class="flex flex-cols-2 w-full">
@@ -65,19 +59,12 @@ import '/frontend/public/styles/home.css';
             </button>
             </div>
 
-            <!-- <h1 class="home-font text-4xl text-center p-6">or</h1> -->
             <!-- Google Login-->
             <button type="button" @click="loginGoogle" class="text-2xl home-font big-title layers hero glitch text-left cursor-pointer hover:color-white py-10"
                 data-text="Sign in with Google">Sign in with Google
             <!-- <img src="../../public/google_signin_logo.png" alt="Google Logo" class="h-6" /> Sign in with Google -->
             </button>
-
-            <!-- 42 Login-->
-            <!-- <button type="button" @click="login42" class="bg-white-500 border-2 border-gray-300 text-gray-600 font-semibold rounded-lg cursor-pointer hover:scale-105 transition px-4 py-2 flex justify-center items-center">
-            <img src="../../public/42_Logo.png" alt="42 Logo" class="w-6 h-6 mr-2" />   Sign in with Intra
-            </button> -->
             
-            <!-- <h1 class="home-font text-4xl text-center p-6">or</h1> -->
             <a href="#" class="home-font big-title layers hero glitch text-2xl cursor-pointer hover:color-white" data-text="Sign up" @click="auth.mode = 'signup'">
                 Sign up
             </a>

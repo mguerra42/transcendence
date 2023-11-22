@@ -63,8 +63,8 @@
       <!-- Logged Out View -->
         <div v-else class="h-full w-full" >
             <!-- Homepage -->
-            <div class="video-container">
-              <video autoplay loop muted preload="auto">
+            <div class="h-full w-full video-container">
+              <video class="top-0 bottom-0 left-0 right-0" autoplay loop muted preload="auto">
                 <source src="/videos/grid2.mp4" type="video/mp4">
               </video>
             </div >
@@ -73,14 +73,14 @@
               <div class="flex w-full max-w-1900px items-center h-100px">
                 <button class="w-full big-title layers hero glitch neon-text text-7rem" data-text="WELCOME TO PONG">WELCOME TO PONG</button>
               </div>
-              <div class="grid sm:grid-cols-2 gap-5 max-w-1900px max-h-1500px h-700px h-full w-full">
-                <div class="term-box" >
+              <div class="grid sm:grid-cols-2 gap-5 max-w-1900px max-h-1500px w-full">
+                <div class="term-box flex">
                   <div class="home-font px-6 py-10 text-5xl mb-6 text-center"> READY TO FIGHT ?</div>
-                  <div class="px-5 py-5 items-center ">
+                  <div class="px-5 py-5 flex items-center">
                     <img src="/videos/green-pong.gif">
                   </div>
                 </div>
-                <div class="term-box w-full" >
+                <div class="term-box flex" >
                   <AuthLoginForm v-if="auth.mode === 'login'" />
                   <AuthSignUpForm v-else />
                 </div>

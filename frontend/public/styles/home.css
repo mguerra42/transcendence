@@ -61,6 +61,14 @@
     left: 500px; */
   }
 
+  input[type="password"]:focus {
+    outline: none;
+  }
+
+  input[type="email"]:focus {
+    outline: none;
+  }
+
   /* .login-modal {
     /* position: absolute; */
     /* top: 50%; */
