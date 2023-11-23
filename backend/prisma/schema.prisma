@@ -21,8 +21,10 @@ model User {
   defeats        Int           @default(0) //number of defeats for stats
   ladderPoint    Int           @default(1000) //level for stats
   avatar     String        @default("/avatars/default.jpg") //the path to the avatar image
-  friends        Friend[]      @relation("friends")
-  inverseFriends Friend[]      @relation("inverseFriends") // Only for prisma, not used
+  // friends        Friend[]      @relation("friends")
+  // inverseFriends Friend[]      @relation("inverseFriends") // Only for prisma, not used
+  friends Friendship[] @relation("friends")
+  friendsOf  Friendship[] @relation("friendsOf")
   blockedUsers   BlockedUser[] @relation("blocked")
   wonGames       Game[]        @relation("winner")
   lostGames      Game[]        @relation("loser")
@@ -36,6 +38,17 @@ model User {
   secret         String?       // Field to store the 2FA secret
   mfaEnabled       Boolean           @default(false)
 }
+
+model Friendship {
+  friends   User @relation("friends", fields: [friendsId], references: [id])
+  friendsId Int
+  friendsOf    User @relation("friendsOf", fields: [friendsOfId], references: [id])
+  friendsOfId  Int
+  accepted  Boolean @default(false)
+
+  @@id([friendsOfId, friendsId])
+}
+
 
 model GameLobby {
   id              Int      @id @default(autoincrement())
@@ -92,14 +105,14 @@ model Message {
 }
 
 //Friend list
-model Friend {
-  userOneId Int
-  userTwoId Int
-  userOne   User @relation("friends", fields: [userOneId], references: [id])
-  userTwo   User @relation("inverseFriends", fields: [userTwoId], references: [id])
+// model Friend {
+//   userOneId Int
+//   userTwoId Int
+//   userOne   User @relation("friends", fields: [userOneId], references: [id])
+//   userTwo   User @relation("inverseFriends", fields: [userTwoId], references: [id])
 
-  @@id([userOneId, userTwoId])
-}
+//   @@id([userOneId, userTwoId])
+// }
 
 //Blocked list
 model BlockedUser {

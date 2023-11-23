@@ -1,4 +1,11 @@
-import { Controller, Post, Get, Body, Request, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { FriendService } from './friend.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -6,70 +13,70 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 export class FriendController {
   constructor(private readonly friendService: FriendService) {}
 
-  @Post('add')
-  @UseGuards(JwtAuthGuard)
-  async addFriend(@Request() req, @Body() friendUsername) {
-    const currentUserId = req.user.id;
-    console.log(`Current User ID: ${currentUserId}`);
-    console.log('Friendadd : ', friendUsername);
+  // @Post('add')
+  // @UseGuards(JwtAuthGuard)
+  // async addFriend(@Request() req, @Body() friendUsername) {
+  //   const currentUserId = req.user.id;
+  //   console.log(`Current User ID: ${currentUserId}`);
+  //   console.log('Friendadd : ', friendUsername);
 
-    // Utilisez le service FriendsService pour ajouter l'ami dans la base de données
-    await this.friendService.addFriend(currentUserId, friendUsername.newFriendName);
-    return { message: 'Ami ajouté avec succès'};
-  }
+  //   // Utilisez le service FriendsService pour ajouter l'ami dans la base de données
+  //   await this.friendService.addFriend(currentUserId, friendUsername.newFriendName);
+  //   return { message: 'Ami ajouté avec succès'};
+  // }
 
-  @Get('amis')
-  @UseGuards(JwtAuthGuard)
-  async getFriendList(@Request() req) {
-    const currentUserId = req.user.id;
-    const friendList = await this.friendService.getMutualFriends(currentUserId);
-  
-    return { friends: friendList };
-  }
+  // @Get('amis')
+  // @UseGuards(JwtAuthGuard)
+  // async getFriendList(@Request() req) {
+  //   const currentUserId = req.user.id;
+  //   const friendList = await this.friendService.getMutualFriends(currentUserId);
 
-  @Get('enAttente')
-  @UseGuards(JwtAuthGuard)
-  async inverseList(@Request() req) {
-    const currentUserId = req.user.id;
-    const friendList = await this.friendService.getFriendRequestsReceived(currentUserId);
-  
-    return { friends: friendList };
-  }
+  //   return { friends: friendList };
+  // }
 
-  @Get('demandes')
-  @UseGuards(JwtAuthGuard)
-  async pendingList(@Request() req) {
-    const currentUserId = req.user.id;
-    const friendList = await this.friendService.getPendingFriendRequests(currentUserId);
-  
-    return { friends: friendList };
-  }
+  // @Get('enAttente')
+  // @UseGuards(JwtAuthGuard)
+  // async inverseList(@Request() req) {
+  //   const currentUserId = req.user.id;
+  //   const friendList = await this.friendService.getFriendRequestsReceived(currentUserId);
 
-  @Post('remove')
-  @UseGuards(JwtAuthGuard)
-  async removeFriend(@Request() req, @Body() friendNameObj) {
-    const currentUserId = req.user.id;
-    const friendList = await this.friendService.removeFriendship(currentUserId, friendNameObj.friendName);
-  
-    return { friends: friendList };
-  }
+  //   return { friends: friendList };
+  // }
 
-  @Post('isJustFriend')
-  @UseGuards(JwtAuthGuard)
-  async isFriend(@Request() req, @Body() friendNameObj) {
-    const currentUserId = req.user.id;
-    const result = await this.friendService.isJustFriend(currentUserId, friendNameObj.friendName);
+  // @Get('demandes')
+  // @UseGuards(JwtAuthGuard)
+  // async pendingList(@Request() req) {
+  //   const currentUserId = req.user.id;
+  //   const friendList = await this.friendService.getPendingFriendRequests(currentUserId);
 
-    return { Boolean : result };
-  }
+  //   return { friends: friendList };
+  // }
 
-  @Post('areMutualFriends')
-  @UseGuards(JwtAuthGuard)
-  async isMutualFriend(@Request() req, @Body() friendNameObj) {
-    const currentUserId = req.user.id;
-    const result = await this.friendService.areMutualFriends(currentUserId, friendNameObj.friendName);
+  // @Post('remove')
+  // @UseGuards(JwtAuthGuard)
+  // async removeFriend(@Request() req, @Body() friendNameObj) {
+  //   const currentUserId = req.user.id;
+  //   const friendList = await this.friendService.removeFriendship(currentUserId, friendNameObj.friendName);
 
-    console.log("controller mutualfriends result : ", result);
-    return { Boolean : result };
-  }
+  //   return { friends: friendList };
+  // }
+
+  // @Post('isJustFriend')
+  // @UseGuards(JwtAuthGuard)
+  // async isFriend(@Request() req, @Body() friendNameObj) {
+  //   const currentUserId = req.user.id;
+  //   const result = await this.friendService.isJustFriend(currentUserId, friendNameObj.friendName);
+
+  //   return { Boolean : result };
+  // }
+
+  // @Post('areMutualFriends')
+  // @UseGuards(JwtAuthGuard)
+  // async isMutualFriend(@Request() req, @Body() friendNameObj) {
+  //   const currentUserId = req.user.id;
+  //   const result = await this.friendService.areMutualFriends(currentUserId, friendNameObj.friendName);
+
+  //   console.log("controller mutualfriends result : ", result);
+  //   return { Boolean : result };
+  // }
 }
