@@ -74,7 +74,7 @@
                 <button class="w-full big-title layers hero glitch neon-text text-7rem" data-text="WELCOME TO PONG">WELCOME TO PONG</button>
               </div>
               <div class="grid sm:grid-cols-2 gap-5 max-w-1900px max-h-1500px w-full">
-                <div class="term-box flex">
+                <div class="term-box flex flex-col">
                   <div class="home-font px-6 py-10 text-5xl mb-6 text-center"> READY TO FIGHT ?</div>
                   <div class="px-5 py-5 flex items-center">
                     <img src="/videos/green-pong.gif">
@@ -87,21 +87,6 @@
               </div>
             </div>
             
-            <!-- <button class="big-title layers hero glitch neon-text" data-text="WELCOME TO PONG">WELCOME TO PONG</button>
-            <section class="term-box" style="width:850px; height:700px;  top:200px; left:50px;">
-              <div class="hero-container"> -->
-              
-                <!-- Liste d'options A GARDER-->
-                <!-- <ul class="options-list">
-                  <li><button class="home-button layers hero glitch" data-text="-login" @click="changeMode('login')"
-                    style="left:-200px; top:-90px;">-login</button>
-                  </li>
-                  <li><button class="home-button layers hero glitch" data-text="-signup" @click="changeMode('signup')"
-                    style="left:-192px; top:-70px;">-signup</button>
-                  </li>
-                </ul> -->
-              <!-- </div> -->
-            <!-- </section> -->
             </div> <!-- <div class="home"></div>-->
             <!-- <div class="flex items-center flex-col gap-5 justify-center w-full h-full bg-green px-5">
              <div class="">
