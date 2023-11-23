@@ -69,6 +69,10 @@
     outline: none;
   }
 
+  input[type="username"]:focus {
+    outline: none;
+  }
+
   /* .login-modal {
     /* position: absolute; */
     /* top: 50%; */

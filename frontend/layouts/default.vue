@@ -75,7 +75,7 @@
               </div>
               <div class="grid sm:grid-cols-2 gap-5 max-w-1900px max-h-1500px w-full">
                 <div class="term-box flex flex-col">
-                  <div class="home-font px-6 py-10 text-5xl mb-6 text-center"> READY TO FIGHT ?</div>
+                  <div class="home-font px-6 pt-10 text-5xl mb-6 text-center"> READY TO FIGHT ?</div>
                   <div class="px-5 py-5 flex items-center">
                     <img src="/videos/green-pong.gif">
                   </div>

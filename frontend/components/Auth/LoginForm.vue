@@ -32,7 +32,7 @@ import '/frontend/public/styles/home.css';
                 password: password
             })" class="grid grid-row gap-2 w-full" autocomplete="off">
 
-            <div class="term-box bg-transparent">
+            <div class="term-box flex flex-col">
                 <!-- Email Input -->
                 <div class="flex flex-row w-full p-5">
                     <span class="home-font text-2xl">Email:</span>
