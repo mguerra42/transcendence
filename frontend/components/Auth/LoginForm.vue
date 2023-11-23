@@ -37,14 +37,14 @@ import '/frontend/public/styles/home.css';
                 <div class="flex flex-row w-full p-5">
                     <span class="home-font text-2xl">Email:</span>
                     <input type="email" v-model="email" name="email"
-                        class="w-full px-3 text-2xl text-white outline-0" style="background-color: transparent; caret-color:rgb(0, 255, 191);"/>
+                        class="w-full px-3 text-2xl home-font outline-0" style="background-color: transparent; caret-color:rgb(0, 255, 191);"/>
                 </div>
 
                  <!-- Password Input -->
                 <div class="flex flex-row w-full px-5 pb-5">
                     <span class="home-font text-2xl">Password:</span>
                     <input type="password" v-model="password" name="password"
-                        class="px-3 text-2xl text-white outline-0" style="background-color: transparent; caret-color:rgb(0, 255, 191);"/>
+                        class="px-3 text-2xl home-font outline-0" style="background-color: transparent; caret-color:rgb(0, 255, 191);"/>
                 </div>
 
                 <div class="text-red">
