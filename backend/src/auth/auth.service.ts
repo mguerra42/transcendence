@@ -273,6 +273,8 @@ export class AuthService {
         if (typeof data.avatar != 'string') {
             console.log('data.avatar=', typeof data.avatar);
             newAvatar = this.saveAvatar(user, data.avatar);
+        } else {
+            newAvatar = data.avatar;
         }
 
         const updatedUser = await this.usersService.update(user.id, {

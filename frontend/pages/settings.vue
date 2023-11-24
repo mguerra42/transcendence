@@ -42,8 +42,7 @@ const payload = ref({
     newPassword: '',
     newPasswordConfirmation: '',
     avatar: auth.session.avatar,
-    //mfaEnabled: auth.session.mfaEnabled,
-    mfaEnabled: true,
+    mfaEnabled: auth.session.mfaEnabled,
     mfaCode: '',
 })
 const isValid = computed(() => {
@@ -76,6 +75,11 @@ const generateQR = async text => {
     console.error(err)
   }
 }
+const resetAvatar = () => {
+    avatarFile.value = null
+    payload.value.avatar = '/avatars/default.jpg'
+    auth.session.avatar = '/avatars/default.jpg'
+}
 
 </script>
 <template>
@@ -88,11 +92,13 @@ const generateQR = async text => {
         <!-- <h1 class="text-gray text-2xl mb-2">You can update your profile here</h1>  -->
         <form @submit.prevent="auth.update({
             ...payload,
-            avatar: avatarFile,
+            avatar: avatarFile ? avatarFile : payload.avatar,
         })" class="flex flex-col gap-4" autocomplete="off">
             
             <div class="flex flex-col">
-                <div class="font-bold text-base mt-4">Change your profile picture (optional)</div>
+                <div class="font-bold text-base mt-4">Change your profile picture (optional) [
+                    <button class="text-blue-600 text-sm" type="button" @click="resetAvatar">Reset Avatar</button>
+                    ]</div>
                 <div class="flex justify-center">
                     <img :src="avatarPreview" class="rounded-lg mt-4 h-100px max-w-100px b-2 b-white p-.5" />
                 </div>

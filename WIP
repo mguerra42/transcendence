@@ -56,7 +56,7 @@
 2 . User profile - private
 [ Yes / No ]
 
-	❌When logged in, the user has access to their profile where they can
+	✅When logged in, the user has access to their profile where they can
 	edit their information. For instance, they can change their nickname
 	(which must be unique) or their avatar (which is a default avatar if not
 	set).
