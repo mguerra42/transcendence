@@ -227,7 +227,7 @@ export class AuthService {
         }
         let newPassword = undefined;
 
-        if (data.changePassword == true) {
+        if (data.changePassword == 'true') {
             if (data.newPassword !== data.newPasswordConfirmation) {
                 throw new HttpException(
                     'Passwords do not match.',
