@@ -1,6 +1,7 @@
 <script setup lang="ts">
     const auth = useAuth()
 	const chat = useChat()
+
    
 	const tab = ref("chat")
 
@@ -9,11 +10,11 @@
 	})
 </script>
 <template>
-    <div class="flex text-white flex-1 h-full w-full">
+    <div class="flex text-white flex-1 h-[calc(100vh-100px)] w-full " v-if="chat.activeConversation">
 		<div class="flex flex-col gap-2 w-full flex-1">
 			<div class="text-3xl text-white px-5 pt-5 flex items-center gap-2">
-				<div>#{{ chat.activeConversation?.channel.name }}</div>
-				<div @click="tab = 'settings'" class="text-xl bg-gray-400 rounded p-1 hover:scale-110 cursor-pointer transition-all" v-if="chat.activeConversation?.role == 'OWNER'">
+				<div>#{{ chat.activeConversation.channel.name }}</div>
+				<div @click="tab = 'settings'" class="text-xl bg-gray-400 rounded p-1 hover:scale-110 cursor-pointer transition-all" v-if="chat.activeConversation.role == 'OWNER'">
 					<div class="i-mdi:cog"></div>
 				</div>
 				<div @click="chat.activeConversation?.leave" class="text-xl bg-gray-400 rounded p-1 hover:scale-110 cursor-pointer transition-all" >
@@ -22,10 +23,10 @@
 			</div>
 
             <div class="text-xs text-white px-5 flex items-center gap-2">
-				<div>En ligne: {{ chat.activeConversation?.users.length }}</div>
+				<div>En ligne: {{ chat.activeConversation.users.length }}</div>
 				
 			</div>
-			<div v-if="chat.activeConversation?.channel.description" class="text-sm text-white px-5 flex items-center gap-2 break-all">{{ chat.activeConversation?.channel.description }}</div>
+			<div v-if="chat.activeConversation.channel.description" class="text-sm text-white px-5 flex items-center gap-2 break-all">{{ chat.activeConversation.channel.description }}</div>
 			<div class="text-lg sm:text-xl text-white px-5 ">
 				<div class="w-full">
 				<div class="relative right-0">
@@ -55,7 +56,7 @@
 						role="tab"
 						aria-selected="false"
 						>
-						<span class="ml-1">Members ({{ chat.activeConversation?.users.length }})</span>
+						<span class="ml-1">Members ({{ chat.activeConversation.users.length }})</span>
 						</a>
 					</li>
 					<li class="flex-auto text-center">
@@ -74,8 +75,7 @@
 				</div>
 			</div>
 			<div v-if="tab == 'chat'" class=" justify-between flex flex-1  flex-col overflow-auto">
-				<!--
-				-->
+				
                 <div class="relative flex-1 ">
                     <div class="absolute px-2 bottom-0 left-0 right-0 top-0 overflow-auto pb-3" >
                        

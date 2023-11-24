@@ -23,6 +23,10 @@ const leaveChannel = (channel: any) => {
     if(conversation) {
         conversation.leave((answer) => {
             if(answer.success) {
+
+                setTimeout(() => {
+                    chat.searchChannel()
+                }, 100)
                 channel.users = channel.users.filter(u => u.userId != auth.session.id)
             }
         })
@@ -60,8 +64,8 @@ const leaveChannel = (channel: any) => {
             <div class="font-bold text-4xl">Search channel</div>
             <div class="w-60%">
                 <input
-                    v-model="query"
-                    @input="chat.searchChannel(query)"
+                    v-model="chat.searchChannelQuery"
+                    @input="chat.searchChannel()"
                     type="text"
                     placeholder="Search channel..."
                     class="w-full px-4 py-2 text-sm rounded-lg b-1 bg-zinc-600 focus:outline-none focus:text-zinc-300"

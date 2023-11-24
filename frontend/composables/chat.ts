@@ -255,6 +255,9 @@ export const useChat = defineStore("chat", () => {
       channelId,
       password,
     });
+    setTimeout(() => {
+        searchChannel()
+    }, 100)
   };
 
   const _onConversationsList = ({
@@ -263,7 +266,14 @@ export const useChat = defineStore("chat", () => {
     conversations: Conversation[];
   }) => {
     console.log("conversations", _conversations);
+    const route = useRoute();
     _conversations.map((c) => _onConversationsSync({ conversation: c }));
+    if (route.name == 'chat-conversation') {
+        let conv = _conversations.find(c => c.channelId == route.params.conversation)
+        if (conv) {
+            showConversation(conversations.value.get(conv.channelId))
+        }
+    }
   };
 
   const _onConversationsSync = ({
@@ -318,12 +328,21 @@ export const useChat = defineStore("chat", () => {
   };
   const createConversation = async (conversationInfo) => {
     console.log("createConversation", conversationInfo);
-    socket.emit("conversations:create", conversationInfo);
+    socket.emit("conversations:create", conversationInfo, async (conv) => {
+        console.log("createConversation", conv);
+        await navigateTo({
+            name: "chat-conversation",
+            params: {
+                conversation: conv.channelId,
+            },
+        })
+    });
   };
 
+  const searchChannelQuery = ref('');
   const searchChannelResults = ref([]);
-  const searchChannel = async (query: string) => {
-    socket.emit("conversations:search", { query }, (answer) => {
+  const searchChannel = async () => {
+    socket.emit("conversations:search", { query: searchChannelQuery.value }, (answer) => {
       console.log("search", answer);
       searchChannelResults.value = answer;
     });
@@ -367,6 +386,7 @@ export const useChat = defineStore("chat", () => {
 
   const init = async () => {
     const { notify } = useNotification();
+    const route = useRouter();
 
     socket.on("notification", _onNotification);
     socket.on("conversations:list", _onConversationsList);
@@ -563,6 +583,7 @@ export const useChat = defineStore("chat", () => {
     conversations,
     showConversation,
     searchChannel,
+    searchChannelQuery,
     searchChannelResults,
     hideConversation,
     activeConversation,
@@ -610,3 +631,7 @@ export const useChat = defineStore("chat", () => {
     //dms,
   };
 });
+
+
+
+export type WrappedConversationType = typeof WrappedConversation

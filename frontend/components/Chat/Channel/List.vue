@@ -10,15 +10,17 @@ const props = defineProps<{
     <div class="font-bold capitalize flex justify-between items-center p-2.5">
       <div>Channels</div>
       <div class="flex items-center gap-2 mr-1.5">
-        <div
-          @click="chat.setView('search_channel')"
+        <nuxt-link
+        :to="{
+            name: 'chat-search-channel',
+        }"
           class="bg-gray p-1 rounded cursor-pointer transition-all hover:scale-110"
         >
           <div class="i-mdi:search"></div>
-        </div>
+        </nuxt-link>
         <nuxt-link
         :to="{
-            name: 'chat-create',
+            name: 'chat-create-channel',
         }"
         @click="chat.currentMode = 'chat'"
           class="bg-gray p-1 w-full rounded cursor-pointer transition-all hover:scale-110"
@@ -28,9 +30,14 @@ const props = defineProps<{
       </div>
     </div>
     <div class="overflow-y-scroll flex-1">
-      <div
+      <nuxt-link
         v-for="conversation in conversations"
-        @click="chat.showConversation(conversation)"
+        :to="{
+            name: 'chat-conversation',
+            params: {
+                conversation: conversation.channel.id,
+            },
+        }"
         class="px-2.5 mb-1 py-2 hover:bg-white/10 cursor-pointer flex justify-center flex-col relative"
         :class="[
           chat.isActiveConversation(conversation)
@@ -51,7 +58,7 @@ const props = defineProps<{
             10k+
           </div>
         </div>
-      </div>
+      </nuxt-link>
     </div>
   </div>
 </template>

@@ -23,7 +23,9 @@ const route = useRoute();
     >
       <div class="i-mdi:chevron-right"></div>
     </div>
-    <ChatChannelCreate v-if="$route.name == 'chat-create'" />
+    <ChatChannelCreate v-if="$route.name == 'chat-create-channel'" />
+    <ChatChannelSearch v-if="$route.name == 'chat-search-channel'" />
+    <ChatConversation v-if="$route.name == 'chat-conversation'" />
     <!--<ChatConversation v-if="$route.name == 'dm'"/>-->
             <!--<ChatConversation v-if="chat.current == 'search'"/>-->
     <!--<ChatChannelView v-if="chat.view == 'channel'" />

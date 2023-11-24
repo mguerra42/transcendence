@@ -5,6 +5,8 @@
 	const auth = useAuth()
 	const chat = useChat()
 
+
+
 	const search = ref('')
 	let timer
 	watch(() => chat.activeConversation.channel.name, async (v) => {
@@ -19,7 +21,7 @@
 	})
 </script>
 <template>
-	<div class="flex-1 overflow-y-scroll">
+	<div class="flex-1 overflow-y-scroll" v-if="chat.activeConversation">
 		<div class="flex flex-col gap-2  pb-3 px-3" >
 			<div class="p-2.5 flex flex-col gap-5 items-center justify-center w-full">
             <div class="font-bold text-4xl">Update channel</div>

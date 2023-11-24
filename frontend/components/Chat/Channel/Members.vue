@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { WrappedConversation } from '~/composables/chat';
 const auth = useAuth();
 const chat = useChat();
+
 
 const search = ref("");
 const members = computed(() => {
