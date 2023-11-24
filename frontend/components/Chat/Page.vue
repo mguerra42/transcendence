@@ -3,12 +3,11 @@ const chat = useChat();
 </script>
 <template>
   <div
-    class="fixed bottom-0 left-0 max-h-600px max-w-620px w-full h-full overflow-hidden"
+    class=" bottom-0 left-0  w-full h-full overflow-hidden"
   >
     <div class="w-full h-full p-2 relative">
       <div class="relative w-full h-full">
-        <ChatTriggerButton />
-        <ChatContainer v-if="chat.visible" />
+        <ChatContainer />
       </div>
       <div
         v-if="chat.currentProfile?.user?.id"

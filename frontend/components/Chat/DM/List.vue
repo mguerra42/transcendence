@@ -6,10 +6,10 @@ const props = defineProps<{
 }>();
 </script>
 <template>
-  <div class="h-50% text-white flex flex-col">
+  <div class="h-50% text-white flex flex-col b-t-1 b-white/15">
     <div class="font-bold capitalize flex justify-between items-center p-2.5">
       <div>Friends</div>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 mr-1.5">
         <div
           @click="chat.setView('search_friends')"
           class="bg-gray p-1 rounded cursor-pointer hover:scale-110 transition-all"

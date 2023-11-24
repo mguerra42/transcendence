@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import slugify from 'slugify'
-
+const route = useRoute();
 const auth = useAuth();
 const avatarFile = ref(null);
 const onFileSelected = async (event: any) => {
@@ -80,6 +80,7 @@ await auth.getSession();
         </section>
         <!--<aside class="w-240px bg-green h-full">Sidebar right</aside>-->
       </div>
+        <ChatTriggerButton v-if="!$route.name?.startsWith('chat')" />
       <!--<ChatModule />-->
     </div>
     <notifications position="bottom center" :pauseOnHover="true" />

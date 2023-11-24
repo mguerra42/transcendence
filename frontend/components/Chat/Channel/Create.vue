@@ -9,10 +9,10 @@ const channel = ref<Omit<Channel, "id" | "messages" | "users" | "unread">>({
 </script>
 <template>
   <div class="overflow-auto h-full flex-1">
-    <div class="flex text-white flex-1 h-full w-full">
-      <div class="py-5 w-full h-full">
+    <div class="flex text-white flex-1 h-full w-full ">
+      <div class="py-5 w-full h-full justify-center items-center" >
         <div
-          class="p-2.5 flex flex-col gap-5 items-center justify-center w-full"
+          class="p-2.5 flex flex-col gap-5 items-center justify-center  min-h-[calc(100vh-61px-40px)]  w-full  "
         >
           <div class="font-bold text-4xl">Create channel</div>
           <div class="w-60%">

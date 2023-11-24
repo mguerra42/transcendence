@@ -1,10 +1,12 @@
 <script setup lang="ts">
 const chat = useChat();
+
+const route = useRoute();
 </script>
 
 <template>
   <div
-    class="relative w-full min-w-300px flex flex-col max-w-800px bg-zinc-700 rounded-r-lg"
+    class="relative w-full min-w-300px flex flex-col bg-zinc-700 rounded-r-lg justify-center "
     v-if="
       chat.compactMode == false ||
       (chat.compactMode == true && chat.currentMode == 'chat')
@@ -21,22 +23,18 @@ const chat = useChat();
     >
       <div class="i-mdi:chevron-right"></div>
     </div>
-
-    <nuxt-link :to="{
-        name: 'test'
-    }">Cocuou</nuxt-link>
-    <!--<ChatConversation v-if="chat.current == 'dm'"/>
-            <ChatConversation v-if="chat.current == 'search'"/>-->
-    <ChatChannelView v-if="chat.view == 'channel'" />
-    <ChatChannelCreate v-if="chat.view == 'create_channel'" />
+    <ChatChannelCreate v-if="$route.name == 'chat-create'" />
+    <!--<ChatConversation v-if="$route.name == 'dm'"/>-->
+            <!--<ChatConversation v-if="chat.current == 'search'"/>-->
+    <!--<ChatChannelView v-if="chat.view == 'channel'" />
     <ChatChannelSearch v-if="chat.view == 'search_channel'" />
-    <ChatDMSearch v-if="chat.view == 'search_friends'" />
+    <ChatDMSearch v-if="chat.view == 'search_friends'" />-->
 
-    <div
+    <!--<div
       @click="chat.setVisible(false)"
       class="absolute right-1 text-red top-1 hover:scale-110 cursor-pointer"
     >
       <div class="i-mdi:close-box text-3xl"></div>
-    </div>
+    </div>-->
   </div>
 </template>

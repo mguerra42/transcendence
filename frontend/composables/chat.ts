@@ -217,7 +217,7 @@ export class WrappedConversation {
 export const useChat = defineStore("chat", () => {
   const socket = useSocket();
 
-  const visible = ref(true);
+  const visible = ref(false);
   const setVisible = (state: boolean) => (visible.value = state === true);
 
   const view = ref("home");
@@ -524,9 +524,9 @@ export const useChat = defineStore("chat", () => {
       id: 0,
     },
   });
-  //const compactMode = ref(false)
+  const compactMode = ref(false)
+  const currentMode = ref('channels')
   //const searchTextChannel = ref('')
-  //const currentMode = ref('channels')
   //const searchChannelLoading = ref(false)
   //const searchChannelResults = ref([])
   //const searchChannel = (name: string) => {
@@ -583,6 +583,8 @@ export const useChat = defineStore("chat", () => {
     mute,
     ban,
     setAdmin,
+    compactMode,
+    currentMode,
 
     //current,
     //currentProfile,

@@ -9,19 +9,22 @@ const props = defineProps<{
   <div class="h-50% text-white flex flex-col">
     <div class="font-bold capitalize flex justify-between items-center p-2.5">
       <div>Channels</div>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 mr-1.5">
         <div
           @click="chat.setView('search_channel')"
           class="bg-gray p-1 rounded cursor-pointer transition-all hover:scale-110"
         >
           <div class="i-mdi:search"></div>
         </div>
-        <div
-          @click="chat.setView('create_channel')"
-          class="bg-gray p-1 rounded cursor-pointer transition-all hover:scale-110"
+        <nuxt-link
+        :to="{
+            name: 'chat-create',
+        }"
+        @click="chat.currentMode = 'chat'"
+          class="bg-gray p-1 w-full rounded cursor-pointer transition-all hover:scale-110"
         >
           <div class="i-mdi:plus"></div>
-        </div>
+        </nuxt-link>
       </div>
     </div>
     <div class="overflow-y-scroll flex-1">
