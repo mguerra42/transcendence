@@ -44,7 +44,7 @@ import '/frontend/public/styles/home.css';
 
                 <!-- Signup -->
                 <div class="text-center pb-5">
-                    <button type="submit" class="home-font home-button layers hero glitch text-5xl " :class="{
+                    <button type="submit" class="home-font home-button layers hero glitch text-4xl " :class="{
                         'transition duration-300': isValid,
                     }"  data-text="LOG IN">
                         SIGN UP

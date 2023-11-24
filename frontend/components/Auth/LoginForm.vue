@@ -30,7 +30,7 @@ import '/frontend/public/styles/home.css';
         <form @submit.prevent="client.auth.authenticateUser({
                 email: email,
                 password: password
-            })" class="grid grid-row gap-2 w-full" autocomplete="off">
+            })" class="flex flex-col gap-2 w-full" autocomplete="off">
 
             <div class="term-box flex flex-col">
                 <!-- Email Input -->
@@ -41,19 +41,19 @@ import '/frontend/public/styles/home.css';
                 </div>
 
                  <!-- Password Input -->
-                <div class="flex flex-row w-full px-5 pb-5">
+                <div class="flex flex-row w-full px-5">
                     <span class="home-font text-2xl">Password:</span>
                     <input type="password" v-model="password" name="password"
                         class="px-3 text-2xl home-font outline-0" style="background-color: transparent; caret-color:rgb(0, 255, 191);"/>
                 </div>
 
-                <div class="text-red">
+                <div class="px-5 text-red">
                     {{ auth.error }}
                 </div>
 
                 <!-- Default Login-->
                 <div class="text-center pb-5">
-                <button class="home-font home-button layers hero glitch text-5xl " :class="{
+                <button class="home-font home-button layers hero glitch text-4xl " :class="{
                     'transition duration-300': isValid,
                 }"  data-text="LOG IN">
                     LOG IN
@@ -62,7 +62,7 @@ import '/frontend/public/styles/home.css';
             </div>
 
             <div>
-                <div class="home-font px-4 pt-20 text-4xl mb-6 text-center">
+                <div class="home-font px-4 pt-10 text-4xl mb-6 text-center">
                     You do not have an account yet ?
                 </div>
             </div>
@@ -71,7 +71,7 @@ import '/frontend/public/styles/home.css';
                 Sign up
             </a>
 
-            <div class="flex flex-row gap-40 w-full justify-center items-center">
+            <div class="flex flex-row gap-20 w-full justify-center items-center">
                 <!-- Google Login-->
                 <div class="flex flex-row gap-2">
                     <div>

@@ -69,15 +69,15 @@
               </video>
             </div >
 
-            <div class="relative z-100 flex items-center flex-col gap-5 justify-start w-full h-full py-30 px-5">
+            <div class="relative z-100 flex items-center flex-col gap-5 justify-start w-full h-full py-20 px-5">
               <div class="flex w-full max-w-1900px items-center h-100px">
-                <button class="w-full big-title layers hero glitch neon-text text-7rem" data-text="WELCOME TO PONG">WELCOME TO PONG</button>
+                <button class="transition-all w-full big-title layers hero glitch neon-text text-3.5rem md:text-5rem lg:text-7rem" data-text="WELCOME TO PONG">WELCOME TO PONG</button>
               </div>
-              <div class="grid sm:grid-cols-2 gap-5 max-w-1900px max-h-1500px w-full">
+              <div class="grid sm:grid-cols-2 gap-5 max-w-1900px w-full">
                 <div class="term-box flex flex-col">
                   <div class="home-font px-6 pt-10 text-5xl mb-6 text-center"> READY TO FIGHT ?</div>
-                  <div class="px-5 py-5 flex items-center">
-                    <img src="/videos/green-pong.gif">
+                  <div class="px-5 py-5 flex items-center ">
+                    <img class="h-full" src="/videos/green-pong.gif">
                   </div>
                 </div>
                 <div class="term-box flex" >
