@@ -40,7 +40,7 @@ export class WrappedConversation {
   socket: any;
   chat: any;
   messages: Ref<Message[]>;
-  constructor(public conversation: Conversation) {
+  constructor(public  conversation: Conversation) {
     this.socket = useSocket();
     this.chat = useChat();
     this.messages = ref([]);
@@ -108,6 +108,16 @@ export class WrappedConversation {
     console.log("onNewMessage", this.messages);
     this.messages.push(message);
   }
+
+  async syncStatus() {
+    this.conversation.channel.users = this.conversation.channel.users.map((u) => {
+        let status = this.chat.status[u.userId];
+        if (status) {
+            u.online = status == 'online';
+        }
+        return u;
+    })
+    }
 
   getUser(userId: number) {
     return this.users.find((u) => u.userId == userId)?.user;
@@ -260,20 +270,20 @@ export const useChat = defineStore("chat", () => {
     }, 100)
   };
 
-  const _onConversationsList = ({
+  const onConversationsList = ({
     conversations: _conversations,
   }: {
     conversations: Conversation[];
   }) => {
     console.log("conversations", _conversations);
-    const route = useRoute();
     _conversations.map((c) => _onConversationsSync({ conversation: c }));
-    if (route.name == 'chat-conversation') {
-        let conv = _conversations.find(c => c.channelId == route.params.conversation)
-        if (conv) {
-            showConversation(conversations.value.get(conv.channelId))
-        }
-    }
+    //const route = useRoute();
+    //if (route.name == 'chat-conversation') {
+    //    let conv = _conversations.find(c => c.channelId == route.params.conversation)
+    //    if (conv) {
+    //        showConversation(conversations.value.get(conv.channelId))
+    //    }
+    //}
   };
 
   const _onConversationsSync = ({
@@ -384,17 +394,38 @@ export const useChat = defineStore("chat", () => {
     console.log("setAdmin", { userId, channelId, state });
   };
 
+  const status = ref({});
+
   const init = async () => {
     const { notify } = useNotification();
     const route = useRouter();
-
     socket.on("notification", _onNotification);
-    socket.on("conversations:list", _onConversationsList);
-    socket.on("conversations:sync", _onConversationsSync);
-    socket.on("conversations:syncing", triggerSyncing);
-    socket.on("conversations:left", _onConversationsLeft);
-    socket.on("conversations:message", _onConversationsMessage);
     socket.emit("conversations:list");
+    socket.on("conversations:list", onConversationsList);
+    socket.on("status", async (data) => {
+        console.log("status",{data})
+        status.value = data
+        await nextTick()
+        setTimeout(() => {
+            conversations.value.forEach((c) => {
+                c.syncStatus()
+            })
+        }, 100)
+    });
+
+    //socket.on("conversations:syncing", triggerSyncing);
+    //socket.on("conversations:sync", _onConversationsSync);
+    //socket.on("conversations:join", (d) => {
+    //    console.log("conversations:join", d);
+        
+    //});
+    //socket.on("conversations:left", (d) => {
+        
+    //    console.log("conversations:left", d);
+    //});
+    //socket.on("conversations:left", _onConversationsLeft);
+    //socket.on("conversations:message", _onConversationsMessage);
+    //
     //socket.on('channels:list', (data) => {
     //    data.forEach(c => {
     //        console.log("onJoinChannels", onJoinChannels.value, c)
@@ -599,6 +630,7 @@ export const useChat = defineStore("chat", () => {
     addFriend,
     challenge,
     blockUser,
+    status,
 
     kick,
     mute,

@@ -20,6 +20,7 @@ import { FriendService } from '../friend/friend.service';
 })
 export class SocketsGateway {
     clients: object;
+    status: object;
     constructor(
         private authService: AuthService,
         private userService: UsersService,
@@ -27,6 +28,7 @@ export class SocketsGateway {
         private friendService: FriendService,
     ) {
         this.clients = {};
+        this.status = {};
     }
 
     @WebSocketServer()
@@ -54,6 +56,11 @@ export class SocketsGateway {
         };
         this.clients[payload.id] = this.clients[payload.id] || [];
         this.clients[payload.id].push(client.id);
+        this.joinUser(client.user.id, `everyone`);
+        if (this.clients[payload.id].length === 1) {
+            this.status[client.user.id] = 'online';
+            this.server.in('everyone').emit('status', this.status);
+        }
     }
 
     async handleDisconnect(client) {
@@ -61,6 +68,11 @@ export class SocketsGateway {
         this.clients[client.user.id] = this.clients[client.user.id].filter(
             (id) => id !== client.id,
         );
+
+        if (this.clients[client.user.id].length === 0) {
+            this.status[client.user.id] = 'offline';
+            this.server.in('everyone').emit('status', this.status);
+        }
     }
 
     async sendToUser(userId: string, event: string, data: any) {
@@ -106,6 +118,7 @@ export class SocketsGateway {
                 console.log(
                     `User ${c.userId} => client.join('conversation:${c.channelId});`,
                 );
+                console.log(c);
                 this.joinUser(client.user.id, `conversation:${c.channelId}`);
                 return c;
             }),
@@ -209,6 +222,10 @@ export class SocketsGateway {
             this.sendChannelEvent(channelId, 'conversations:syncing', {
                 channelId: channelId,
             });
+            this.sendChannelEvent(channelId, 'conversations:left', {
+                channelId: channelId,
+                userId: client.user.id,
+            });
         }
 
         return {
@@ -236,6 +253,13 @@ export class SocketsGateway {
             from: 0,
             content: `@${client.user.username} has joined the channel`,
             timestamp: new Date(),
+        });
+        this.sendToUser(client.user.id, 'conversations:join', {
+            channelId: payload.channelId,
+        });
+        this.sendChannelEvent(payload.channelId, 'conversations:joined', {
+            channelId: payload.channelId,
+            userId: client.user.id,
         });
         this.sendChannelEvent(payload.channelId, 'conversations:syncing', {
             channelId: payload.channelId,
