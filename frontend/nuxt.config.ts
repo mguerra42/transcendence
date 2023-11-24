@@ -1,7 +1,12 @@
 import { appDescription } from './constants/index'
 
 export default defineNuxtConfig({
-
+    ssr: false,
+    router: {
+      options: {
+        hashMode: true
+      }
+    },
     runtimeConfig: {
         public: {
             GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,

@@ -27,6 +27,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { async } from 'rxjs';
 import { UsersService } from 'src/users/users.service';
 import { FortyTwoAuthGuard } from './42.guard';
+import { SetupDto } from './dto/setup.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -46,6 +47,25 @@ export class AuthController {
             success: true,
             message: 'User created',
         };
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('setup')
+    @UseInterceptors(FileInterceptor('avatar'))
+    async setup(
+        @Request() req,
+        @Body() setupDto: SetupDto,
+
+        @UploadedFile() avatar: Express.Multer.File,
+    ) {
+        const setupUser = await this.authService.setup(
+            req.user,
+            setupDto?.username,
+            avatar,
+        );
+        if (!setupUser) {
+            throw new HttpException('User not setup', 401);
+        }
     }
 
     @UseGuards(LocalAuthGuard) // Will use email/pass to retrieve user (look at LocalStrategy) or throw if not valid/found
@@ -121,6 +141,7 @@ export class AuthController {
             username: user.username,
             email: user.email,
             avatar: user.avatar,
+            isSetup: user.isSetup,
             mfaEnabled: user.mfaEnabled,
             mfaLevel: req.user.mfaLevel,
         };

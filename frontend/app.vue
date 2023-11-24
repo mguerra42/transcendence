@@ -17,7 +17,7 @@ onMounted(async () => {
 
 <template>
   <transition name="fade" mode="out-in">
-    <ViewLoader :is-loading="isLoading" />
+    <Loader :is-loading="isLoading" />
   </transition>
   <NuxtLayout v-if="!isLoading">
     <NuxtPage />

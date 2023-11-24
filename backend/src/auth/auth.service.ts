@@ -11,6 +11,8 @@ import { DBService } from 'src/db/db.service';
 import * as bcrypt from 'bcryptjs';
 import * as speakeasy from 'speakeasy';
 import * as qrcode from 'qrcode';
+import { SetupDto } from './dto/setup.dto';
+import * as fs from 'fs';
 
 @Injectable()
 export class AuthService {
@@ -20,19 +22,36 @@ export class AuthService {
     ) {}
 
     async signup(credentials: SignUpDto) {
-        if (!credentials.email || !credentials.username) {
+        if (!credentials.email) {
             throw new HttpException(
-                'Email and Username are required.',
+                'Email is required.',
                 HttpStatus.UNPROCESSABLE_ENTITY,
             );
         }
+        if (!credentials.password) {
+            throw new HttpException(
+                'Password is required.',
+                HttpStatus.UNPROCESSABLE_ENTITY,
+            );
+        }
+        credentials.username =
+            credentials.email.split('@')[0] +
+            '_' +
+            Math.floor(Math.random() * 10000);
+
         const exists = await this.usersService.findByEmailOrUsername(
             credentials.email,
             credentials.username,
         );
-        if (exists) {
+        if (exists && exists.email === credentials.email) {
             throw new HttpException(
-                'Email or Username is already taken.',
+                'Email is already taken.',
+                HttpStatus.UNPROCESSABLE_ENTITY,
+            );
+        }
+        if (exists && exists.username === credentials.username) {
+            throw new HttpException(
+                'Username is already taken.',
                 HttpStatus.UNPROCESSABLE_ENTITY,
             );
         }
@@ -43,6 +62,50 @@ export class AuthService {
 
         return user;
     }
+    async setup(user: any, username: string, avatar?: Express.Multer.File) {
+        console.log('setup username=', username);
+        console.log('setup avatar=', avatar);
+        if (!username) {
+            throw new HttpException(
+                'Username is required.',
+                HttpStatus.UNPROCESSABLE_ENTITY,
+            );
+        }
+        const payload = {
+            username,
+            isSetup: true,
+        };
+        if (avatar) {
+            if (avatar.size > 1000000) {
+                throw new HttpException(
+                    'Avatar is too large.',
+                    HttpStatus.UNPROCESSABLE_ENTITY,
+                );
+            }
+            if (
+                avatar.mimetype !== 'image/png' &&
+                avatar.mimetype !== 'image/jpeg'
+            ) {
+                throw new HttpException(
+                    'Avatar must be a PNG or JPEG.',
+                    HttpStatus.UNPROCESSABLE_ENTITY,
+                );
+            }
+            const avatarPath =
+                '/backend/avatars/' +
+                user.id +
+                (avatar.mimetype == 'image/png' ? '.png' : '.jpg');
+            console.log('avatarPath=', avatarPath);
+            // write avatar to /backend/avatars/
+            fs.writeFileSync(avatarPath, avatar.buffer);
+            payload['avatar'] = avatarPath.replace('/backend', '');
+        }
+
+        console.log('payload=', payload, user.id);
+
+        await this.usersService.update(user.id, payload);
+        return true;
+    }
 
     getUserPayload(user, provider) {
         return {
@@ -52,6 +115,7 @@ export class AuthService {
             username: user.username,
             avatar: user.avatar,
             mfaEnabled: user.mfaEnabled,
+            isSetup: user.isSetup,
             mfaLevel: 1,
         };
     }

@@ -14,13 +14,16 @@ datasource db {
 model User {
   id             Int           @id @default(autoincrement())
   username       String?       @unique
-  status         String?       @default("OFFLINE")//online, playing, offline
   email          String        @unique
   password       String
+  avatar         String        @default("/avatars/default.jpg") //the path to the avatar image
+  isSetup        Boolean       @default(false) //if the user has setup his account
+
+
+  status         String?       @default("OFFLINE")//online, playing, offline
   victories      Int           @default(0) //number of victories for stats
   defeats        Int           @default(0) //number of defeats for stats
   ladderPoint    Int           @default(1000) //level for stats
-  avatar     String        @default("/avatars/default.jpg") //the path to the avatar image
   // friends        Friend[]      @relation("friends")
   // inverseFriends Friend[]      @relation("inverseFriends") // Only for prisma, not used
   friends Friendship[] @relation("friends")

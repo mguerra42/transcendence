@@ -21,6 +21,10 @@ const chat = useChat();
     >
       <div class="i-mdi:chevron-right"></div>
     </div>
+
+    <nuxt-link :to="{
+        name: 'test'
+    }">Cocuou</nuxt-link>
     <!--<ChatConversation v-if="chat.current == 'dm'"/>
             <ChatConversation v-if="chat.current == 'search'"/>-->
     <ChatChannelView v-if="chat.view == 'channel'" />

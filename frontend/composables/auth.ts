@@ -13,7 +13,9 @@ export const useAuth = defineStore('auth', () => {
         avatar: string
         mfaEnabled: boolean
         mfaLevel: number
+        isSetup: boolean
     }>()
+    const isSetup = computed(() => session.value?.isSetup === true)
     const need2FA = computed(() => session.value?.mfaEnabled === true && session.value?.mfaLevel === 1)
     const showLoginView = computed(() => !session.value?.id || (session.value.id && need2FA.value))
 
@@ -23,7 +25,7 @@ export const useAuth = defineStore('auth', () => {
     //const QRCodeURL = ref('')
     //const twoFaStatus = ref(0)
     //const logged = ref<boolean | null>(null)
-    const mode = ref('login')
+    const activeForm = ref('login')
     //const error = ref('')
     //const refresh = ref(false)
 
@@ -96,7 +98,7 @@ export const useAuth = defineStore('auth', () => {
       }
 
     const signup = async ({
-        username,
+        //username,
         email,
         password,
       }) => {
@@ -104,7 +106,7 @@ export const useAuth = defineStore('auth', () => {
           method: 'POST',
           baseURL: config.public.baseURL,
           body: {
-            username,
+            //username,
             email,
             password,
           },
@@ -128,12 +130,14 @@ export const useAuth = defineStore('auth', () => {
         })
       }
     const login = async (provider, payload?) => {
+        console.log("provider", provider)
         if (provider === '42') {
             const redirect = encodeURIComponent(`${config.public.baseURL}/auth/42/callback`)
             location.href = `https://api.intra.42.fr/oauth/authorize?client_id=${config.public.INTRA_CLIENT_ID}&redirect_uri=${redirect}&response_type=code`
             return
         }
         if (provider === 'credentials') {
+            console.log("payload", payload)
             const { data, error } = await useRequest('/auth/login', {
                 method: 'POST',
                 body: payload,
@@ -150,6 +154,25 @@ export const useAuth = defineStore('auth', () => {
         }
       }
 
+      const setup = async (payload) => {
+        const formData = new FormData()
+        formData.append('avatar', payload.avatar)
+        formData.append('username', payload.username)
+        const { data, error } = await useRequest('/auth/setup', {
+          method: 'POST',
+          body: formData,
+          watch: false
+        })
+        if(error.value) {
+            useNotification().notify({
+                text: error.value.data.message,
+                type: 'error',
+            })
+            return
+        }
+        await getSession()
+      }
+
     return {
         login,
         logout,
@@ -159,9 +182,11 @@ export const useAuth = defineStore('auth', () => {
         need2FA,
         session,
         getSession,
+        isSetup,
+        setup,
         //error,
         //session,
-        mode,
+        activeForm,
         //showForm,
         //showUserForm,
         //showQRCode,

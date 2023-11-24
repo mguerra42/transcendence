@@ -1,5 +1,5 @@
 <script setup lang="ts">
-
+const auth = useAuth()
 import { onClickOutside } from '@vueuse/core'; 
     const showUserMenu = ref(false)
     const toggleUserMenu = () => {
@@ -19,8 +19,8 @@ onMounted(async () => {
     <div class="h-61px flex items-center justify-between px-5 relative">
         <div>FT_transcendence</div>
         <div>
-            <div @click="toggleUserMenu" class="rounded-full bg-gray p-2">
-                <div class="i-mdi:user text-xl text-white"></div>
+            <div @click="toggleUserMenu" class="rounded bg-gray p-.5">
+                <img :src="auth.session?.avatar" alt="" class="h-10 w-10">
             </div>
         </div>
         <UserMenu ref="menu" v-if="showUserMenu"/>
