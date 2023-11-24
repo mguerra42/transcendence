@@ -69,82 +69,20 @@ const leaveChannel = (channel: any) => {
               class="w-full px-4 py-2 text-sm rounded-lg b-1 bg-zinc-600 focus:outline-none focus:text-zinc-300"
             />
           </div>
-          <div class="grid gap-5 w-full">
+          <div class="grid sm:grid-cols-2 gap-5 w-full">
             <div
-              v-for="channel in chat.searchChannelResults"
-              class="b-1 w-full p-2 px-3 rounded"
+              v-for="friend in chat.searchFriendResults"
             >
-              <div class="flex justify-between items-center">
-                <div class="font-bold">#{{ channel.name }}</div>
-              </div>
-              <div>{{ channel.description }}</div>
-              <div>
-                {{ channel.users.length }} membre{{
-                  channel.users.length > 1 ? "s" : ""
-                }}
-              </div>
-              <div v-if="hasJoined(channel.users)">
-                <div v-if="isOwner(channel.users)">
-                  {{ "You are OWNER of this channel" }}
-                </div>
-                <div class="flex w-full">
-                  <div
-                    disabled
-                    class="w-full bg-gray/50 hover:bg-gray/75 cursor-forbidden select-none rounded-l px-4 py-1 flex items-center font-bold capitalize justify-center"
-                  >
-                    ALREADY JOINED
-                  </div>
-                  <div>
-                    <div
-                      @click="leaveChannel(channel)"
-                      class="w-full bg-yellow/50 hover:bg-yellow/75 cursor-pointer rounded-r px-2 py-1 flex items-center font-bold capitalize justify-center"
-                    >
-                      LEAVE
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div v-else>
-                <div
-                  v-if="channel.type == 'PUBLIC'"
-                  @click="chat.joinConversation({ channelId: channel.id })"
-                  class="bg-green/50 hover:bg-green/75 cursor-pointer rounded px-2 py-1 flex items-center font-bold capitalize justify-center"
-                >
-                  JOIN
-                </div>
-                <div class="flex" v-if="channel.type == 'PROTECTED'">
-                  <div>
-                    <input
-                      v-model="channel.password"
-                      type="text"
-                      placeholder="Password..."
-                      class="w-full px-4 py-1.5 text-sm rounded-l-lg bg-zinc-600 focus:outline-none focus:text-zinc-300"
-                    />
-                  </div>
-                  <div
-                    @click="
-                      chat.joinConversation({
-                        channelId: channel.id,
-                        password: channel.password,
-                      })
-                    "
-                    class="bg-green/50 hover:bg-green/75 cursor-pointer rounded-r px-2 py-1 flex items-center font-bold capitalize justify-center"
-                  >
-                    <div>JOIN</div>
-                  </div>
-                </div>
-                <div
-                  v-if="channel.type == 'PRIVATE'"
-                  disabled
-                  class="bg-red/50 hover:bg-red/75 cursor-forbidden select-none rounded px-2 py-1 flex items-center font-bold capitalize justify-center"
-                >
-                  PRIVATE CHANNEL
-                </div>
-              </div>
+            <ChatProfileCard
+              v-if="friend"
+              :user="friend"
+              :more="true"
+              :stats="false"
+             />
             </div>
-          </div>
         </div>
       </div>
     </div>
+  </div>
   </div>
 </template>

@@ -101,27 +101,53 @@ export class SocketsGateway {
 
     @SubscribeMessage('conversations:list')
     async syncUserConversations(client: Socket & { user: any }, payload: any) {
-        console.log('get conversation list', client.user);
         const conversations = await this.channelService.getUserConversations(
             client.user.id,
         );
 
         const answer = {
-            conversations: conversations.map((c) => {
-                //@ts-ignore
-                c.channel.users.forEach((u) => {
+            conversations: await Promise.all(
+                conversations.map(async (c: any) => {
+                    const users = await Promise.all(
+                        c.channel.users.map((u) => this.getChannelProfile(u)),
+                    );
+
+                    c.channel.users = users;
+                    const conv: Conversation = {
+                        channelId: c.channel.id,
+                        userId: c.userId,
+                        role: c.role,
+                        mutedUntil: c.mutedUntil,
+                        bannedUntil: c.bannedUntil,
+                        readUntil: c.readUntil,
+                        message: c.message,
+                        channel: c.channel,
+                        user: await this.getProfile(c.user),
+                    };
                     //@ts-ignore
-                    u.online = this.clients[u.user.id]?.length > 0;
-                });
-                //@ts-ignore
-                //c.channel.messages.sort((a, b) => a.id - b.id);
-                console.log(
-                    `User ${c.userId} => client.join('conversation:${c.channelId});`,
-                );
-                console.log(c);
-                this.joinUser(client.user.id, `conversation:${c.channelId}`);
-                return c;
-            }),
+                    //const conv = {
+                    //    channelId: c.channel.id,
+                    //    userId: c.userId,
+                    //    users: await Promise.all(
+                    //        c.channel.users.map((u) =>
+                    //            this.getChannelProfile(u),
+                    //        ),
+                    //    ),
+                    //    //channel: c.channel,
+                    //};
+                    //@ts-ignore
+                    //c.channel.messages.sort((a, b) => a.id - b.id);
+                    //console.log(
+                    //    `User ${conv.userId} => client.join('conversation:${conv.channelId});`,
+                    //);
+                    //console.log(conv);
+                    this.joinUser(
+                        client.user.id,
+                        `conversation:${conv.channelId}`,
+                    );
+                    return conv;
+                }),
+            ),
         };
         this.sendToUser(client.user.id, 'conversations:list', answer);
 
@@ -147,6 +173,42 @@ export class SocketsGateway {
         this.sendToUser(client.user.id, 'conversations:sync', answer);
 
         return answer;
+    }
+
+    @SubscribeMessage('conversations:friend-request')
+    async addFriend(client: Socket & { user: any }, payload: any) {
+        console.log('get blockes users', client.user);
+        const status = await this.channelService.addFriend(
+            client.user.id,
+            payload.userId,
+            payload.status,
+        );
+        this.notification(client.user.id, status);
+        //this.sendToUser(client.user.id, 'conversations:blocked', users);
+        //console.log({ users });
+        //return users;
+    }
+    @SubscribeMessage('conversations:blocked')
+    async getBlockedUsers(client: Socket & { user: any }, payload: any) {
+        console.log('get blockes users', client.user);
+        const users = await this.channelService.getBlockedUsers(client.user.id);
+        this.sendToUser(client.user.id, 'conversations:blocked', users);
+        console.log({ users });
+        return users;
+    }
+    @SubscribeMessage('conversations:block')
+    async blockUser(client: Socket & { user: any }, payload: any) {
+        console.log('Block', client.user, payload);
+        const status = await this.channelService.blockUser(
+            client.user.id,
+            payload.userId,
+            payload.status,
+        );
+        this.sendToUser(client.user.id, 'conversations:block', status);
+
+        this.notification(client.user.id, status);
+        console.log(status);
+        return status;
     }
 
     @SubscribeMessage('conversations:create')
@@ -335,6 +397,34 @@ export class SocketsGateway {
         this.sendToUser(client.user.id, 'conversations:search', channels);
         return channels;
     }
+
+    async getProfile(user) {
+        return {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            avatar: user.avatar,
+            status: this.status[user.id] || 'offline',
+            online: this.clients[user.id]?.length > 0,
+            points: user.points,
+            victories: user.victories,
+            defeats: user.defeats,
+        };
+    }
+    async getChannelProfile(user) {
+        console.log('profile', user);
+        return {
+            userId: user.user.id,
+            channelId: user.channelId,
+            role: user.role,
+            mutedUntil: user.mutedUntil,
+            bannedUntil: user.bannedUntil,
+            readUntil: user.readUntil,
+            online: this.clients[user.user.id]?.length > 0,
+            user: await this.getProfile(user.user),
+        };
+    }
+
     @SubscribeMessage('conversations:search-friend')
     async searchFriend(client: Socket & { user: any }, payload: any) {
         if (!payload.query.length) return [];
@@ -344,7 +434,7 @@ export class SocketsGateway {
         const friends = await this.friendService.getUserFriends(client.user.id);
         console.log('search friend', friends);
 
-        return users;
+        return await Promise.all(users.map((user) => this.getProfile(user)));
         // const channels = await this.channelService.searchChannel(
         //   client.user.id,
         //   payload,

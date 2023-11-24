@@ -21,16 +21,19 @@ model User {
   mfaSecret      String?       // Field to store the 2FA secret
   mfaEnabled       Boolean           @default(false)
 
-
-  status         String?       @default("OFFLINE")//online, playing, offline
-  victories      Int           @default(0) //number of victories for stats
-  defeats        Int           @default(0) //number of defeats for stats
-  ladderPoint    Int           @default(1000) //level for stats
-  // friends        Friend[]      @relation("friends")
-  // inverseFriends Friend[]      @relation("inverseFriends") // Only for prisma, not used
   friends Friendship[] @relation("friends")
   friendsOf  Friendship[] @relation("friendsOf")
+
+  points    Int           @default(1000) //level for stats
+  victories      Int           @default(0) //number of victories for stats
+  defeats        Int           @default(0) //number of defeats for stats
+
+
   blockedUsers   BlockedUser[] @relation("blocked")
+
+  status         String?       @default("OFFLINE")//online, playing, offline
+  // friends        Friend[]      @relation("friends")
+  // inverseFriends Friend[]      @relation("inverseFriends") // Only for prisma, not used
   wonGames       Game[]        @relation("winner")
   lostGames      Game[]        @relation("loser")
   channels       ChannelUser[] //channels the user is in
@@ -121,8 +124,8 @@ model Message {
 //Blocked list
 model BlockedUser {
   userId    Int
-  blockedId Int
   user      User @relation("blocked", fields: [userId], references: [id])
+  blockedId Int
 
   @@id([userId, blockedId])
 }

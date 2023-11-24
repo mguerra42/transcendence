@@ -25,6 +25,10 @@ export class ChannelService {
                 user: {
                     select: {
                         id: true,
+                        email: true,
+                        points: true,
+                        victories: true,
+                        defeats: true,
                         username: true,
                         avatar: true,
                     },
@@ -44,6 +48,10 @@ export class ChannelService {
                                 user: {
                                     select: {
                                         id: true,
+                                        email: true,
+                                        points: true,
+                                        victories: true,
+                                        defeats: true,
                                         username: true,
                                         avatar: true,
                                     },
@@ -76,6 +84,10 @@ export class ChannelService {
                 user: {
                     select: {
                         id: true,
+                        email: true,
+                        points: true,
+                        victories: true,
+                        defeats: true,
                         username: true,
                         avatar: true,
                     },
@@ -95,6 +107,10 @@ export class ChannelService {
                                 user: {
                                     select: {
                                         id: true,
+                                        email: true,
+                                        points: true,
+                                        victories: true,
+                                        defeats: true,
                                         username: true,
                                         avatar: true,
                                     },
@@ -354,6 +370,130 @@ export class ChannelService {
             message: 'Channel left',
             channelId: channelId,
         };
+    }
+
+    async getBlockedUsers(userId) {
+        const blockedUsers = await this.db.blockedUser.findMany({
+            where: {
+                userId: userId,
+            },
+            select: {
+                blockedId: true,
+            },
+        });
+        return blockedUsers.map((u) => u.blockedId);
+    }
+
+    async addFriend(userId, friendId, add) {
+        if (!add) {
+            await this.db.friendship.delete({
+                where: {
+                    friendsOfId_friendsId: {
+                        friendsOfId: userId,
+                        friendsId: friendId,
+                    },
+                },
+            });
+
+            return {
+                success: true,
+                message: 'Friend removed',
+            };
+        } else {
+            const exists = await this.db.friendship.findFirst({
+                where: {
+                    friendsOfId: userId,
+                    friendsId: friendId,
+                },
+            });
+            if (exists) {
+                return {
+                    success: false,
+                    message: 'Already friends',
+                };
+            }
+            await this.db.friendship.create({
+                data: {
+                    friendsOfId: userId,
+                    friendsId: friendId,
+                },
+            });
+
+            await this.db.channel.create({
+                data: {
+                    name: `DM_${userId}_${friendId}`,
+                    description: `DM_${userId}_${friendId}`,
+                    type: 'DM',
+                    users: {
+                        create: [
+                            {
+                                role: 'USER',
+                                user: {
+                                    connect: {
+                                        id: userId,
+                                    },
+                                },
+                            },
+                            {
+                                role: 'USER',
+                                user: {
+                                    connect: {
+                                        id: friendId,
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                },
+            });
+
+            return {
+                success: true,
+                message: 'Friend added, waiting for his confirmation',
+            };
+        }
+    }
+    async blockUser(userId, blockedId, blocked) {
+        if (!blocked) {
+            await this.db.blockedUser.delete({
+                where: {
+                    userId_blockedId: {
+                        userId: userId,
+                        blockedId: blockedId,
+                    },
+                },
+            });
+
+            return {
+                success: true,
+                message: 'User unblocked',
+            };
+        } else {
+            const exists = await this.db.blockedUser.findFirst({
+                where: {
+                    userId: userId,
+                    blockedId: blockedId,
+                },
+            });
+            console.log({ exists });
+            if (exists) {
+                return {
+                    success: false,
+                    message: 'User already blocked',
+                };
+            }
+            await this.db.blockedUser.create({
+                data: {
+                    userId: userId,
+                    blockedId: blockedId,
+                },
+            });
+
+            return {
+                success: true,
+                message: 'User blocked',
+            };
+        }
     }
 
     //findAllChannels() {

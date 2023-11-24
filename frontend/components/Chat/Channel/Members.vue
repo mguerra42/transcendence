@@ -23,7 +23,7 @@ const members = computed(() => {
         />
       </div>
       <div class="grid sm:grid-cols-2 gap-2">
-        <ChatChannelMember :user="user" v-for="user in members" />
+        <ChatProfileCard :stats="false" :more="true" :user="user.user" v-for="user in members" />
       </div>
     </div>
   </div>

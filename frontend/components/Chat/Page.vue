@@ -10,7 +10,7 @@ const chat = useChat();
         <ChatContainer />
       </div>
       <div
-        v-if="chat.currentProfile?.user?.id"
+        v-if="chat.currentProfile?.id"
         class="absolute left-0 right-0 top-0 bottom-0 flex justify-center items-center"
       >
         <ChatProfileModal />

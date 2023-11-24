@@ -15,5 +15,8 @@ onMounted(() => {
     <ChatChannelView
       v-if="chat.activeConversation?.isChannel"
     />
+    <ChatDMView
+      v-if="chat.activeConversation?.isDM"
+    />
   </div>
 </template>

@@ -25,18 +25,7 @@ const dms = computed(() =>
     )
 );
 //const dms = computed(() => conversationsArray.value.filter((conversation: WrappedConversation) => conversation.channel.type == 'DM'))
-watchEffect(() => {
-  console.log(conversationsArray.value);
-  console.log(channels.value?.[0]?.users);
-});
-onMounted(() => {
-  window.DD = {
-    chat,
-    conversationsArray,
-    channels,
-    //dms
-  };
-});
+
 </script>
 <template>
   <!--<div  

@@ -215,6 +215,11 @@ export class WrappedConversation {
     return this.role === "ADMIN" || this.isOwner;
   }
 
+  isRole(userId:number, role: string) {
+    let user = this.users.find((u) => u.userId == userId);
+    return user && user.role == role;
+  }
+
   get isMuted() {
     return this.mutedUntil !== null;
   }
@@ -372,14 +377,13 @@ export const useChat = defineStore("chat", () => {
     }
   };
 
-  const addFriend = async (userId) => {
-    console.log("addFriend", userId);
+  const addFriend = async (userId, status) => {
+    socket.emit("conversations:friend-request", {userId, status}, (answer) => {
+        socket.emit("conversations:list");
+    });
   };
   const challenge = async (userId) => {
     console.log("challenge", userId);
-  };
-  const blockUser = async (userId) => {
-    console.log("blockUser", userId);
   };
   const kick = async (userId, channelId) => {
     console.log("kick", { userId, channelId });
@@ -395,6 +399,17 @@ export const useChat = defineStore("chat", () => {
   };
 
   const status = ref({});
+  const blockedUsers = ref([]);
+  const friends = ref([]);
+
+  const blockUser = async (userId, status) => {
+    console.log("blockUser", {userId});
+    socket.emit("conversations:block", {userId, status}, (answer) => {
+      console.log("block", answer);
+    //  blockedUsers.value = answer;
+        socket.emit("conversations:blocked");
+    });
+  }
 
   const init = async () => {
     const { notify } = useNotification();
@@ -412,6 +427,10 @@ export const useChat = defineStore("chat", () => {
             })
         }, 100)
     });
+    socket.on("conversations:blocked", (_blockedUsers) => {
+        blockedUsers.value = _blockedUsers;
+    });
+    socket.emit("conversations:blocked");
 
     //socket.on("conversations:syncing", triggerSyncing);
     //socket.on("conversations:sync", _onConversationsSync);
@@ -561,7 +580,7 @@ export const useChat = defineStore("chat", () => {
 
   //const onJoinChannels = ref([])
 
-  const showProfile = (user) => {
+  const showProfile = (user: ChatProfile) => {
     console.log({
       user,
     });
@@ -569,12 +588,7 @@ export const useChat = defineStore("chat", () => {
     //setView('profile')
   };
 
-  const currentProfile = ref({
-    online: false,
-    user: {
-      id: 0,
-    },
-  });
+  const currentProfile = ref<ChatProfile|null>();
   const compactMode = ref(false)
   const currentMode = ref('channels')
   //const searchTextChannel = ref('')
@@ -630,6 +644,7 @@ export const useChat = defineStore("chat", () => {
     addFriend,
     challenge,
     blockUser,
+    blockedUsers,
     status,
 
     kick,
