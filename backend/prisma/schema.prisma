@@ -18,6 +18,8 @@ model User {
   password       String
   avatar         String        @default("/avatars/default.jpg") //the path to the avatar image
   isSetup        Boolean       @default(false) //if the user has setup his account
+  mfaSecret      String?       // Field to store the 2FA secret
+  mfaEnabled       Boolean           @default(false)
 
 
   status         String?       @default("OFFLINE")//online, playing, offline
@@ -39,7 +41,6 @@ model User {
   queue          Queue?        // Define the Queue relation here
   twoFa           Int          @default(0) //'on' = 1  or 'off' = 0
   secret         String?       // Field to store the 2FA secret
-  mfaEnabled       Boolean           @default(false)
 }
 
 model Friendship {

@@ -16,7 +16,7 @@ onMounted(async () => {
 })
 </script>
 <template>
-    <div class="h-61px flex items-center justify-between px-5 relative">
+    <div class="min-h-61px  flex items-center justify-between px-5 relative">
         <div>FT_transcendence</div>
         <div>
             <div @click="toggleUserMenu" class="rounded bg-gray p-.5">

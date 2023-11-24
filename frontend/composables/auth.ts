@@ -60,7 +60,7 @@ export const useAuth = defineStore('auth', () => {
     }
     const verify2FA = async (code) => {
         
-        const { data, error } = await useRequest('/auth/2fa', {
+        const { data, error } = await useRequest('/auth/2FA-verify', {
             method: 'POST',
             body: {
                 code,
@@ -173,9 +173,56 @@ export const useAuth = defineStore('auth', () => {
         await getSession()
       }
 
+      const getMFASeed = async () => {
+        const { data, error } = await useRequest('/auth/2FA-setup', {
+          method: 'GET',
+        })
+        if(error.value) {
+            useNotification().notify({
+                text: error.value.data.message,
+                type: 'error',
+            })
+            return
+        }
+        return data.value.mfaSeed
+      }
+
+      const update = async (payload) => {
+        console.log("payload udpate", Object.keys(payload))
+        const formData = new FormData()
+        for (const key of Object.keys(payload)) {
+            formData.append(key, payload[key])
+        }
+        const { data, error } = await useRequest('/auth/update', {
+          method: 'POST',
+          body: formData,
+          watch: false
+        })
+        if(error.value) {
+            useNotification().notify({
+                text: error.value.data.message,
+                type: 'error',
+            })
+            return
+        }
+
+        if (data.value && data.value.success) {
+            useNotification().notify({
+                text: data.value.message,
+                type: 'success',
+            })
+            if (payload.mfaEnabled && payload.mfaCode) {
+                await verify2FA(payload.mfaCode)
+            }
+
+        }
+        await getSession()
+      }
+
     return {
         login,
         logout,
+        update,
         showLoginView,
         signup,
         verify2FA,
@@ -184,6 +231,7 @@ export const useAuth = defineStore('auth', () => {
         getSession,
         isSetup,
         setup,
+        getMFASeed,
         //error,
         //session,
         activeForm,

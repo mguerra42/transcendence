@@ -193,7 +193,7 @@ export class UsersService {
 
     ////Changed this to any but we can export the userToUpdateObject interface into this file
     ////TODO : import userToUpdateObject interface here and use it instead of any
-    async update(id: number, data: UpdateUserDto) {
+    async update(id: number, data: Prisma.UserUpdateInput) {
         //console.log(data);
         return await this.db.user.update({
             data,

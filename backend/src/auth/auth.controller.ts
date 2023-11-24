@@ -55,7 +55,6 @@ export class AuthController {
     async setup(
         @Request() req,
         @Body() setupDto: SetupDto,
-
         @UploadedFile() avatar: Express.Multer.File,
     ) {
         const setupUser = await this.authService.setup(
@@ -105,7 +104,43 @@ export class AuthController {
     }
 
     @UseGuards(JwtAuthGuard)
-    @Post('2fa')
+    @Get('session')
+    async session(@Request() req, @Res({ passthrough: true }) res: Response) {
+        const user = await this.usersService.findOne(req.user.id);
+
+        if (!user) return this.logout(req, res);
+        return {
+            id: user.id,
+            provider: req.user.provider,
+            username: user.username,
+            email: user.email,
+            avatar: user.avatar,
+            isSetup: user.isSetup,
+            mfaEnabled: user.mfaEnabled,
+            mfaLevel: req.user.mfaLevel,
+        };
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('logout')
+    async logout(@Request() req, @Res({ passthrough: true }) res: Response) {
+        res.clearCookie('access_token');
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('2FA-setup')
+    async setup2FA(@Request() req) {
+        const mfaSecret = await this.authService.getUser2FASeed(req.user);
+        if (mfaSecret == null) {
+        }
+
+        return {
+            mfaSeed: mfaSecret,
+        };
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('2FA-verify')
     async verify2FA(
         @Request() req,
         @Body() requestBody: { code: string },
@@ -130,27 +165,26 @@ export class AuthController {
     }
 
     @UseGuards(JwtAuthGuard)
-    @Get('session')
-    async session(@Request() req, @Res({ passthrough: true }) res: Response) {
-        const user = await this.usersService.findOne(req.user.id);
+    @Post('update')
+    @UseInterceptors(FileInterceptor('avatar'))
+    async update(
+        @Request() req,
+        @Body() payload: UpdateUserDto,
+        @UploadedFile() avatar: Express.Multer.File,
+        @Res({ passthrough: true }) res: Response,
+    ) {
+        if (avatar) {
+            console.log({ avatar });
+            payload.avatar = avatar as Express.Multer.File;
+        }
 
-        if (!user) return this.logout(req, res);
+        console.log('23', { payload });
+        await this.authService.update(req.user, payload);
+
         return {
-            id: user.id,
-            provider: req.user.provider,
-            username: user.username,
-            email: user.email,
-            avatar: user.avatar,
-            isSetup: user.isSetup,
-            mfaEnabled: user.mfaEnabled,
-            mfaLevel: req.user.mfaLevel,
+            success: true,
+            message: 'User updated',
         };
-    }
-
-    @UseGuards(JwtAuthGuard)
-    @Post('logout')
-    async logout(@Request() req, @Res({ passthrough: true }) res: Response) {
-        res.clearCookie('access_token');
     }
 
     //////TODO : move to services
