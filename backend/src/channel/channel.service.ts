@@ -384,8 +384,17 @@ export class ChannelService {
         return blockedUsers.map((u) => u.blockedId);
     }
 
-    async addFriend(userId, friendId, add) {
-        if (!add) {
+    async addFriend(userId, friendId) {
+        const exists = await this.db.friendship.findFirst({
+            where: {
+                friendsOfId: userId,
+                friendsId: friendId,
+            },
+        });
+
+        console.log({ exists });
+
+        if (exists) {
             await this.db.friendship.delete({
                 where: {
                     friendsOfId_friendsId: {
@@ -394,64 +403,64 @@ export class ChannelService {
                     },
                 },
             });
-
-            return {
-                success: true,
-                message: 'Friend removed',
-            };
-        } else {
-            const exists = await this.db.friendship.findFirst({
+            // delete channel users
+            await this.db.channelUser.deleteMany({
                 where: {
-                    friendsOfId: userId,
-                    friendsId: friendId,
+                    channelId: exists.channelId,
                 },
             });
-            if (exists) {
-                return {
-                    success: false,
-                    message: 'Already friends',
-                };
-            }
-            await this.db.friendship.create({
-                data: {
-                    friendsOfId: userId,
-                    friendsId: friendId,
-                },
-            });
-
-            await this.db.channel.create({
-                data: {
-                    name: `DM_${userId}_${friendId}`,
-                    description: `DM_${userId}_${friendId}`,
-                    type: 'DM',
-                    users: {
-                        create: [
-                            {
-                                role: 'USER',
-                                user: {
-                                    connect: {
-                                        id: userId,
-                                    },
-                                },
-                            },
-                            {
-                                role: 'USER',
-                                user: {
-                                    connect: {
-                                        id: friendId,
-                                    },
-                                },
-                            },
-                        ],
-                    },
+            await this.db.channel.delete({
+                where: {
+                    id: exists.channelId,
                 },
             });
 
             return {
                 success: true,
-                message: 'Friend added, waiting for his confirmation',
+                message: 'Removed friend',
             };
         }
+
+        const channel = await this.db.channel.create({
+            data: {
+                name: `DM_${userId}_${friendId}`,
+                description: ``,
+                type: 'DM',
+                users: {
+                    create: [
+                        {
+                            role: 'USER',
+                            user: {
+                                connect: {
+                                    id: userId,
+                                },
+                            },
+                        },
+                        {
+                            role: 'USER',
+                            user: {
+                                connect: {
+                                    id: friendId,
+                                },
+                            },
+                        },
+                    ],
+                },
+            },
+        });
+
+        await this.db.friendship.create({
+            data: {
+                friendsOfId: userId,
+                friendsId: friendId,
+                channelId: channel.id,
+            },
+        });
+
+        return {
+            success: true,
+            message: 'Friend added, waiting for his confirmation',
+        };
     }
     async blockUser(userId, blockedId, blocked) {
         if (!blocked) {

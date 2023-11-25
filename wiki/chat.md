@@ -99,3 +99,16 @@ chat.sendChallenge({userId})
 chat.acceptChallenge({userId})
 
 chat.declineChallenge({userId})
+
+
+
+EVENTS
+
+> Means that the event is sent by the client/received by the server
+< Means that the event is received by the client/sent by the server
+
+> conversations:list ask for the list of conversations (channels + dm)
+< conversations:list return Conversation[]
+
+We then use the Manager class to create WrappedConversation objects from the Conversation objects, this is a simple wrapper class that exposes methods to interact with the conversation like leave or send message, and also contains the Conversation object.
+

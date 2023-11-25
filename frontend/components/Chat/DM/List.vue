@@ -14,12 +14,15 @@ const otherUser = (conversation: WrappedConversation) => {
     <div class="font-bold capitalize flex justify-between items-center p-2.5">
       <div>Friends</div>
       <div class="flex items-center gap-2 mr-1.5">
-        <div
-          @click="chat.setView('search_friends')"
-          class="bg-gray p-1 rounded cursor-pointer hover:scale-110 transition-all"
+        <nuxt-link
+        :to="{
+            name: 'chat-search-friend',
+        }"
+          class="bg-gray p-1 rounded cursor-pointer transition-all hover:scale-110"
         >
           <div class="i-mdi:search"></div>
-        </div>
+        </nuxt-link>
+        
         <div
           @click="chat.setView('list_friends')"
           class="bg-gray p-1 rounded cursor-pointer hover:scale-110 transition-all"
@@ -29,9 +32,18 @@ const otherUser = (conversation: WrappedConversation) => {
       </div>
     </div>
     <div class="overflow-y-scroll flex-1">
-      <div
-        v-for="conversation in conversations"
-        @click="chat.showConversation(conversation)"
+        <div 
+        @click.prevent="chat.showConversation(conversation)" 
+        v-for="conversation in conversations">
+    
+    
+        <nuxt-link
+        :to="{
+            name: 'chat-conversation',
+            params: {
+                conversation: conversation.channel.id,
+            },
+        }"
         class=" mb-1 px-2.5 py-2 hover:bg-white/10 cursor-pointer flex justify-center flex-col relative"
         :class="[
           chat.isActiveConversation(conversation)
@@ -42,17 +54,20 @@ const otherUser = (conversation: WrappedConversation) => {
       <div class="flex gap-2 justify-start">
         <div>
             <ChatUserAvatar 
-          :userId="otherUser(conversation)?.user.id"
-          :avatar="otherUser(conversation)?.user.avatar"
+            size="h-12 w-12 "
+          :userId="conversation.recipient?.user.id"
+          :avatar="conversation.recipient?.user.avatar"
         />
         </div>
         <div class="flex flex-col gap-1">
-            <div>@{{ otherUser(conversation)?.user.username }}</div>
+            <div>@{{ conversation.recipient?.user.username }}</div>
 
         </div>
       </div>
         
-      </div>
+      </nuxt-link>
+    
+</div>
     </div>
   </div>
 </template>

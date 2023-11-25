@@ -52,6 +52,7 @@ model Friendship {
   friendsOf    User @relation("friendsOf", fields: [friendsOfId], references: [id])
   friendsOfId  Int
   accepted  Boolean @default(false)
+  channelId Int?
 
   @@id([friendsOfId, friendsId])
 }

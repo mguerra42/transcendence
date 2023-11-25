@@ -7,7 +7,7 @@ const chat = useChat();
 const messagesContainer = ref(null);
 
 watch(
-  () => chat.activeConversation?.messages.length,
+  () => chat.manager.active?.messages.length,
   async () => {
     await nextTick();
     if (messagesContainer.value)
@@ -31,7 +31,7 @@ const onRightClick = (e) => {
   >
     <div class="flex flex-col gap-2 pb-3 pr-3">
       <div
-        v-for="(message, i) in chat.activeConversation?.messages"
+        v-for="(message, i) in chat.manager.active?.messages"
         class="rounded-lg p-2.5 w-80% flex"
         :class="[
           message.from === 0
@@ -39,7 +39,7 @@ const onRightClick = (e) => {
             : message.from == auth.session?.id
             ? 'bg-green/50 ml-auto shadow-green'
             : 'bg-blue/50 shadow-blue',
-          message.from != chat.activeConversation?.messages[i - 1]?.from
+          message.from != chat.manager.active?.messages[i - 1]?.from
             ? 'mt-5'
             : '',
         ]"

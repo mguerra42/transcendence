@@ -32,28 +32,7 @@ const leaveChannel = (channel: any) => {
         })
     }
 }
-//const onJoinChannel = (channel) => {
-//    chat.joinChannel(channel)
-//    //chat.onJoinChannel(channel.id, ()=>{
-//    //    channel.users.push({
-//    //        userId: auth.session.id,
-//    //        role: 'USER',
-//    //    })
-//    //})
-//    setTimeout(() => {
-//        searchChannel()
-//    }, 200);
-//}
-//const onLeaveChannel = (channel) => {
-//    chat.leaveChannel(channel)
-//    //chat.onJoinChannel(channel.id, ()=>{
-//    //    console.log('leave')
-//    //    channel.users = channel.users.filter(u => u.userId != auth.session.id)
-//    //})
-//    setTimeout(() => {
-//        searchChannel()
-//    }, 200);
-//}
+
 </script>
 <template>
 	<div class=" overflow-auto h-full flex-1">
@@ -65,7 +44,7 @@ const leaveChannel = (channel: any) => {
             <div class="w-60%">
                 <input
                     v-model="chat.searchChannelQuery"
-                    @input="chat.searchChannel()"
+                    @input="chat.manager.searchChannel(chat.searchChannelQuery)"
                     type="text"
                     placeholder="Search channel..."
                     class="w-full px-4 py-2 text-sm rounded-lg b-1 bg-zinc-600 focus:outline-none focus:text-zinc-300"
@@ -83,12 +62,15 @@ const leaveChannel = (channel: any) => {
                         <div class="flex w-full" >
                             <div  disabled  class="w-full bg-gray/50 hover:bg-gray/75  cursor-forbidden select-none  rounded-l px-4 py-1 flex items-center font-bold capitalize justify-center">ALREADY JOINED</div>
                             <div>
-                            <div @click="leaveChannel(channel)" class="w-full bg-yellow/50 hover:bg-yellow/75  cursor-pointer  rounded-r px-2 py-1 flex items-center font-bold capitalize justify-center">LEAVE</div>
+                            <div @click="chat.manager.leaveConversation({
+                                channelId: channel.id,
+                                stay: true
+                            })" class="w-full bg-yellow/50 hover:bg-yellow/75  cursor-pointer  rounded-r px-2 py-1 flex items-center font-bold capitalize justify-center">LEAVE</div>
                         </div>
                         </div>
                     </div>
                     <div v-else>
-                        <div v-if="channel.type == 'PUBLIC'" @click="chat.joinConversation({channelId: channel.id})"  class="bg-green/50 hover:bg-green/75 cursor-pointer rounded px-2 py-1 flex items-center font-bold capitalize justify-center">JOIN</div>
+                        <div v-if="channel.type == 'PUBLIC'" @click="chat.manager.joinConversation({channelId: channel.id})"  class="bg-green/50 hover:bg-green/75 cursor-pointer rounded px-2 py-1 flex items-center font-bold capitalize justify-center">JOIN</div>
                         <div class="flex " v-if="channel.type == 'PROTECTED'">
                             <div>
                                 <input
@@ -97,7 +79,7 @@ const leaveChannel = (channel: any) => {
                             placeholder="Password..."
                             class="w-full px-4 py-1.5 text-sm rounded-l-lg  bg-zinc-600 focus:outline-none focus:text-zinc-300"
                             /></div>
-                            <div  @click="chat.joinConversation({channelId: channel.id, password: channel.password})"  class="bg-green/50 hover:bg-green/75 cursor-pointer rounded-r px-2 py-1 flex items-center font-bold capitalize justify-center">
+                            <div  @click="chat.manager.joinConversation({channelId: channel.id, password: channel.password})"  class="bg-green/50 hover:bg-green/75 cursor-pointer rounded-r px-2 py-1 flex items-center font-bold capitalize justify-center">
                                 <div>JOIN</div>
                             </div>
                         </div>

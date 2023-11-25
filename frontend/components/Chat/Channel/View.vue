@@ -10,23 +10,23 @@
 	})
 </script>
 <template>
-    <div class="flex text-white flex-1 h-[calc(100vh-100px)] w-full " v-if="chat.activeConversation">
+    <div class="flex text-white flex-1 h-[calc(100vh-100px)] w-full " v-if="chat.manager.active">
 		<div class="flex flex-col gap-2 w-full flex-1">
 			<div class="text-3xl text-white px-5 pt-5 flex items-center gap-2">
-				<div>#{{ chat.activeConversation.channel.name }}</div>
-				<div @click="tab = 'settings'" class="text-xl bg-gray-400 rounded p-1 hover:scale-110 cursor-pointer transition-all" v-if="chat.activeConversation.role == 'OWNER'">
+				<div>#{{ chat.manager.active.channel.name }}</div>
+				<div @click="tab = 'settings'" class="text-xl bg-gray-400 rounded p-1 hover:scale-110 cursor-pointer transition-all" v-if="chat.manager.active.isOwner">
 					<div class="i-mdi:cog"></div>
 				</div>
-				<div @click="chat.activeConversation?.leave" class="text-xl bg-gray-400 rounded p-1 hover:scale-110 cursor-pointer transition-all" >
+				<div @click="chat.manager.leaveConversation(chat.manager.active)" class="text-xl bg-gray-400 rounded p-1 hover:scale-110 cursor-pointer transition-all" >
 					<div class="i-mdi:sign-out"></div>
 				</div>
 			</div>
 
             <div class="text-xs text-white px-5 flex items-center gap-2">
-				<div>En ligne: {{ chat.activeConversation.users.length }}</div>
+				<div>En ligne: {{ chat.manager.active.users.length }}</div>
 				
 			</div>
-			<div v-if="chat.activeConversation.channel.description" class="text-sm text-white px-5 flex items-center gap-2 break-all">{{ chat.activeConversation.channel.description }}</div>
+			<div v-if="chat.manager.active.channel.description" class="text-sm text-white px-5 flex items-center gap-2 break-all">{{ chat.manager.active.channel.description }}</div>
 			<div class="text-lg sm:text-xl text-white px-5 ">
 				<div class="w-full">
 				<div class="relative right-0">
@@ -56,10 +56,10 @@
 						role="tab"
 						aria-selected="false"
 						>
-						<span class="ml-1">Members ({{ chat.activeConversation.users.length }})</span>
+						<span class="ml-1">Members ({{ chat.manager.active.users.length }})</span>
 						</a>
 					</li>
-					<li class="flex-auto text-center">
+					<!--<li class="flex-auto text-center">
 						<a
 						:class="[tab == 'invite' ? 'bg-white/50' : 'bg-inherit' ]"
 						class="text-slate-700 mb-0  px-2 flex w-full cursor-pointer items-center justify-center rounded-lg border-0 bg-inherit px-0 py-1 transition-all ease-in-out"
@@ -69,7 +69,7 @@
 						>
 						<span class="ml-1">Invite</span>
 						</a>
-					</li>
+					</li>-->
 					</ul>
 				</div>
 				</div>

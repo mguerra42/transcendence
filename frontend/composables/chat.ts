@@ -44,7 +44,7 @@ export class WrappedConversation {
     this.socket = useSocket();
     this.chat = useChat();
     this.messages = ref([]);
-    this.syncMessages();
+    this.init();
   }
 
   update(conversation: Conversation) {
@@ -68,20 +68,22 @@ export class WrappedConversation {
     );
   }
 
+  async init() {
+    // get messages
+    this.syncMessages()
+    // get users
+  }
+
   sync() {
     this.socket.emit("conversations:sync", { channelId: this.channelId });
   }
 
   syncMessages() {
-    console.log("syncMessages", this.channelId);
     this.socket.emit(
       `conversations:messages`,
-      { channelId: this.channelId, readUntil: this.readUntil },
+      { channelId: this.channelId },
       (answer) => {
-        console.log("messages", answer);
         this.messages.value = answer.messages;
-        //this.conversation.channel.messages = answer.messages
-        //this.conversation.channel  =  this.conversation.channel
       }
     );
   }
@@ -207,6 +209,12 @@ export class WrappedConversation {
     this.conversation.message = value;
   }
 
+  get recipient() {
+    if (this.isDM) {
+      return this.users.find((u) => u.userId != this.user.id);
+    }
+  }
+
   get isOwner() {
     return this.role === "OWNER";
   }
@@ -229,8 +237,172 @@ export class WrappedConversation {
   }
 }
 
+class ConversationManager {
+    conversations: Map<Number, WrappedConversation> = new Map();
+    socket: any;
+    isSetup: boolean;
+    active?: WrappedConversation;
+    chat : any;
+    constructor() {
+        this.socket = useSocket();
+        this.chat = useChat();
+        this.isSetup = false;
+        this.active = undefined;
+    }
+
+    init() {
+        this.socket.emit("conversations:list");
+        this.socket.on("conversations:list", (answer) => this.onConversationsList(answer));
+        this.socket.on("conversations:sync", (answer) => this.onConversationSync(answer));
+        this.socket.on("conversations:leave", (answer) => this.onConversationLeave(answer));
+        this.socket.on("conversations:left", (answer) => this.onConversationLeft(answer));
+        this.socket.on("conversations:join", (answer) => this.onConversationJoin(answer));
+        this.socket.on("conversations:joined", (answer) => this.onConversationJoined(answer));
+        this.socket.emit("conversations:friends", {}, (answer) => {
+            console.log("friends", answer);
+        });
+    }
+
+    onConversationsList({ conversations }: { conversations: Conversation[] }) {
+        let ids = conversations.map((c) => c.channelId);
+        conversations.forEach((c) => this.initOrUpdateConversation(c));
+        this.conversations.forEach((c, id) => {
+            if (!ids.includes(id)) {
+                this.conversations.delete(id);
+            }
+        });
+        this.isSetup = true;
+
+        console.log("onConversationsList");
+    }
+
+    onConversationSync({conversation, show = false} : {conversation: Conversation, show: boolean}) {
+        this.initOrUpdateConversation(conversation, show);
+    }
+    onConversationLeave({channelId} : {channelId: number}) {
+        this.conversations.delete(channelId);
+    }
+    onConversationLeft({channelId, userId} : {channelId: number, userId: number}) {
+        let conversation = this.getConversation(channelId);
+        if (conversation) {
+            conversation.conversation.channel.users = conversation.conversation.channel.users.filter((u) => u.userId != userId);
+        }
+    }
+    async onConversationJoin({channelId} : {channelId: number}) {
+        let conversation = this.getConversation(channelId);
+        while (!conversation) {
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            await nextTick();
+            conversation = this.getConversation(channelId);
+        }
+
+        this.searchChannel(this.chat.searchChannelQuery)
+        console.log("onConversationJoin", conversation);
+ 
+    }
+
+    onConversationJoined({channelId, userId} : {channelId: number, userId: number}) {
+        let conversation = this.getConversation(channelId);
+        console.log("onConversationJoined", conversation);
+        if (conversation) {
+            conversation.sync()
+        }
+    }
+
+    searchChannel(query: string) {
+        if (!query) return;
+        this.socket.emit("conversations:search", { query }, (answer) => {
+            console.log("search", answer);
+            this.chat.searchChannelResults = answer;
+        });
+    }
+    
+    getConversation(channelId: number) {
+        return this.conversations.get(channelId);
+    }
+
+    get channels() {
+        return Array.from(this.conversations.values()).filter((c) => c.isChannel)
+        .sort((a, b) => {
+            // by id
+            if (a.channelId < b.channelId) return 1;
+            if (a.channelId > b.channelId) return -1;
+            return 0;  
+        });
+    }
+
+    get dms() {
+        return Array.from(this.conversations.values()).filter((c) => c.isDM);
+    }
+    
+    initOrUpdateConversation(conversation: Conversation, show = false) {
+        let exists = this.getConversation(conversation.channelId);
+        if (exists) {
+            console.log("initOrUpdateConversation", conversation, exists);
+            exists.update(conversation);
+        } else {
+            console.log("initOrUpdateConversation", conversation);
+            this.conversations.set(conversation.channelId, new WrappedConversation(conversation));
+        }
+
+        if (show) {
+            this.setActive(this.getConversation(conversation.channelId));
+        }
+    }
+
+    setActive(conversation?: WrappedConversation) {
+        this.active = conversation;
+    }
+
+    joinConversation({ channelId, password }) {
+        this.socket.emit("conversations:join", {
+            channelId,
+            password,
+        });
+    }
+
+    leaveConversation({ channelId, stay = false }) {
+        console.log("leaveConversation", channelId);
+        if (!channelId) return;
+        this.socket.emit("conversations:leave", {
+            channelId,
+        }, () => {
+            console.log("leaveConversation", channelId);
+            this.searchChannel(this.chat.searchChannelQuery)
+            this.setActive(undefined);
+            if (stay) return;
+            navigateTo({
+                name: "chat",
+            });
+        });
+    }
+
+    createConversation(conversationInfo) {
+        console.log("createConversation", conversationInfo);
+        this.socket.emit("conversations:create", conversationInfo, async ({channelId}) => {
+            console.log("createConversation", channelId);
+            
+        //    this.socket.emit("conversations:sync", { channelId }, async (conv) => {
+        //        console.log("syncConversation", conv);
+        //        await nextTick()
+        //        setTimeout(async () => {
+        //            await navigateTo({
+        //                name: "chat-conversation",
+        //                params: {
+        //                    conversation: channelId,
+        //                },
+        //            })
+        //        }, 100)
+        //});
+        });
+    }
+    
+}
+
+
 export const useChat = defineStore("chat", () => {
   const socket = useSocket();
+  const manager = ref(new ConversationManager());
 
   const visible = ref(false);
   const setVisible = (state: boolean) => (visible.value = state === true);
@@ -238,14 +410,13 @@ export const useChat = defineStore("chat", () => {
   const view = ref("home");
   const setView = (_view: string) => (view.value = _view);
 
-  const _onNotification = ({
+  const onNotification = ({
     type,
     message,
   }: {
     type?: string;
     message: string;
   }) => {
-    console.log("notification", type, message);
     useNotification().notify({
       text: message,
       type: type,
@@ -255,8 +426,9 @@ export const useChat = defineStore("chat", () => {
   const conversations = ref<Map<Number, WrappedConversation>>(new Map());
   const activeConversation = ref<WrappedConversation>();
   const showConversation = (conversation: WrappedConversation) => {
+    currentMode.value = 'chat'
     activeConversation.value = conversation;
-    setView("channel");
+    console.log("showConversation", conversation);
   };
   const hideConversation = () => {
     activeConversation.value = undefined;
@@ -280,8 +452,8 @@ export const useChat = defineStore("chat", () => {
   }: {
     conversations: Conversation[];
   }) => {
-    console.log("conversations", _conversations);
-    _conversations.map((c) => _onConversationsSync({ conversation: c }));
+    //console.log("conversations", _conversations);
+    //_conversations.map((c) => createOrUpdateConversation({ conversation: c }));
     //const route = useRoute();
     //if (route.name == 'chat-conversation') {
     //    let conv = _conversations.find(c => c.channelId == route.params.conversation)
@@ -291,7 +463,7 @@ export const useChat = defineStore("chat", () => {
     //}
   };
 
-  const _onConversationsSync = ({
+  const createOrUpdateConversation = ({
     conversation: _conversation,
     show = false,
   }: {
@@ -377,8 +549,10 @@ export const useChat = defineStore("chat", () => {
     }
   };
 
-  const addFriend = async (userId, status) => {
-    socket.emit("conversations:friend-request", {userId, status}, (answer) => {
+  const addFriend = async (userId) => {
+    socket.emit("conversations:friend-request", {userId}, (answer) => {
+        console.log("friend-request", answer);
+        socket.emit("conversations:friends");
         socket.emit("conversations:list");
     });
   };
@@ -402,6 +576,11 @@ export const useChat = defineStore("chat", () => {
   const blockedUsers = ref([]);
   const friends = ref([]);
 
+  const hasFriend = (userId) => {
+    console.log("hasFriend", {userId}, friends.value);
+    return friends.value.find((f) => f.id == userId);
+  }
+
   const blockUser = async (userId, status) => {
     console.log("blockUser", {userId});
     socket.emit("conversations:block", {userId, status}, (answer) => {
@@ -414,11 +593,9 @@ export const useChat = defineStore("chat", () => {
   const init = async () => {
     const { notify } = useNotification();
     const route = useRouter();
-    socket.on("notification", _onNotification);
-    socket.emit("conversations:list");
-    socket.on("conversations:list", onConversationsList);
+    socket.on("notification", onNotification);
+
     socket.on("status", async (data) => {
-        console.log("status",{data})
         status.value = data
         await nextTick()
         setTimeout(() => {
@@ -427,13 +604,23 @@ export const useChat = defineStore("chat", () => {
             })
         }, 100)
     });
-    socket.on("conversations:blocked", (_blockedUsers) => {
-        blockedUsers.value = _blockedUsers;
-    });
-    socket.emit("conversations:blocked");
+    await manager.value.init();
+
+    //socket.emit("conversations:list");
+    //socket.on("conversations:list", onConversationsList);
+    //socket.on("conversations:sync", createOrUpdateConversation);
+
+    //socket.on("conversations:blocked", (_blockedUsers) => {
+    //    blockedUsers.value = _blockedUsers;
+    //});
+    //socket.emit("conversations:blocked");
+    //socket.on("conversations:friends", (_friendsUsers) => {
+    //    console.log("FRiends updated", _friendsUsers)
+    //    friends.value = _friendsUsers;
+    //});
+    //socket.emit("conversations:friends");
 
     //socket.on("conversations:syncing", triggerSyncing);
-    //socket.on("conversations:sync", _onConversationsSync);
     //socket.on("conversations:join", (d) => {
     //    console.log("conversations:join", d);
         
@@ -646,6 +833,8 @@ export const useChat = defineStore("chat", () => {
     blockUser,
     blockedUsers,
     status,
+    friends,
+    hasFriend,
 
     kick,
     mute,
@@ -653,6 +842,8 @@ export const useChat = defineStore("chat", () => {
     setAdmin,
     compactMode,
     currentMode,
+
+    manager,
 
     //current,
     //currentProfile,

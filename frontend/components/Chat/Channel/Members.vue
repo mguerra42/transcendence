@@ -6,9 +6,9 @@ const chat = useChat();
 
 const search = ref("");
 const members = computed(() => {
-  if (search.value && chat.activeConversation)
-    return chat.activeConversation.searchUser(search.value);
-  return chat.activeConversation?.users;
+  if (search.value && chat.manager.active)
+    return chat.manager.active.searchUser(search.value);
+  return chat.manager.active?.users;
 });
 </script>
 <template>

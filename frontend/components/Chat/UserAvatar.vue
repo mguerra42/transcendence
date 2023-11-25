@@ -10,11 +10,15 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  size: {
+    type: String,
+    default: "h-12 w-12",
+  },
 });
 </script>
 
 <template>
-  <div class="flex h-12 w-12 overflow-hidden mx-auto">
+  <div class="flex overflow-hidden mx-auto" :class="size">
         <div class="rounded bg-white p-.5 relative  mx-auto">
             <img :src="avatar" alt="" class="aspect-square h-full rounded">
             <div

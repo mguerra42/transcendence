@@ -19,12 +19,10 @@ const route = useRoute();
   >
     <div
       @click="chat.currentMode = 'channels'"
-      class="b-blue b-1 md:hidden h-50px w-10px absolute top-[calc(50%-25px)] px-6px cursor-pointer hover:bg-blue hover:text-white left-0 rounded-r flex flex-col justify-center items-center"
+      class="b-blue z-15 b-1 bg-slate-700 md:hidden h-50px w-10px absolute top-[calc(50%-25px)] px-6px cursor-pointer hover:bg-blue hover:text-white left-0 rounded-r flex flex-col justify-center items-center"
     >
       <div class="i-mdi:chevron-right"></div>
     </div>
-    {{ chat.status }}
-    {{ $route.name }}
     <ChatEmpty v-if="$route.name == 'chat'" />
     <ChatChannelCreate v-if="$route.name == 'chat-create-channel'" />
     <ChatChannelSearch v-if="$route.name == 'chat-search-channel'" />

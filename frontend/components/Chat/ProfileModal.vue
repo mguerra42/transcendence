@@ -36,19 +36,26 @@ onClickOutside(target, () => {
         class="grid grid-cols-2 mt-5 rounded-lg b-1 bg-zinc-700 overflow-hidden flex-row sm:flex-col md:flex-row items-center justify-center w-full"
         v-if="chat.currentProfile?.id != auth.session.id"
       >
-        <div
-          @click="chat.addFriend(chat.currentProfile?.id, !chat.friends.includes(chat.currentProfile?.id))"
+        <nuxt-link
+        :to="{
+            name: '@user',
+            params: {
+                user: chat.currentProfile?.username,
+            },
+        }"
           class="flex-1 hover:bg-white w-full b-b-1 hover:text-gray-700 cursor-pointer flex items-center px-2 gap-2 justify-center py-1 "
         >
-          <div class="i-mdi:message"></div>
-          Send DM
-        </div>
+        <i class="i-mdi:eye"></i>
+        See Profile
+        </nuxt-link>
         <div
-          @click="chat.addFriend(chat.currentProfile?.id, true)"
+          @click="chat.addFriend(chat.currentProfile?.id)"
           class="flex-1 hover:bg-white w-full b-l-1 b-b-1 hover:text-gray-700 cursor-pointer flex items-center px-2 gap-2 justify-center py-1"
         >
           <div class="i-mdi:user"></div>
-          Add Friend
+          {{ chat.friends }}
+          {{ chat.hasFriend(chat.currentProfile?.id) }}
+          {{ chat.friends.find(u => u.id == chat.currentProfile?.id) ? 'Remove Friend' : 'Add Friend' }}
         </div>
         <div
           @click="chat.challenge(chat.currentProfile?.id)"
@@ -102,10 +109,10 @@ v-if="chat.activeConversation.isAdmin && !chat.activeConversation.isRole(chat.cu
 </div>
 </div>
       </div>
-      <!--
+      
       <div
         class="mt-5 rounded-lg b-1 bg-zinc-700 overflow-hidden flex-row sm:flex-col md:flex-row items-center justify-center w-full"
-        v-if="chat.activeConversation.role == 'OWNER'"
+        v-if="chat.activeConversation && chat.activeConversation?.type != 'DM' && chat.activeConversation.role == 'OWNER'"
       >
         <div
           v-if="chat.currentProfile.role == 'ADMIN'"
@@ -122,7 +129,7 @@ v-if="chat.activeConversation.isAdmin && !chat.activeConversation.isRole(chat.cu
           Remove Admin
         </div>
         <div
-          v-if="["OWNER", "ADMIN"].includes(chat.currentProfile.role)chat.currentProfile.role != 'ADMIN'"
+          v-if="chat.currentProfile.role != 'ADMIN'"
           @click="
             chat.setAdmin(
               chat.currentProfile.id,
@@ -135,7 +142,7 @@ v-if="chat.activeConversation.isAdmin && !chat.activeConversation.isRole(chat.cu
           <div class="i-eos-icons:admin"></div>
           Set Admin
         </div>
-      </div>-->
+      </div>
     </div>
     </div>
   </div>

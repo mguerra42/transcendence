@@ -2,55 +2,7 @@
 const chat = useChat();
 const auth = useAuth();
 const query = ref("");
-const results = ref([]);
-//const searchChannel = async () => {
-//    if(chat.searchTextChannel) {
-//        results.value = await chat.searchChannel(chat.searchTextChannel)
-//    } else {
-//        results.value = []
-//    }
-//}
-const isOwner = (users) => {
-  return users.find((u) => u.role == "OWNER" && u.userId == auth.session.id);
-};
-const hasJoined = (users) => {
-  return users.find((u) => u.userId == auth.session.id);
-};
 
-const leaveChannel = (channel: any) => {
-  let conversation = chat.conversations.get(channel.id);
-  if (conversation) {
-    conversation.leave((answer) => {
-      if (answer.success) {
-        channel.users = channel.users.filter(
-          (u) => u.userId != auth.session.id
-        );
-      }
-    });
-  }
-};
-//const onJoinChannel = (channel) => {
-//    chat.joinChannel(channel)
-//    //chat.onJoinChannel(channel.id, ()=>{
-//    //    channel.users.push({
-//    //        userId: auth.session.id,
-//    //        role: 'USER',
-//    //    })
-//    //})
-//    setTimeout(() => {
-//        searchChannel()
-//    }, 200);
-//}
-//const onLeaveChannel = (channel) => {
-//    chat.leaveChannel(channel)
-//    //chat.onJoinChannel(channel.id, ()=>{
-//    //    console.log('leave')
-//    //    channel.users = channel.users.filter(u => u.userId != auth.session.id)
-//    //})
-//    setTimeout(() => {
-//        searchChannel()
-//    }, 200);
-//}
 </script>
 <template>
   <div class="overflow-auto h-full flex-1">

@@ -30,8 +30,11 @@ const props = defineProps<{
       </div>
     </div>
     <div class="overflow-y-scroll flex-1">
+
+        <div 
+        @click.prevent="chat.showConversation(conversation)" 
+        v-for="conversation in conversations">
       <nuxt-link
-        v-for="conversation in conversations"
         :to="{
             name: 'chat-conversation',
             params: {
@@ -59,6 +62,7 @@ const props = defineProps<{
           </div>
         </div>
       </nuxt-link>
+    </div>
     </div>
   </div>
 </template>

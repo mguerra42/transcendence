@@ -56,7 +56,7 @@ export class SocketsGateway {
         };
         this.clients[payload.id] = this.clients[payload.id] || [];
         this.clients[payload.id].push(client.id);
-        this.joinUser(client.user.id, `everyone`);
+        this.subscribeUserToRoom(client.user.id, `everyone`);
         if (this.clients[payload.id].length === 1) {
             this.status[client.user.id] = 'online';
             this.server.in('everyone').emit('status', this.status);
@@ -80,7 +80,7 @@ export class SocketsGateway {
             this.server.to(id).emit(event, data);
         });
     }
-    async joinUser(userId: string, room: string) {
+    async subscribeUserToRoom(userId: string, room: string) {
         this.clients[userId]?.forEach((id) => {
             this.server.sockets.sockets.get(id).join(room);
         });
@@ -108,8 +108,8 @@ export class SocketsGateway {
         const answer = {
             conversations: await Promise.all(
                 conversations.map(async (c: any) => {
-                    const users = await Promise.all(
-                        c.channel.users.map((u) => this.getChannelProfile(u)),
+                    const users = c.channel.users.map((u) =>
+                        this.getChannelProfile(u),
                     );
 
                     c.channel.users = users;
@@ -122,26 +122,9 @@ export class SocketsGateway {
                         readUntil: c.readUntil,
                         message: c.message,
                         channel: c.channel,
-                        user: await this.getProfile(c.user),
+                        user: this.getProfile(c.user),
                     };
-                    //@ts-ignore
-                    //const conv = {
-                    //    channelId: c.channel.id,
-                    //    userId: c.userId,
-                    //    users: await Promise.all(
-                    //        c.channel.users.map((u) =>
-                    //            this.getChannelProfile(u),
-                    //        ),
-                    //    ),
-                    //    //channel: c.channel,
-                    //};
-                    //@ts-ignore
-                    //c.channel.messages.sort((a, b) => a.id - b.id);
-                    //console.log(
-                    //    `User ${conv.userId} => client.join('conversation:${conv.channelId});`,
-                    //);
-                    //console.log(conv);
-                    this.joinUser(
+                    this.subscribeUserToRoom(
                         client.user.id,
                         `conversation:${conv.channelId}`,
                     );
@@ -156,7 +139,6 @@ export class SocketsGateway {
 
     @SubscribeMessage('conversations:sync')
     async syncUserConversation(client: Socket & { user: any }, payload: any) {
-        console.log('get conversation sync', client.user);
         const conversation = await this.channelService.getUserConversation(
             client.user.id,
             payload.channelId,
@@ -165,7 +147,10 @@ export class SocketsGateway {
             //@ts-ignore
             u.online = this.clients[u.user.id]?.length > 0;
         });
-        this.joinUser(client.user.id, `conversation:${conversation.channelId}`);
+        this.subscribeUserToRoom(
+            client.user.id,
+            `conversation:${conversation.channelId}`,
+        );
         const answer = {
             conversation: conversation,
             show: payload.show || false,
@@ -175,18 +160,52 @@ export class SocketsGateway {
         return answer;
     }
 
+    @SubscribeMessage('conversations:create')
+    async createConversation(client: Socket & { user: any }, payload: any) {
+        const { success, message, type, channel } =
+            await this.channelService.createConversation(
+                client.user.id,
+                payload,
+            );
+        this.notification(client.user.id, { message, success, type });
+        if (!success) return { success, message };
+        this.syncUserConversation(client, {
+            channelId: channel.id,
+            show: true,
+        });
+
+        this.sendToUser(client.user.id, 'conversations:created', {
+            channelId: channel.id,
+        });
+
+        return {
+            channelId: channel.id,
+        };
+    }
+
     @SubscribeMessage('conversations:friend-request')
     async addFriend(client: Socket & { user: any }, payload: any) {
         console.log('get blockes users', client.user);
         const status = await this.channelService.addFriend(
             client.user.id,
             payload.userId,
-            payload.status,
         );
         this.notification(client.user.id, status);
+
+        return status;
         //this.sendToUser(client.user.id, 'conversations:blocked', users);
         //console.log({ users });
-        //return users;
+    }
+    @SubscribeMessage('conversations:friends')
+    async getUserFriends(client: Socket & { user: any }, payload: any) {
+        console.log('get blockes users', client.user);
+
+        const friends = await this.friendService.getUserFriends(client.user.id);
+        console.log('search friend', friends);
+
+        this.sendToUser(client.user.id, 'conversations:friends', friends);
+        console.log({ friends });
+        return friends;
     }
     @SubscribeMessage('conversations:blocked')
     async getBlockedUsers(client: Socket & { user: any }, payload: any) {
@@ -209,30 +228,6 @@ export class SocketsGateway {
         this.notification(client.user.id, status);
         console.log(status);
         return status;
-    }
-
-    @SubscribeMessage('conversations:create')
-    async createConversation(client: Socket & { user: any }, payload: any) {
-        console.log('create conversation', client.user, payload);
-        const { success, message, type, channel } =
-            await this.channelService.createConversation(
-                client.user.id,
-                payload,
-            );
-        this.notification(client.user.id, { message, success, type });
-        if (!success) return { success, message };
-        this.syncUserConversation(client, {
-            channelId: channel.id,
-            show: true,
-        });
-
-        this.sendToUser(client.user.id, 'conversations:created', {
-            channelId: channel.id,
-        });
-
-        return {
-            channelId: channel.id,
-        };
     }
 
     @SubscribeMessage('conversations:update')
@@ -264,15 +259,13 @@ export class SocketsGateway {
             );
         this.notification(client.user.id, { message, success });
         if (!success) return { success, message };
-        this.sendToUser(
-            client.user.id,
-            'conversations:left',
-            payload.channelId,
-        );
         this.clients[client.user.id]?.forEach((id) => {
             this.server.sockets.sockets
                 .get(id)
                 ?.leave(`conversation:${payload.channelId}`);
+        });
+        this.sendToUser(client.user.id, 'conversations:leave', {
+            channelId: payload.channelId,
         });
         if (last !== true) {
             this.sendMessage({
@@ -280,9 +273,6 @@ export class SocketsGateway {
                 from: 0,
                 content: `@${client.user.username} has left the channel`,
                 timestamp: new Date(),
-            });
-            this.sendChannelEvent(channelId, 'conversations:syncing', {
-                channelId: channelId,
             });
             this.sendChannelEvent(channelId, 'conversations:left', {
                 channelId: channelId,
@@ -323,9 +313,9 @@ export class SocketsGateway {
             channelId: payload.channelId,
             userId: client.user.id,
         });
-        this.sendChannelEvent(payload.channelId, 'conversations:syncing', {
-            channelId: payload.channelId,
-        });
+        //    this.sendChannelEvent(payload.channelId, 'conversations:syncing', {
+        //        channelId: payload.channelId,
+        //    });
     }
 
     @SubscribeMessage('conversations:messages')
@@ -398,7 +388,7 @@ export class SocketsGateway {
         return channels;
     }
 
-    async getProfile(user) {
+    getProfile(user) {
         return {
             id: user.id,
             username: user.username,
@@ -411,8 +401,7 @@ export class SocketsGateway {
             defeats: user.defeats,
         };
     }
-    async getChannelProfile(user) {
-        console.log('profile', user);
+    getChannelProfile(user) {
         return {
             userId: user.user.id,
             channelId: user.channelId,
@@ -421,7 +410,7 @@ export class SocketsGateway {
             bannedUntil: user.bannedUntil,
             readUntil: user.readUntil,
             online: this.clients[user.user.id]?.length > 0,
-            user: await this.getProfile(user.user),
+            user: this.getProfile(user.user),
         };
     }
 
@@ -430,9 +419,6 @@ export class SocketsGateway {
         if (!payload.query.length) return [];
         const users = await this.friendService.searchFriend(payload.query);
         console.log('search friend', users);
-
-        const friends = await this.friendService.getUserFriends(client.user.id);
-        console.log('search friend', friends);
 
         return await Promise.all(users.map((user) => this.getProfile(user)));
         // const channels = await this.channelService.searchChannel(
