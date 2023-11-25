@@ -74,7 +74,7 @@
 4 . Friend interface
 [ Yes / No ]
 
-	❌The user has access to a friends interface, where they can see their
+	✅The user has access to a friends interface, where they can see their
 	friends and their status (offline/online/in a game/and so forth). They
 	also have access to basics informations about them (name/nickname, avatar
 	and so forth).
@@ -82,7 +82,7 @@
 5 . 2FA
 [ Yes / No ]
 
-	❌The user can enable/disable 2FA (two-factor authentication). If enabled,
+	✅The user can enable/disable 2FA (two-factor authentication). If enabled,
 	they must pass it in order to sign in. For example, 2FA can use Google
 	Authenticator, a text message, an email, and so forth.
 
@@ -105,11 +105,11 @@
 [ Yes / No ]
 
 	✅The users can chat. Messages must be sent/received instantly.
-	❌If the user blocked another user, the messages from the blocked person
+	✅If the user blocked another user, the messages from the blocked person
 	must be hidden. 
-    ❌The user can access the user profile of other players
+    ✅The user can access the user profile of other players
 	from the chat interface 
-    ❌and also invite them for a Pong duel.
+    ✅and also invite them for a Pong duel.
 
 3 . Creating channels
 [ Yes / No ]
@@ -122,9 +122,9 @@
 4 . Channel roles
 [ Yes / No ]
 
-	❌A user who is an owner of a channel can kick, ban, mute other users and
+	✅A user who is an owner of a channel can kick, ban, mute other users and
 	the channel administrators.
-	❌A user who is an administrator of a channel can kick, ban mute other
+	✅A user who is an administrator of a channel can kick, ban mute other
 	users, but not the channel owners.
 
 

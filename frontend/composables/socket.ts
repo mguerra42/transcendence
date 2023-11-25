@@ -5,6 +5,7 @@ export const useSocket = defineStore('socket', () => {
     const socket = ref()
     const auth = useAuth()
 	const chat = useChat()
+    const game = useGame()
     const events = ref([])
 
     const disconnect = async () => {
@@ -21,6 +22,7 @@ export const useSocket = defineStore('socket', () => {
         _socket.on('connect', () => {
             console.log('Socket connected')
 			chat.init()
+			game.init()
         })
         _socket.on('disconnect', () => {
             console.log('Socket disconnected')

@@ -11,6 +11,14 @@ import { Server, Socket } from 'socket.io';
 import { UpdateUserDto } from '../users/dto/update-user.dto';
 import { ChannelService } from '../channel/channel.service';
 import { FriendService } from '../friend/friend.service';
+import { PongGame } from './PongGame';
+
+import * as crypto from 'crypto';
+
+interface Game {
+    id: string;
+    players: number[];
+}
 
 @WebSocketGateway({
     cors: {
@@ -21,6 +29,10 @@ import { FriendService } from '../friend/friend.service';
 export class SocketsGateway {
     clients: object;
     status: object;
+    lobby: any[];
+    queue: any[];
+    tmpGames: any[];
+    games: PongGame[];
     constructor(
         private authService: AuthService,
         private userService: UsersService,
@@ -29,6 +41,9 @@ export class SocketsGateway {
     ) {
         this.clients = {};
         this.status = {};
+        this.queue = [];
+        this.games = [] as PongGame[];
+        this.tmpGames = [] as any[];
     }
 
     @WebSocketServer()
@@ -75,7 +90,7 @@ export class SocketsGateway {
         }
     }
 
-    async sendToUser(userId: string, event: string, data: any) {
+    async sendToUser(userId: string | number, event: string, data: any) {
         this.clients[userId]?.forEach((id) => {
             this.server.to(id).emit(event, data);
         });
@@ -645,6 +660,118 @@ export class SocketsGateway {
         // );
         // this.sendToUser(client.user.id, 'conversations:search-friend', channels);
         // return channels;
+    }
+
+    @SubscribeMessage('game:challenge')
+    async onChallenge(client: Socket & { user: any }, destUserId: number) {
+        console.log('challenge', client.user, destUserId);
+        const destUser = await this.userService.findOne(destUserId);
+        if (!destUser) {
+            this.notification(client.user.id, {
+                message: 'User not found',
+                type: 'error',
+            });
+            return;
+        }
+        // Check if user is online
+        if (!this.clients[destUserId]?.length) {
+            this.notification(client.user.id, {
+                message: 'User is offline',
+                type: 'error',
+            });
+            return;
+        }
+
+        // Check if user is already in queue
+        if (this.queue.find((u) => u.id === destUserId)) {
+            this.notification(client.user.id, {
+                message: 'User is already in queue, auto matching in progress',
+                type: 'warning',
+            });
+            // TODO: auto match
+            return;
+        }
+
+        // Check if user is already in game
+        if (this.games.find((u) => u.players.includes(destUserId))) {
+            this.notification(client.user.id, {
+                message: 'User is already in game',
+                type: 'error',
+            });
+            return;
+        }
+        if (this.tmpGames.find((u) => u.players.includes(destUserId))) {
+            this.notification(client.user.id, {
+                message: 'User is already in tmp game',
+                type: 'error',
+            });
+            return;
+        }
+        if (this.tmpGames.find((u) => u.players.includes(client.user.id))) {
+            this.notification(client.user.id, {
+                message: 'You are already in game',
+                type: 'error',
+            });
+            return;
+        }
+        console.log('challenge', client.user, destUserId);
+        // Create temporary game
+        const gameId = crypto.randomUUID();
+        const tmpGame = {
+            gameId,
+            originUsername: client.user.username,
+            destUsername: destUser.username,
+            origin: client.user.id,
+            expiration: new Date(Date.now() + 1000 * 15), // 15sec
+            players: [client.user.id, destUserId],
+        };
+        this.sendToUser(String(destUserId), 'game:challenged', tmpGame);
+        this.sendToUser(String(client.user.id), 'game:challenged', tmpGame);
+        this.tmpGames.push(tmpGame);
+    }
+
+    @SubscribeMessage('game:challenge-accept')
+    async onChallengeAccepted(client: Socket & { user: any }, { gameId }) {
+        const tmpGame = this.tmpGames.find(
+            (g) => g.gameId === gameId && g.players.includes(client.user.id),
+        );
+        if (!tmpGame) {
+            this.notification(client.user.id, {
+                message: 'Game not found',
+                type: 'error',
+            });
+            return;
+        }
+        tmpGame.players.forEach((player) => {
+            this.subscribeUserToRoom(String(player), `game:${gameId}`);
+            this.sendToUser(String(player), 'game:challenge-accepted', tmpGame);
+        });
+
+        const game = new PongGame(tmpGame, (type, data) => {
+            this.server.in(`game:${gameId}`).emit(type, data);
+        });
+        this.games.push(game);
+        this.tmpGames = this.tmpGames.filter((g) => g.gameId !== gameId);
+    }
+
+    @SubscribeMessage('game:challenge-decline')
+    async onChallengeDecline(client: Socket & { user: any }, { gameId }) {
+        const tmpGame = this.tmpGames.find(
+            (g) => g.gameId === gameId && g.players.includes(client.user.id),
+        );
+        if (!tmpGame) {
+            this.notification(client.user.id, {
+                message: 'Game not found',
+                type: 'error',
+            });
+            return;
+        }
+
+        tmpGame.players.forEach((player) => {
+            this.sendToUser(String(player), 'game:challenge-declined', tmpGame);
+        });
+
+        this.tmpGames = this.tmpGames.filter((g) => g.gameId !== gameId);
     }
 
     //@SubscribeMessage('channels:create')

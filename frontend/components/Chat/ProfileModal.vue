@@ -2,6 +2,7 @@
 import { onClickOutside } from "@vueuse/core";
 const auth = useAuth();
 const chat = useChat();
+const game = useGame();
 const target = ref(null);
 
 onClickOutside(target, () => {
@@ -59,7 +60,7 @@ const isAuthUser = computed(() => {
           {{ chat.friends.find(u => u.id == chat.currentProfile?.id) ? 'Remove Friend' : 'Add Friend' }}
         </div>
         <div
-          @click="chat.challenge(chat.currentProfile?.id)"
+          @click="game.challenge(chat.currentProfile?.id)"
           class="flex-1 hover:bg-white w-full hover:text-gray-700 cursor-pointer flex items-center px-2 gap-2 justify-center py-1"
         >
           <div class="i-mdi:trophy"></div>

@@ -5,7 +5,6 @@ import { DBService } from 'src/db/db.service';
 import { User, Prisma, Role } from '@prisma/client';
 
 import * as bcrypt from 'bcryptjs';
-import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class UsersService {

@@ -7,8 +7,8 @@ import { ChannelModule } from 'src/channel/channel.module';
 import { FriendModule } from 'src/friend/friend.module';
 
 @Module({
-  imports: [AuthModule, UsersModule, ChannelModule, FriendModule],
-  providers: [SocketsGateway],
-  controllers: [SocketController],
+    imports: [AuthModule, UsersModule, ChannelModule, FriendModule],
+    providers: [SocketsGateway],
+    controllers: [SocketController],
 })
 export class SocketsModule {}

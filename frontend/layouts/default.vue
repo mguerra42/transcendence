@@ -2,6 +2,7 @@
 import slugify from 'slugify'
 const route = useRoute();
 const auth = useAuth();
+const game = useGame()
 const avatarFile = ref(null);
 const onFileSelected = async (event: any) => {
     avatarFile.value = event.target.files[0]
@@ -79,6 +80,24 @@ await auth.getSession();
           <slot />
         </section>
         <!--<aside class="w-240px bg-green h-full">Sidebar right</aside>-->
+      </div>
+      <div v-if="game.tmpGame.gameId" class="bg-black/70% backdrop-blur fixed w-full h-full flex justify-center items-center flex-col">
+        
+        <div v-if="game.tmpGame.origin != auth.session.id">
+            <div>@{{ game.tmpGame.originUsername }} has challenged you to a game of Pong!</div>
+            <div class="flex gap-2">Will auto decline in : <Timer :time="game.tmpGame.expiration"/></div>
+            <div class="flex items-center gap-5 justify-center">
+                <button class="bg-green-500 hover:bg-green-600 rounded-lg px-4 py-2 mt-4" @click="game.acceptChallenge(game.tmpGame.gameId)">Accept</button>
+                <button class="bg-red-500 hover:bg-red-600 rounded-lg px-4 py-2 mt-4" @click="game.declineChallenge(game.tmpGame.gameId)">Decline</button>
+            </div>
+        </div>
+        <div v-if="game.tmpGame.origin == auth.session.id">
+            <div>You have challenged @{{ game.tmpGame.destUsername }} to a game of Pong!</div>
+            <div class="flex gap-2">Will auto cancel in : <Timer :time="game.tmpGame.expiration"/></div>
+            <div class="flex items-center gap-5 justify-center">
+                <button class="bg-red-500 hover:bg-red-600 rounded-lg px-4 py-2 mt-4" @click="game.declineChallenge(game.tmpGame.gameId)">Cancel</button>
+            </div>
+        </div>
       </div>
         <ChatTriggerButton v-if="!$route.name?.startsWith('chat')" />
       <!--<ChatModule />-->

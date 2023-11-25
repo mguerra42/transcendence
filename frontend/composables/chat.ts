@@ -488,72 +488,6 @@ export const useChat = defineStore("chat", () => {
     }, 100)
   };
 
-  const onConversationsList = ({
-    conversations: _conversations,
-  }: {
-    conversations: Conversation[];
-  }) => {
-    //console.log("conversations", _conversations);
-    //_conversations.map((c) => createOrUpdateConversation({ conversation: c }));
-    //const route = useRoute();
-    //if (route.name == 'chat-conversation') {
-    //    let conv = _conversations.find(c => c.channelId == route.params.conversation)
-    //    if (conv) {
-    //        showConversation(conversations.value.get(conv.channelId))
-    //    }
-    //}
-  };
-
-  const createOrUpdateConversation = ({
-    conversation: _conversation,
-    show = false,
-  }: {
-    conversation: Conversation;
-    show?: boolean;
-  }) => {
-    let exists = conversations.value.get(_conversation.channelId);
-    let wrapped = exists ? exists : new WrappedConversation(_conversation);
-
-    if (!exists) conversations.value.set(_conversation.channelId, wrapped);
-    else wrapped.update(_conversation);
-
-    if (show) showConversation(wrapped);
-  };
-  const _onConversationsLeft = (channelId: number) => {
-    console.log("left", channelId);
-    let exists = conversations.value.get(channelId);
-    if (exists) {
-      if (exists && isActiveConversation(exists)) {
-        hideConversation();
-        setView("home");
-      }
-      conversations.value.delete(channelId);
-    }
-  };
-
-  const _onConversationsMessage = ({
-    channelId,
-    id,
-    from,
-    content,
-    timestamp,
-  }: {
-    id: number;
-    channelId: number;
-    from: number;
-    content: string;
-    timestamp: Date;
-  }) => {
-    let exists = conversations.value.get(channelId);
-    if (exists) {
-      exists.onNewMessage({
-        id,
-        from,
-        content,
-        timestamp,
-      });
-    }
-  };
   const createConversation = async (conversationInfo) => {
     console.log("createConversation", conversationInfo);
     socket.emit("conversations:create", conversationInfo, async (conv) => {
@@ -581,13 +515,6 @@ export const useChat = defineStore("chat", () => {
       console.log("search", answer);
       searchFriendResults.value = answer;
     });
-  };
-
-  const triggerSyncing = ({ channelId }) => {
-    let exists = conversations.value.get(channelId);
-    if (exists) {
-      exists.sync();
-    }
   };
 
   const addFriend = async (userId) => {

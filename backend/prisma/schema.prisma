@@ -46,82 +46,6 @@ model User {
   secret         String?       // Field to store the 2FA secret
 }
 
-model Friendship {
-  from   User @relation("friends", fields: [fromId], references: [id])
-  fromId Int
-  to    User @relation("friendsOf", fields: [toId], references: [id])
-  toId  Int
-  accepted  Boolean @default(false)
-  channelId Int?
-
-  @@id([fromId, toId])
-}
-
-
-model GameLobby {
-  id              Int      @id @default(autoincrement())
-  lobbyId         String   @unique
-  players         User[]    
-  playerOneScore  String
-  playerTwoScore  String
-}
-
-//Client 1 -> Server (joinLobby : user1, user2) -> user2 hasLobby(user1) -> cancel
-//Client 2 -> Server (joinLobby : user1, user2) -> user1 hasLobby(user2) -> cancel
-
-//Timing
-
-
-//Match
-//Define leader
-//if not leader wait ping
-//if leader create lobby and send socket to follower
-
-//Loop database for match in queues
-
-
-
-model Queue {
-  id         Int      @id @default(autoincrement())
-  confirmed  String   @default("idle")
-  username   String   @unique
-  profile    User     @relation(fields: [username], references: [username])
-}
-
-//Message history (may be used for group chat ?)
-//model history {
-//  id        Int      @id @default(autoincrement())
-//  users     User[]    
-//  // channelId Int
-//  // channel   Channel? @relation(fields: [channelId], references: [id])
-//  content   Message[]
-//  date      DateTime @default(now())
-//}
-
-//Message content
-model Message {
-  id          Int       @id @default(autoincrement())
-  content     String
-  from    Int
-//  receiverId  Int?
-//  sender      User      @relation("sender", fields: [senderId], references: [id])
-//////  receiver    history?   @relation(fields: [receiverId], references: [id])
-  channelId   Int
-  channel     Channel  @relation(fields: [channelId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  timestamp        DateTime  @default(now())
-
-}
-
-//Friend list
-// model Friend {
-//   userOneId Int
-//   userTwoId Int
-//   userOne   User @relation("friends", fields: [userOneId], references: [id])
-//   userTwo   User @relation("inverseFriends", fields: [userTwoId], references: [id])
-
-//   @@id([userOneId, userTwoId])
-// }
-
 //Blocked list
 model BlockedUser {
   userId    Int
@@ -130,19 +54,6 @@ model BlockedUser {
 
   @@id([userId, blockedId])
 }
-
-//Game of Pong
-model Game {
-  id          Int      @id @default(autoincrement())
-  winnerId    Int
-  loserId     Int
-  winner      User     @relation("winner", fields: [winnerId], references: [id])
-  loser       User     @relation("loser", fields: [loserId], references: [id])
-  winnerScore Int
-  loserScore  Int
-  date        DateTime @default(now())
-}
-
 //Chat channel
 model Channel {
   id           Int           @id @default(autoincrement())
@@ -153,6 +64,17 @@ model Channel {
   users        ChannelUser[] //users in the channel
   messages     Message[]//messages in the channel 
   creationDate DateTime      @default(now())
+}
+
+//Message content
+model Message {
+  id          Int       @id @default(autoincrement())
+  content     String
+  from    Int
+  channelId   Int
+  channel     Channel  @relation(fields: [channelId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  timestamp        DateTime  @default(now())
+
 }
 
 model ChannelUser {
@@ -174,17 +96,51 @@ enum Role {
   OWNER
 }
 
-//User status
-// enum StatusDto {
-//   OFFLINE
-//   ONLINE
-//   PLAYING
-// }
-
 //Channel accessibility
 enum ChannelType {
   DM
   PUBLIC
   PRIVATE
   PROTECTED
+}
+
+model Friendship {
+  from   User @relation("friends", fields: [fromId], references: [id])
+  fromId Int
+  to    User @relation("friendsOf", fields: [toId], references: [id])
+  toId  Int
+  accepted  Boolean @default(false)
+  channelId Int?
+
+  @@id([fromId, toId])
+}
+
+
+model GameLobby {
+  id              Int      @id @default(autoincrement())
+  lobbyId         String   @unique
+  players         User[]    
+  playerOneScore  String
+  playerTwoScore  String
+}
+
+model Queue {
+  id         Int      @id @default(autoincrement())
+  confirmed  String   @default("idle")
+  username   String   @unique
+  profile    User     @relation(fields: [username], references: [username])
+}
+
+
+
+//Game of Pong
+model Game {
+  id          Int      @id @default(autoincrement())
+  winnerId    Int
+  loserId     Int
+  winner      User     @relation("winner", fields: [winnerId], references: [id])
+  loser       User     @relation("loser", fields: [loserId], references: [id])
+  winnerScore Int
+  loserScore  Int
+  date        DateTime @default(now())
 }

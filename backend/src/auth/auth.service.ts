@@ -55,16 +55,11 @@ export class AuthService {
                 HttpStatus.UNPROCESSABLE_ENTITY,
             );
         }
-        // Moved to enable2fa
-        //const secret = speakeasy.generateSecret({ length: 24 });
-        //credentials.secret = secret.base32;
         const user = await this.usersService.create(credentials);
 
         return user;
     }
     async setup(user: any, username: string, avatar?: Express.Multer.File) {
-        console.log('setup username=', username);
-        console.log('setup avatar=', avatar);
         if (!username) {
             throw new HttpException(
                 'Username is required.',
@@ -78,8 +73,6 @@ export class AuthService {
         if (avatar) {
             payload['avatar'] = this.saveAvatar(user, avatar);
         }
-
-        console.log('payload=', payload, user.id);
 
         await this.usersService.update(user.id, payload);
         return true;
@@ -106,8 +99,6 @@ export class AuthService {
                 '/backend/avatars/' +
                 user.id +
                 (avatar.mimetype == 'image/png' ? '.png' : '.jpg');
-            console.log('avatarPath=', avatarPath);
-            // write avatar to /backend/avatars/
             fs.writeFileSync(avatarPath, avatar.buffer);
             return avatarPath.replace('/backend', '');
         }
@@ -181,7 +172,6 @@ export class AuthService {
         const account = await this.usersService.findOne(user.id);
         if (!account.mfaSecret) {
             account.mfaSecret = speakeasy.generateSecret({ length: 24 }).base32;
-            console.log(account.mfaSecret);
             await this.usersService.update(user.id, {
                 mfaSecret: account.mfaSecret,
             });
@@ -239,10 +229,8 @@ export class AuthService {
 
         let mfaSecret = undefined;
         let mfaEnabled = undefined;
-        console.log({ data });
 
         if (data.mfaEnabled == 'true') {
-            console.log('data.mfaCode=', data.mfaCode);
             if (!data.mfaCode) {
                 throw new HttpException(
                     '2FA code is required.',
@@ -271,7 +259,6 @@ export class AuthService {
 
         let newAvatar = undefined;
         if (typeof data.avatar != 'string') {
-            console.log('data.avatar=', typeof data.avatar);
             newAvatar = this.saveAvatar(user, data.avatar);
         } else {
             newAvatar = data.avatar;
@@ -295,9 +282,6 @@ export class AuthService {
                 HttpStatus.UNPROCESSABLE_ENTITY,
             );
         }
-        //const secret = speakeasy.generateSecret({ length: 24 });
-        //account.secret = secret.base32;
-        //console.log(account.secret);
         const verified = speakeasy.totp.verify({
             secret: account.mfaSecret,
             encoding: 'base32',
@@ -321,124 +305,4 @@ export class AuthService {
             access_token: access_token,
         };
     }
-
-    ////TODO : move logic from controller here
-    //googleLogin(req) {
-    //    if (!req.user) {
-    //        return 'No user from google';
-    //    }
-    //    return req.user;
-    //}
-
-    ////BUG FIX :
-    ////-Fixed wrong condition in if statements to explicity check if field is empty ('')
-    ////-Fixed already-taken check to explicity check for null
-    ////-Changed object received by prisma service to allow for empty fields in order to avoid UNIQUE constraint errors when updating unchanged field
-    ////NEW LOGIC
-    ////-Changed update function in users.service.ts to take any object instead of UpdateDto object, to allow for empty fields
-    ////-Changed updateDto object to userToUpdateObject interface to allow for empty fields and dynamic add changed fields only
-    //async toggle2FA(userId: number): Promise<number> {
-    //    const user = await this.usersService.findOne(userId);
-
-    //    const updatedTwoFa = user.twoFa === 0 ? 1 : 0;
-    //    console.log('updatedTwoFa=', updatedTwoFa);
-
-    //    interface userToUpdateObject {
-    //        twoFa?: number;
-    //    }
-    //    const userdata: userToUpdateObject = {};
-    //    userdata.twoFa = updatedTwoFa;
-    //    const ret: any = await this.usersService.update(userId, userdata);
-    //    return updatedTwoFa;
-    //}
-
-    //async get2faQrCode(userId: number): Promise<string> {
-    //    const user = await this.usersService.findOne(userId);
-    //    if (!user.secret) {
-    //        throw new Error('User does not have 2FA secret.');
-    //    }
-
-    //    const otpAuthUrl = speakeasy.otpauthURL({
-    //        secret: user.secret,
-    //        label: user.email,
-    //        issuer: 'Transcsendence',
-    //        encoding: 'base32',
-    //    });
-
-    //    try {
-    //        const qrCodeDataURL = await qrcode.toDataURL(otpAuthUrl);
-    //        return qrCodeDataURL;
-    //    } catch (error) {
-    //        throw new Error('Error generating QR code.');
-    //    }
-    //}
-
-    //async update(id: number, updateDto: any) {
-    //    //Interface acts as a type definition for an object that can dynamically add fields
-    //    //This is to send prisma an object with only fields that have been changed
-    //    interface userToUpdateObject {
-    //        email?: string;
-    //        password?: string;
-    //        username?: string;
-    //        avatar?: string;
-    //    }
-    //    const previousUser = await this.usersService.findOne(id);
-    //    const userToUpdate: userToUpdateObject = {};
-
-    //    if (!bcrypt.compareSync(updateDto.password, previousUser.password)) {
-    //        throw new HttpException(
-    //            'Password is incorrect.',
-    //            HttpStatus.UNPROCESSABLE_ENTITY,
-    //        );
-    //    }
-
-    //    //Update object with non-empty fields
-    //    //Previously we had 'if (updateDto.property)' which was always true
-    //    if (updateDto.email != '') {
-    //        const userExists = await this.usersService.findByEmail(
-    //            updateDto.email,
-    //        );
-    //        if (userExists != null) {
-    //            throw new HttpException(
-    //                'Email is already taken.',
-    //                HttpStatus.UNPROCESSABLE_ENTITY,
-    //            );
-    //        } else userToUpdate.email = updateDto.email;
-    //    }
-    //    if (updateDto.username != '') {
-    //        const userExists = await this.usersService.findByUsername(
-    //            updateDto.username,
-    //        );
-    //        if (userExists != null) {
-    //            throw new HttpException(
-    //                'Username is already taken.',
-    //                HttpStatus.UNPROCESSABLE_ENTITY,
-    //            );
-    //        } else userToUpdate.username = updateDto.username;
-    //    }
-    //    if (
-    //        updateDto.newPassword != '' &&
-    //        updateDto.newPassword !== updateDto.newPasswordConfirmation
-    //    ) {
-    //        throw new HttpException(
-    //            'Passwords do not match.',
-    //            HttpStatus.UNPROCESSABLE_ENTITY,
-    //        );
-    //    }
-    //    if (updateDto.newPassword != '') {
-    //        userToUpdate.password = bcrypt.hashSync(updateDto.newPassword, 10);
-    //    }
-
-    //    if (updateDto.avatar != '') {
-    //        userToUpdate.avatar = updateDto.avatar;
-    //    }
-
-    //    //If no fields have been changed, return null
-    //    //TODO : Check if functions that use authService.update() will break if null is returned
-    //    if (Object.keys(userToUpdate).length === 0) return null;
-
-    //    //Send prisma object with updated fields only
-    //    const user = await this.usersService.update(id, userToUpdate);
-    //    return user;
-    //}
 }

@@ -9,10 +9,12 @@ import { SocketsModule } from './sockets/sockets.module';
 import { FriendModule } from './friend/friend.module';
 import { MatchmakingController } from './matchmaking/matchmaking.controller';
 import { MatchmakingModule } from './matchmaking/matchmaking.module';
+import { GameService } from './game/game.service';
+import { GameModule } from './game/game.module';
 
 @Module({
   controllers: [AppController, MatchmakingController],
-  providers: [AppService],
+  providers: [AppService, GameService],
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
@@ -23,6 +25,7 @@ import { MatchmakingModule } from './matchmaking/matchmaking.module';
     SocketsModule,
     FriendModule,
     MatchmakingModule,
+    GameModule,
   ],
 })
 export class AppModule {}
