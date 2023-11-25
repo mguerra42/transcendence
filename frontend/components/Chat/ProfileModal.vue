@@ -73,54 +73,78 @@ const isAuthUser = computed(() => {
           {{ chat.blockedUsers.includes(chat.currentProfile?.id) ? 'Unblock' : 'Block' }} User
         </div>
       </div>
-      <div v-if="chat.activeConversation">
+      {{chat.currentProfile.mutedUntil}}
+      <div v-if="chat.manager.active">
         <div
 
 class="grid grid-cols-3 mt-5 rounded-lg b-1 bg-zinc-700 overflow-hidden flex-row sm:flex-col md:flex-row items-center justify-center w-full"
-v-if="chat.activeConversation.isAdmin && !chat.activeConversation.isRole(chat.currentProfile.id, 'OWNER')
+v-if="chat.manager.active.isAdmin && !chat.manager.active.isRole(chat.currentProfile.id, 'OWNER')
   && chat.currentProfile.id != auth.session.id
 "
 >
 <div
   @click="
-    chat.kick(chat.currentProfile.id, chat.activeConversation.id)
+    chat.manager.active?.kick(chat.currentProfile?.id)
   "
   class="flex-1 hover:bg-white w-full hover:text-gray-700 cursor-pointer flex items-center px-2 gap-2 justify-center py-1 b-r-1 md:b-r-1 sm:b-r-0"
 >
   <div class="i-game-icons:high-kick"></div>
   Kick
 </div>
+
 <div
+    v-if="!chat.manager.active.isUserMuted(chat.currentProfile.id)"
   @click="
-    chat.mute(chat.currentProfile.id, chat.activeConversation.id)
+    chat.manager.active?.mute(chat.currentProfile?.id, null)
   "
-  class="flex-1 hover:bg-white w-full hover:text-gray-700 cursor-pointer flex items-center px-2 gap-2 justify-center py-1"
+  class="flex-1 hover:bg-white w-full hover:text-gray-700 cursor-pointer flex items-center px-2 gap-2 justify-center py-1 b-l-1 md:b-l-1 sm:b-l-0"
 >
   <div class="i-carbon:volume-mute"></div>
   Mute
 </div>
 <div
+    v-if="chat.manager.active.isUserMuted(chat.currentProfile.id)"
   @click="
-    chat.ban(chat.currentProfile.id, chat.activeConversation.id)
+    chat.manager.active?.mute(chat.currentProfile?.id, 0)
+  "
+  class="flex-1 hover:bg-white w-full hover:text-gray-700 cursor-pointer flex items-center px-2 gap-2 justify-center py-1 b-l-1 md:b-l-1 sm:b-l-0"
+>
+  <div class="i-carbon:volume-mute"></div>
+  Unmute
+</div>
+<div
+    v-if="!chat.manager.active.isUserBanned(chat.currentProfile.id)"
+  @click="
+    chat.manager.active?.ban(chat.currentProfile?.id, null)
   "
   class="flex-1 hover:bg-white w-full hover:text-gray-700 cursor-pointer flex items-center px-2 gap-2 justify-center py-1 b-l-1 md:b-l-1 sm:b-l-0"
 >
   <div class="i-tabler:ban"></div>
   Ban
 </div>
+<div
+    v-if="chat.manager.active.isUserBanned(chat.currentProfile.id)"
+  @click="
+    chat.manager.active?.ban(chat.currentProfile?.id, 0)
+  "
+  class="flex-1 hover:bg-white w-full hover:text-gray-700 cursor-pointer flex items-center px-2 gap-2 justify-center py-1 b-l-1 md:b-l-1 sm:b-l-0"
+>
+  <div class="i-tabler:ban"></div>
+  Unban  
+</div>
 </div>
       </div>
       
       <div
         class="mt-5 rounded-lg b-1 bg-zinc-700 overflow-hidden flex-row sm:flex-col md:flex-row items-center justify-center w-full"
-        v-if="chat.activeConversation && chat.activeConversation?.type != 'DM' && chat.activeConversation.role == 'OWNER'"
+        v-if="!chat.manager.active?.isDM && chat.manager.active?.isOwner"
       >
+      <!--{{chat.manager.active.getRole(chat.currentProfile.id)}}-->
         <div
-          v-if="chat.currentProfile.role == 'ADMIN'"
+          v-if="chat.manager.active.isRole(chat.currentProfile.id, 'ADMIN')"
           @click="
-            chat.setAdmin(
+            chat.manager.active.setAdmin(
               chat.currentProfile.id,
-              chat.activeConversation.id,
               false
             )
           "
@@ -130,11 +154,11 @@ v-if="chat.activeConversation.isAdmin && !chat.activeConversation.isRole(chat.cu
           Remove Admin
         </div>
         <div
-          v-if="chat.currentProfile.role != 'ADMIN'"
+          v-if="!chat.manager.active.isRole(chat.currentProfile.id, 'ADMIN')"
           @click="
-            chat.setAdmin(
+            
+            chat.manager.active.setAdmin(
               chat.currentProfile.id,
-              chat.activeConversation.id,
               true
             )
           "

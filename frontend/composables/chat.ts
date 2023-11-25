@@ -78,12 +78,44 @@ export class WrappedConversation {
     this.socket.emit("conversations:sync", { channelId: this.channelId });
   }
 
+  kick(userId) {
+    this.socket.emit("conversations:kick", {userId, channelId: this.channelId})
+  }
+  mute(userId, duration) {
+
+    if (duration === null) {
+        duration = prompt("Mute for how long ? (in seconds) (default to 60)");
+        duration = parseInt(String(duration) || "60");
+    }
+    this.socket.emit("conversations:mute", {userId, channelId: this.channelId, duration})
+  }
+  ban(userId, duration) {
+    if (duration === null) {
+        duration = prompt("Ban for how long ? (in seconds) (default to 60)");
+        duration = parseInt(String(duration) || "60");
+    }
+
+    this.socket.emit("conversations:ban", {userId, channelId: this.channelId, duration})
+  }
+
+  setAdmin(userId, state) {
+    this.socket.emit("conversations:admin", {userId, channelId: this.channelId, state})
+  }
+
+  isUserMuted(userId) {
+    let mutedUntil = this.users.find((u) => u.userId == userId)?.mutedUntil;
+    return mutedUntil !== null && new Date(mutedUntil) > new Date();
+  }
+  isUserBanned(userId) {
+    let bannedUntil = this.users.find((u) => u.userId == userId)?.bannedUntil;
+    return bannedUntil !== null && new Date(bannedUntil) > new Date();
+  }
   syncMessages() {
     this.socket.emit(
       `conversations:messages`,
       { channelId: this.channelId },
       (answer) => {
-        this.messages = answer.messages;
+        this.messages = answer.messages.filter((m) => !this.chat.blockedUsers.includes(m.from));
       }
     );
   }
@@ -105,9 +137,10 @@ export class WrappedConversation {
     );
   }
 
+  getAvatar(userId: number) {
+    return this.getUser(userId)?.avatar || "/avatars/default.jpg";
+  }
   onNewMessage(message: Message) {
-    console.log("onNewMessage", message);
-    console.log("onNewMessage", this.messages);
     this.messages.push(message);
   }
 
@@ -177,10 +210,6 @@ export class WrappedConversation {
     return this.conversation.role;
   }
 
-  get readUntil() {
-    return this.conversation.readUntil;
-  }
-
   get mutedUntil() {
     return this.conversation.mutedUntil;
   }
@@ -227,13 +256,17 @@ export class WrappedConversation {
     let user = this.users.find((u) => u.userId == userId);
     return user && user.role == role;
   }
+  getRole(userId:number) {
+    let user = this.users.find((u) => u.userId == userId);
+    return user?.role
+  }
 
   get isMuted() {
-    return this.mutedUntil !== null;
+    return this.mutedUntil !== null && new Date(this.mutedUntil) > new Date();
   }
 
   get isBanned() {
-    return this.bannedUntil !== null;
+    return this.bannedUntil !== null && new Date(this.bannedUntil) > new Date();
   }
 }
 
@@ -252,8 +285,10 @@ class ConversationManager {
 
     init() {
         this.socket.emit("conversations:list");
+        this.socket.on("conversations:list-reload", (answer) => this.socket.emit("conversations:list"));
         this.socket.on("conversations:list", (answer) => this.onConversationsList(answer));
         this.socket.on("conversations:sync", (answer) => this.onConversationSync(answer));
+        this.socket.on("conversations:sync-reload", (answer) => this.socket.emit("conversations:sync", { channelId: answer.channelId }));
         this.socket.on("conversations:leave", (answer) => this.onConversationLeave(answer));
         this.socket.on("conversations:left", (answer) => this.onConversationLeft(answer));
         this.socket.on("conversations:join", (answer) => this.onConversationJoin(answer));
@@ -284,6 +319,11 @@ class ConversationManager {
         this.initOrUpdateConversation(conversation, show);
     }
     onConversationLeave({channelId} : {channelId: number}) {
+        console.log("onConversationLeave", channelId);
+
+        if (this.active?.channelId == channelId) {
+            this.setActive(undefined);
+        }
         this.conversations.delete(channelId);
     }
     onConversationLeft({channelId, userId} : {channelId: number, userId: number}) {
@@ -563,10 +603,12 @@ export const useChat = defineStore("chat", () => {
     console.log("challenge", userId);
   };
   const kick = async (userId, channelId) => {
-    console.log("kick", { userId, channelId });
+    socket.emit("conversations:kick", {userId, channelId})
   };
   const mute = async (userId, channelId) => {
-    console.log("mute", { userId, channelId });
+    let duration = prompt("Mute for how long ? (in seconds) (default to 60)");
+    duration = parseInt(String(duration) || "60");
+    socket.emit("conversations:mute", { userId, channelId, duration });
   };
   const ban = async (userId, channelId) => {
     console.log("mute", { userId, channelId });

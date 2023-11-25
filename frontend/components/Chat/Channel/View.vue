@@ -17,14 +17,21 @@
 				<div @click="tab = 'settings'" class="text-xl bg-gray-400 rounded p-1 hover:scale-110 cursor-pointer transition-all" v-if="chat.manager.active.isOwner">
 					<div class="i-mdi:cog"></div>
 				</div>
-				<div @click="chat.manager.leaveConversation(chat.manager.active)" class="text-xl bg-gray-400 rounded p-1 hover:scale-110 cursor-pointer transition-all" >
+				<div v-if="!chat.manager.active.isBanned"  @click="chat.manager.leaveConversation(chat.manager.active)" class="text-xl bg-gray-400 rounded p-1 hover:scale-110 cursor-pointer transition-all" >
 					<div class="i-mdi:sign-out"></div>
 				</div>
 			</div>
+            <div v-if="chat.manager.active.isBanned"  class="flex flex-col items-center b-t-1 p-2.5  h-full w-full">
+                <div class="font-bold text-2xl my-5">
+                You have been banned from this channel until {{ new Date(chat.manager.active.bannedUntil)?.toLocaleString('fr-FR', {
+                            timeZone: 'Europe/Paris',
+                        })}}
+                </div>
+            </div>
+            <div v-else class="flex flex-col gap-2 w-full flex-1">
 
             <div class="text-xs text-white px-5 flex items-center gap-2">
 				<div>En ligne: {{ chat.manager.active.users.length }}</div>
-				
 			</div>
 			<div v-if="chat.manager.active.channel.description" class="text-sm text-white px-5 flex items-center gap-2 break-all">{{ chat.manager.active.channel.description }}</div>
 			<div class="text-lg sm:text-xl text-white px-5 ">
@@ -95,6 +102,8 @@
                     <div class="absolute px-2 bottom-0 left-0 right-0 top-0 overflow-auto" >
 				<ChatChannelSettings/>
 			</div>
+
+</div>
 			</div>
 			</div>
 		</div>

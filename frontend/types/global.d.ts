@@ -37,7 +37,6 @@ declare global {
         role: 'USER' | 'ADMIN' | 'OWNER'
         mutedUntil?: Date
         bannedUntil?: Date
-        readUntil: number
         online: boolean
         user: ChatProfile
     }
@@ -64,7 +63,6 @@ declare global {
 		role: 'USER' | 'ADMIN' | 'OWNER'
 		mutedUntil?: Date
 		bannedUntil?: Date
-        readUntil: number
 		message: string
 		channel: Channel
     }

@@ -67,7 +67,7 @@
 	❌Users can see the profile of other users. A profile contains basic
 	informations such as their nickname, their avatar, or a button to add
 	them as friends.
-	❌User can block other users. This means they won't receive private messages
+	✅User can block other users. This means they won't receive private messages
 	from the accounts they blocked nor view their messages in public/private
 	channels.
 

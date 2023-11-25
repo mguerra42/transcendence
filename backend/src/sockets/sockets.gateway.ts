@@ -119,7 +119,6 @@ export class SocketsGateway {
                         role: c.role,
                         mutedUntil: c.mutedUntil,
                         bannedUntil: c.bannedUntil,
-                        readUntil: c.readUntil,
                         message: c.message,
                         channel: c.channel,
                         user: this.getProfile(c.user),
@@ -143,6 +142,12 @@ export class SocketsGateway {
             client.user.id,
             payload.channelId,
         );
+        if (!conversation) {
+            return {
+                success: false,
+                message: 'Conversation not found',
+            };
+        }
         conversation.channel.users.forEach((u) => {
             //@ts-ignore
             u.online = this.clients[u.user.id]?.length > 0;
@@ -194,6 +199,9 @@ export class SocketsGateway {
         this.syncUserConversations(client, {});
         if (status.added === true) {
             this.sendToUser(payload.userId, 'conversations:friend-request', {});
+        }
+        if (status.removed === true) {
+            this.sendToUser(payload.userId, 'conversations:friend-decline', {});
         }
 
         return status;
@@ -357,8 +365,13 @@ export class SocketsGateway {
             payload.channelId,
         );
 
+        if (messages.success === false) {
+            this.notification(client.user.id, messages);
+            return messages.messages;
+        }
+
         return {
-            messages: messages,
+            messages: messages.messages,
         };
     }
 
@@ -375,7 +388,11 @@ export class SocketsGateway {
                 new Date(userChannel.mutedUntil) > new Date()
             ) {
                 this.notification(client.user.id, {
-                    message: 'You are muted until ' + userChannel.mutedUntil,
+                    message:
+                        'You are muted until ' +
+                        userChannel.mutedUntil.toLocaleString('fr-FR', {
+                            timeZone: 'Europe/Paris',
+                        }),
                     type: 'error',
                 });
                 return;
@@ -385,7 +402,11 @@ export class SocketsGateway {
                 new Date(userChannel.bannedUntil) > new Date()
             ) {
                 this.notification(client.user.id, {
-                    message: 'You are banned until ' + userChannel.bannedUntil,
+                    message:
+                        'You are banned until ' +
+                        userChannel.bannedUntil.toLocaleString('fr-FR', {
+                            timeZone: 'Europe/Paris',
+                        }),
                     type: 'error',
                 });
                 return;
@@ -419,6 +440,172 @@ export class SocketsGateway {
         this.sendToUser(client.user.id, 'conversations:search', channels);
         return channels;
     }
+    @SubscribeMessage('conversations:kick')
+    async kickUser(client: Socket & { user: any }, payload: any) {
+        const status = await this.channelService.kickUser(
+            client.user.id,
+            payload,
+        );
+
+        this.notification(client.user.id, status);
+        if (status.success === true) {
+            this.notification(payload.userId, {
+                message: `You have been kicked from channel #${payload.channelId}`,
+                type: 'error',
+            });
+            this.sendChannelEvent(
+                payload.channelId,
+                'conversations:sync-reload',
+                {
+                    channelId: payload.channelId,
+                },
+            );
+            this.sendToUser(payload.userId, 'conversations:leave', {
+                channelId: payload.channelId,
+            });
+            // unsubscribe user from channel
+            this.clients[payload.userId]?.forEach((id) => {
+                this.server.sockets.sockets
+                    .get(id)
+                    ?.leave(`conversation:${payload.channelId}`);
+            });
+
+            this.sendMessage({
+                channelId: payload.channelId,
+                from: 0,
+                content: `@${status.user.username} was kicked by @${client.user.username}`,
+                timestamp: new Date(),
+            });
+        }
+    }
+
+    @SubscribeMessage('conversations:mute')
+    async muteUser(client: Socket & { user: any }, payload: any) {
+        const status = await this.channelService.muteUser(
+            client.user.id,
+            payload,
+        );
+
+        this.notification(client.user.id, status);
+        if (status.success === true) {
+            this.notification(payload.userId, {
+                message: `You have been ${
+                    payload.duration === 0 ? 'un' : ''
+                }muted from channel #${payload.channelId}${
+                    payload.duration === 0
+                        ? ''
+                        : ' until ' +
+                          status.mutedUntil.toLocaleString('fr-FR', {
+                              timeZone: 'Europe/Paris',
+                          })
+                }`,
+                type: 'error',
+            });
+            this.sendChannelEvent(
+                payload.channelId,
+                'conversations:sync-reload',
+                {
+                    channelId: payload.channelId,
+                },
+            );
+
+            this.sendMessage({
+                channelId: payload.channelId,
+                from: 0,
+                content: `@${status.user.username} was ${
+                    payload.duration === 0 ? 'un' : ''
+                }muted by @${client.user.username}${
+                    payload.duration === 0
+                        ? ''
+                        : ' until ' +
+                          status.mutedUntil.toLocaleString('fr-FR', {
+                              timeZone: 'Europe/Paris',
+                          })
+                }`,
+                timestamp: new Date(),
+            });
+        }
+    }
+    @SubscribeMessage('conversations:ban')
+    async banUser(client: Socket & { user: any }, payload: any) {
+        const status = await this.channelService.banUser(
+            client.user.id,
+            payload,
+        );
+
+        this.notification(client.user.id, status);
+        if (status.success === true) {
+            this.notification(payload.userId, {
+                message: `You have been ${
+                    payload.duration === 0 ? 'un' : ''
+                }banned from channel #${payload.channelId}${
+                    payload.duration === 0
+                        ? ''
+                        : ' until ' +
+                          status.bannedUntil.toLocaleString('fr-FR', {
+                              timeZone: 'Europe/Paris',
+                          })
+                }`,
+                type: 'error',
+            });
+            this.sendChannelEvent(
+                payload.channelId,
+                'conversations:sync-reload',
+                {
+                    channelId: payload.channelId,
+                },
+            );
+
+            this.sendMessage({
+                channelId: payload.channelId,
+                from: 0,
+                content: `@${status.user.username} was ${
+                    payload.duration === 0 ? 'un' : ''
+                }banned by @${client.user.username}${
+                    payload.duration === 0
+                        ? ''
+                        : ' until ' +
+                          status.bannedUntil.toLocaleString('fr-FR', {
+                              timeZone: 'Europe/Paris',
+                          })
+                }`,
+                timestamp: new Date(),
+            });
+        }
+    }
+    @SubscribeMessage('conversations:admin')
+    async setAdmin(client: Socket & { user: any }, payload: any) {
+        const status = await this.channelService.setAdmin(
+            client.user.id,
+            payload,
+        );
+
+        this.notification(client.user.id, status);
+        if (status.success === true) {
+            this.notification(payload.userId, {
+                message: `You have been ${
+                    payload.state === true ? 'promoted to' : 'demoted from'
+                } admin in channel #${payload.channelId}`,
+                type: payload.state === true ? 'success' : 'error',
+            });
+            this.sendChannelEvent(
+                payload.channelId,
+                'conversations:sync-reload',
+                {
+                    channelId: payload.channelId,
+                },
+            );
+
+            this.sendMessage({
+                channelId: payload.channelId,
+                from: 0,
+                content: `@${status.user.username} was ${
+                    payload.admin === true ? 'promoted to' : 'demoted from'
+                } admin by @${client.user.username}`,
+                timestamp: new Date(),
+            });
+        }
+    }
 
     getProfile(user) {
         return {
@@ -440,7 +627,6 @@ export class SocketsGateway {
             role: user.role,
             mutedUntil: user.mutedUntil,
             bannedUntil: user.bannedUntil,
-            readUntil: user.readUntil,
             online: this.clients[user.user.id]?.length > 0,
             user: this.getProfile(user.user),
         };

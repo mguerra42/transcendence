@@ -21,7 +21,6 @@ export class ChannelService {
                 channelId: true,
                 bannedUntil: true,
                 mutedUntil: true,
-                readUntil: true,
                 user: {
                     select: {
                         id: true,
@@ -80,7 +79,6 @@ export class ChannelService {
                 channelId: true,
                 bannedUntil: true,
                 mutedUntil: true,
-                readUntil: true,
                 user: {
                     select: {
                         id: true,
@@ -140,34 +138,19 @@ export class ChannelService {
                 channelId: true,
                 bannedUntil: true,
                 mutedUntil: true,
-                readUntil: true,
             },
         });
-        const unread = await this.db.message.findMany({
-            where: {
-                channelId: channelId,
-                id: {
-                    gt: conversation.readUntil,
-                },
-            },
-            select: {
-                id: true,
-                channelId: true,
-                content: true,
-                from: true,
-                timestamp: true,
-            },
-            orderBy: {
-                id: 'desc',
-            },
-        });
+        if (!conversation) {
+            return {
+                success: false,
+                messages: [],
+                message: 'You are not in this channel',
+            };
+        }
 
-        const read = await this.db.message.findMany({
+        const messages = await this.db.message.findMany({
             where: {
                 channelId: channelId,
-                id: {
-                    lte: conversation.readUntil,
-                },
             },
             select: {
                 id: true,
@@ -179,11 +162,14 @@ export class ChannelService {
             orderBy: {
                 id: 'desc',
             },
-            take: 50 + Math.abs(50 - unread.length),
+            take: 100,
             skip: 0,
         });
 
-        return [...read, ...unread].sort((a, b) => a.id - b.id);
+        return {
+            success: true,
+            messages: messages.sort((a, b) => a.id - b.id),
+        };
     }
 
     private sanitizeChannelName(name: string) {
@@ -345,7 +331,7 @@ export class ChannelService {
                     success: true,
                     last: true,
                     message:
-                        'Channel left, no remaining members, so it was deleted',
+                        'Channel left, no remaining members... so channel deleted!',
                 };
             }
             if (nextOwner) {
@@ -417,6 +403,7 @@ export class ChannelService {
             message: 'Friend request accepted',
         };
     }
+
     async declineFriend(userId, friendId) {
         const exists = await this.db.friendship.findFirst({
             where: {
@@ -435,8 +422,8 @@ export class ChannelService {
         await this.db.friendship.delete({
             where: {
                 fromId_toId: {
-                    fromId: friendId,
-                    toId: userId,
+                    fromId: exists.fromId,
+                    toId: exists.toId,
                 },
             },
         });
@@ -462,8 +449,16 @@ export class ChannelService {
     async toggleFriend(userId, friendId) {
         const exists = await this.db.friendship.findFirst({
             where: {
-                fromId: userId,
-                toId: friendId,
+                OR: [
+                    {
+                        fromId: userId,
+                        toId: friendId,
+                    },
+                    {
+                        fromId: friendId,
+                        toId: userId,
+                    },
+                ],
             },
         });
 
@@ -471,8 +466,8 @@ export class ChannelService {
             await this.db.friendship.delete({
                 where: {
                     fromId_toId: {
-                        fromId: userId,
-                        toId: friendId,
+                        fromId: exists.fromId,
+                        toId: exists.toId,
                     },
                 },
             });
@@ -581,6 +576,239 @@ export class ChannelService {
                 message: 'User blocked',
             };
         }
+    }
+
+    async kickUser(adminId, { channelId, userId }) {
+        const admin = await this.db.channelUser.findFirst({
+            where: {
+                userId: adminId,
+                channelId: channelId,
+            },
+        });
+        if (!admin) {
+            return {
+                success: false,
+                message: 'You are not in this channel',
+            };
+        }
+        if (admin.role != 'OWNER' && admin.role != 'ADMIN') {
+            return {
+                success: false,
+                message: 'You are not allowed to kick users',
+            };
+        }
+        const user = await this.db.channelUser.findFirst({
+            where: {
+                userId: userId,
+                channelId: channelId,
+            },
+            include: {
+                user: true,
+            },
+        });
+        if (!user) {
+            return {
+                success: false,
+                message: 'User not found in this channel',
+            };
+        }
+        if (user.role == 'OWNER') {
+            return {
+                success: false,
+                message: 'You cannot kick the owner',
+            };
+        }
+        await this.db.channelUser.delete({
+            where: {
+                userId_channelId: {
+                    userId: userId,
+                    channelId: channelId,
+                },
+            },
+        });
+        return {
+            success: true,
+            user: user.user,
+            message: 'User kicked',
+        };
+    }
+    async muteUser(adminId, { channelId, userId, duration }) {
+        const admin = await this.db.channelUser.findFirst({
+            where: {
+                userId: adminId,
+                channelId: channelId,
+            },
+        });
+        if (!admin) {
+            return {
+                success: false,
+                message: 'You are not in this channel',
+            };
+        }
+        if (admin.role != 'OWNER' && admin.role != 'ADMIN') {
+            return {
+                success: false,
+                message: 'You are not allowed to mute users',
+            };
+        }
+        const user = await this.db.channelUser.findFirst({
+            where: {
+                userId: userId,
+                channelId: channelId,
+            },
+            include: {
+                user: true,
+            },
+        });
+        if (!user) {
+            return {
+                success: false,
+                message: 'User not found in this channel',
+            };
+        }
+        if (user.role == 'OWNER') {
+            return {
+                success: false,
+                message: 'You cannot mute the owner',
+            };
+        }
+        duration = Math.min(60 * 60 * 24 * 30, duration);
+        const mutedUntil = new Date(Date.now() + duration * 1000);
+        await this.db.channelUser.update({
+            where: {
+                userId_channelId: {
+                    userId: userId,
+                    channelId: channelId,
+                },
+            },
+            data: {
+                mutedUntil,
+            },
+        });
+        return {
+            success: true,
+            user: user.user,
+            mutedUntil,
+            message: 'User muted',
+        };
+    }
+    async banUser(adminId, { channelId, userId, duration }) {
+        const admin = await this.db.channelUser.findFirst({
+            where: {
+                userId: adminId,
+                channelId: channelId,
+            },
+        });
+        if (!admin) {
+            return {
+                success: false,
+                message: 'You are not in this channel',
+            };
+        }
+        if (admin.role != 'OWNER' && admin.role != 'ADMIN') {
+            return {
+                success: false,
+                message: 'You are not allowed to ban users',
+            };
+        }
+        const user = await this.db.channelUser.findFirst({
+            where: {
+                userId: userId,
+                channelId: channelId,
+            },
+            include: {
+                user: true,
+            },
+        });
+        if (!user) {
+            return {
+                success: false,
+                message: 'User not found in this channel',
+            };
+        }
+        if (user.role == 'OWNER') {
+            return {
+                success: false,
+                message: 'You cannot ban the owner',
+            };
+        }
+        duration = Math.min(60 * 60 * 24 * 30, duration);
+        const bannedUntil = new Date(Date.now() + duration * 1000);
+        await this.db.channelUser.update({
+            where: {
+                userId_channelId: {
+                    userId: userId,
+                    channelId: channelId,
+                },
+            },
+            data: {
+                bannedUntil,
+            },
+        });
+        return {
+            success: true,
+            user: user.user,
+            bannedUntil,
+            message: duration == 0 ? 'User unbanned' : 'User banned',
+        };
+    }
+    async setAdmin(adminId, { channelId, userId, state }) {
+        const admin = await this.db.channelUser.findFirst({
+            where: {
+                userId: adminId,
+                channelId: channelId,
+            },
+        });
+        if (!admin) {
+            return {
+                success: false,
+                message: 'You are not in this channel',
+            };
+        }
+        if (admin.role != 'OWNER') {
+            return {
+                success: false,
+                message: 'You are not allowed to manage admins',
+            };
+        }
+        const user = await this.db.channelUser.findFirst({
+            where: {
+                userId: userId,
+                channelId: channelId,
+            },
+            include: {
+                user: true,
+            },
+        });
+        if (!user) {
+            return {
+                success: false,
+                message: 'User not found in this channel',
+            };
+        }
+        if (user.role == 'OWNER') {
+            return {
+                success: false,
+                message: 'Owner cannot be changed',
+            };
+        }
+
+        await this.db.channelUser.update({
+            where: {
+                userId_channelId: {
+                    userId: userId,
+                    channelId: channelId,
+                },
+            },
+            data: {
+                role: state ? 'ADMIN' : 'USER',
+            },
+        });
+        return {
+            success: true,
+            user: user.user,
+            message: state ? 'User promoted to admin' : 'User demoted',
+        };
     }
 
     //findAllChannels() {
@@ -759,7 +987,6 @@ export class ChannelService {
                 channelId: true,
                 bannedUntil: true,
                 mutedUntil: true,
-                readUntil: true,
                 channel: {
                     select: {
                         id: true,
@@ -830,6 +1057,9 @@ export class ChannelService {
         //payload.name
         const channels = await this.db.channel.findMany({
             where: {
+                type: {
+                    not: 'DM',
+                },
                 OR: [
                     {
                         name: {

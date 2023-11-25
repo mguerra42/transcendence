@@ -55,11 +55,11 @@ const props = defineProps<{
               conversation.users.length > 1 ? "s" : ""
             }}, {{ conversation.online.length }} en ligne
           </div>
-          <div
+          <!--<div
             class="bg-red rounded-l text-xs px-2 font-bold py-1 absolute bottom-1 right-0"
           >
-            10k+
-          </div>
+            10k+-->
+          <!--</div>-->
         </div>
       </nuxt-link>
     </div>

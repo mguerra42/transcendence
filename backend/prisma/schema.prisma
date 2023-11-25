@@ -163,7 +163,6 @@ model ChannelUser {
   channel     Channel   @relation(fields: [channelId], references: [id])
   bannedUntil DateTime? //if banned
   mutedUntil  DateTime? //if muted
-  readUntil   Int @default(0) // last message read by the user 
 
   @@id([userId, channelId])
 }

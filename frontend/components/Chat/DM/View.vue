@@ -8,6 +8,10 @@
         return friendship.value?.accepted === true
     })
 
+    const isBlocked = computed(() => {
+        return chat.blockedUsers.includes(chat.manager.active?.recipient?.userId)
+    })
+
     const shouldConfirm = computed(() => {
         return friendship.value?.accepted === false && friendship.value?.source === false
     })
@@ -41,7 +45,12 @@
                 <div>{{ chat.manager.active.recipient?.user.email  }}</div>
             </div>
             <div class="flex flex-col items-center b-t-1 p-2.5  h-full w-full">
-                <div  class=" justify-between flex flex-1  flex-col overflow-auto h-full   w-full " v-if="isAccepted">
+                <div v-if="isBlocked">
+                    <div class="font-bold text-2xl my-5">
+                        You have blocked this user
+                    </div>
+                </div>
+                <div  class=" justify-between flex flex-1  flex-col overflow-auto h-full   w-full " v-else-if="isAccepted">
                     <div class="relative flex-1" >
                         <div class="absolute px-2 bottom-0 left-0 right-0 top-0 overflow-auto pb-3" >
                             <ChatMessages />
@@ -63,7 +72,13 @@
                         </div>
                     </div>
                     <div v-else-if="waitConfirm">
-                        Wait confrrim
+                        
+                    <div class="font-bold text-2xl my-5">
+                        You have sent a friend request to @{{ chat.manager.active.recipient?.user.username }}.
+                    </div>
+                    <div class="font-bold text-xl my-5">
+                        You'll be able to chat once they accept your request.
+                    </div>
                     </div>
                 </div>
             </div>

@@ -9,5 +9,5 @@ const user = computed(() => {
 });
 </script>
 <template>
-  <div @click="chat.showProfile(user)"><slot :user="user"></slot></div>
+  <div @click="user ? chat.showProfile(user) : undefined"><slot :user="user"></slot></div>
 </template>

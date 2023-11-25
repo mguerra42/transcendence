@@ -23,6 +23,7 @@ const onRightClick = (e) => {
 
   console.log(e);
 };
+
 </script>
 <template>
   <div
@@ -46,15 +47,16 @@ const onRightClick = (e) => {
       >
         <div class="flex gap-2">
           <div v-if="message.from !== 0" class="" @click.right="onRightClick">
+      
             <ChatProfileModalTrigger
               class="hover:text-blue-200 cursor-pointer hover:scale-110 transition-all"
               v-if="message.from > 0"
               :userId="message.from"
             >
               <template v-slot="{ user }">
-                <div class="rounded-full bg-gray p-2">
-                  <div class="i-mdi:user text-lg text-white"></div></div
-              ></template>
+                
+                <ChatUserAvatar size="h-24 w-24 " :userId="message.from" :avatar="chat.manager.active?.getAvatar(message.from)" ></ChatUserAvatar>
+              </template>
             </ChatProfileModalTrigger>
           </div>
           <div class="flex flex-col">
@@ -64,14 +66,14 @@ const onRightClick = (e) => {
                 v-if="message.from > 0"
                 :userId="message.from"
               >
-                <template v-slot="{ user }">@{{ user?.username }}</template>
+                <template v-slot="{ user }">{{ user && user?.username ? '@' + user.username : 'Deleted User' }}</template>
               </ChatProfileModalTrigger>
               <div class="text-[12px] text-gray-300">
                 {{ new Date(message.timestamp).toLocaleString() }}
               </div>
             </div>
-            <div class="text-sm mt-3 text-white/80 prose">
-              <pre class="m-0 p-0 leading-tight">{{ message.content }}</pre>
+            <div class="text-sm mt-3 text-white/80 prose  h-full ">
+              <div class="max-w-full m-0 p-0 break-all whitespace-pre-wrap leading-tight h-full">{{ message.content }}</div>
             </div>
           </div>
         </div>
