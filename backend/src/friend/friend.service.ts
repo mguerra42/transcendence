@@ -64,11 +64,13 @@ export class FriendService {
         });
         const friends = [
             ...user.friends.map((f) => ({
-                id: f.friendsOfId,
-                accepted: true,
+                id: f.toId,
+                source: true,
+                accepted: f.accepted,
             })),
             ...user.friendsOf.map((f) => ({
-                id: f.friendsId,
+                id: f.fromId,
+                source: false,
                 accepted: f.accepted,
             })),
         ];

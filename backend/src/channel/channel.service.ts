@@ -384,22 +384,95 @@ export class ChannelService {
         return blockedUsers.map((u) => u.blockedId);
     }
 
-    async addFriend(userId, friendId) {
+    async acceptFriend(userId, friendId) {
+        console.log({ userId, friendId });
         const exists = await this.db.friendship.findFirst({
             where: {
-                friendsOfId: userId,
-                friendsId: friendId,
+                fromId: friendId,
+                toId: userId,
             },
         });
 
-        console.log({ exists });
+        if (!exists) {
+            return {
+                success: false,
+                message: 'Friend request not found',
+            };
+        }
+
+        await this.db.friendship.update({
+            where: {
+                fromId_toId: {
+                    fromId: friendId,
+                    toId: userId,
+                },
+            },
+            data: {
+                accepted: true,
+            },
+        });
+
+        return {
+            success: true,
+            message: 'Friend request accepted',
+        };
+    }
+    async declineFriend(userId, friendId) {
+        const exists = await this.db.friendship.findFirst({
+            where: {
+                fromId: friendId,
+                toId: userId,
+            },
+        });
+
+        if (!exists) {
+            return {
+                success: false,
+                message: 'Friend request not found',
+            };
+        }
+
+        await this.db.friendship.delete({
+            where: {
+                fromId_toId: {
+                    fromId: friendId,
+                    toId: userId,
+                },
+            },
+        });
+        // delete channel users
+        await this.db.channelUser.deleteMany({
+            where: {
+                channelId: exists.channelId,
+            },
+        });
+
+        await this.db.channel.delete({
+            where: {
+                id: exists.channelId,
+            },
+        });
+
+        return {
+            success: true,
+            message: 'Friend request declined',
+        };
+    }
+
+    async toggleFriend(userId, friendId) {
+        const exists = await this.db.friendship.findFirst({
+            where: {
+                fromId: userId,
+                toId: friendId,
+            },
+        });
 
         if (exists) {
             await this.db.friendship.delete({
                 where: {
-                    friendsOfId_friendsId: {
-                        friendsOfId: userId,
-                        friendsId: friendId,
+                    fromId_toId: {
+                        fromId: userId,
+                        toId: friendId,
                     },
                 },
             });
@@ -417,6 +490,8 @@ export class ChannelService {
 
             return {
                 success: true,
+                removed: true,
+                channelId: exists.channelId,
                 message: 'Removed friend',
             };
         }
@@ -451,14 +526,17 @@ export class ChannelService {
 
         await this.db.friendship.create({
             data: {
-                friendsOfId: userId,
-                friendsId: friendId,
+                fromId: userId,
+                toId: friendId,
                 channelId: channel.id,
+                accepted: false,
             },
         });
 
         return {
             success: true,
+            added: true,
+            channelId: channel.id,
             message: 'Friend added, waiting for his confirmation',
         };
     }

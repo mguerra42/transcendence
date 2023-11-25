@@ -5,7 +5,7 @@ const props = defineProps<{
 }>();
 
 const user = computed(() => {
-  return chat.activeConversation?.getUser(props.userId);
+  return chat.manager.active?.getUser(props.userId);
 });
 </script>
 <template>

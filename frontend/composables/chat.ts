@@ -39,11 +39,11 @@ interface PrivateChannel {
 export class WrappedConversation {
   socket: any;
   chat: any;
-  messages: Ref<Message[]>;
+  messages: Message[]
   constructor(public  conversation: Conversation) {
     this.socket = useSocket();
     this.chat = useChat();
-    this.messages = ref([]);
+    this.messages = []
     this.init();
   }
 
@@ -83,7 +83,7 @@ export class WrappedConversation {
       `conversations:messages`,
       { channelId: this.channelId },
       (answer) => {
-        this.messages.value = answer.messages;
+        this.messages = answer.messages;
       }
     );
   }
@@ -258,6 +258,7 @@ class ConversationManager {
         this.socket.on("conversations:left", (answer) => this.onConversationLeft(answer));
         this.socket.on("conversations:join", (answer) => this.onConversationJoin(answer));
         this.socket.on("conversations:joined", (answer) => this.onConversationJoined(answer));
+        this.socket.on("conversations:message", (answer) => this.onConversationMessage(answer));
         this.socket.emit("conversations:friends", {}, (answer) => {
             console.log("friends", answer);
         });
@@ -268,6 +269,9 @@ class ConversationManager {
         conversations.forEach((c) => this.initOrUpdateConversation(c));
         this.conversations.forEach((c, id) => {
             if (!ids.includes(id)) {
+                if (this.active == c) {
+                    this.setActive(undefined);
+                }
                 this.conversations.delete(id);
             }
         });
@@ -306,6 +310,15 @@ class ConversationManager {
         console.log("onConversationJoined", conversation);
         if (conversation) {
             conversation.sync()
+        }
+    }
+
+    onConversationMessage({channelId, ...message}) {
+        let conversation = this.getConversation(channelId);
+        if (conversation) {
+            if (!this.chat.blockedUsers.includes(message.from)){
+                conversation.onNewMessage(message);
+            }
         }
     }
 
@@ -382,18 +395,6 @@ class ConversationManager {
         this.socket.emit("conversations:create", conversationInfo, async ({channelId}) => {
             console.log("createConversation", channelId);
             
-        //    this.socket.emit("conversations:sync", { channelId }, async (conv) => {
-        //        console.log("syncConversation", conv);
-        //        await nextTick()
-        //        setTimeout(async () => {
-        //            await navigateTo({
-        //                name: "chat-conversation",
-        //                params: {
-        //                    conversation: channelId,
-        //                },
-        //            })
-        //        }, 100)
-        //});
         });
     }
     
@@ -550,11 +551,13 @@ export const useChat = defineStore("chat", () => {
   };
 
   const addFriend = async (userId) => {
-    socket.emit("conversations:friend-request", {userId}, (answer) => {
-        console.log("friend-request", answer);
-        socket.emit("conversations:friends");
-        socket.emit("conversations:list");
-    });
+    socket.emit("conversations:friend-request", {userId});
+  };
+  const acceptFriend = async (userId) => {
+    socket.emit("conversations:friend-accept", {userId});
+  };
+  const declineFriend = async (userId) => {
+    socket.emit("conversations:friend-decline", {userId});
   };
   const challenge = async (userId) => {
     console.log("challenge", userId);
@@ -604,21 +607,39 @@ export const useChat = defineStore("chat", () => {
             })
         }, 100)
     });
+
+    socket.on("conversations:friends", (_friendsUsers) => {
+        console.log("FRiends updated", _friendsUsers)
+        friends.value = _friendsUsers;
+    });
+    socket.on("conversations:friend-request", ({}) => {
+        notify({
+            text: "You have a new friend request",
+            type: "info",
+        });
+        socket.emit("conversations:friends")
+        socket.emit("conversations:list")
+    });
+    socket.on("conversations:friend-accept", ({}) => {
+        console.log("conversations:friend-accept")
+        socket.emit("conversations:friends")
+        socket.emit("conversations:list")
+    });
+    socket.on("conversations:friend-decline", ({}) => {
+        console.log("conversations:friend-decline")
+        socket.emit("conversations:friends")
+        socket.emit("conversations:list")
+    });
+    socket.on("conversations:blocked", (_blockedUsers) => {
+        blockedUsers.value = _blockedUsers;
+    });
+    socket.emit("conversations:blocked");
     await manager.value.init();
 
     //socket.emit("conversations:list");
     //socket.on("conversations:list", onConversationsList);
     //socket.on("conversations:sync", createOrUpdateConversation);
 
-    //socket.on("conversations:blocked", (_blockedUsers) => {
-    //    blockedUsers.value = _blockedUsers;
-    //});
-    //socket.emit("conversations:blocked");
-    //socket.on("conversations:friends", (_friendsUsers) => {
-    //    console.log("FRiends updated", _friendsUsers)
-    //    friends.value = _friendsUsers;
-    //});
-    //socket.emit("conversations:friends");
 
     //socket.on("conversations:syncing", triggerSyncing);
     //socket.on("conversations:join", (d) => {
@@ -829,6 +850,8 @@ export const useChat = defineStore("chat", () => {
     searchFriendResults,
     searchFriend,
     addFriend,
+    acceptFriend,
+    declineFriend,
     challenge,
     blockUser,
     blockedUsers,

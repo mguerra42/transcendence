@@ -7,6 +7,9 @@ const target = ref(null);
 onClickOutside(target, () => {
   chat.currentProfile = null
 });
+const isAuthUser = computed(() => {
+  return chat.currentProfile?.id == auth.session.id;
+});
 </script>
 <template>
   <div
@@ -26,7 +29,7 @@ onClickOutside(target, () => {
         <div
           class="hover:bg-white/10 cursor-pointer gap-2 flex flex-col"
           :class="[
-            chat.currentProfile.id == auth.session.id ? 'h-full' : '',
+            isAuthUser ? 'h-full' : '',
           ]"
         >
           <ChatProfileCard :stats="true" :more="false" :user="chat.currentProfile" />
@@ -34,7 +37,7 @@ onClickOutside(target, () => {
       </div>
       <div
         class="grid grid-cols-2 mt-5 rounded-lg b-1 bg-zinc-700 overflow-hidden flex-row sm:flex-col md:flex-row items-center justify-center w-full"
-        v-if="chat.currentProfile?.id != auth.session.id"
+        v-if="!isAuthUser"
       >
         <nuxt-link
         :to="{
@@ -53,8 +56,6 @@ onClickOutside(target, () => {
           class="flex-1 hover:bg-white w-full b-l-1 b-b-1 hover:text-gray-700 cursor-pointer flex items-center px-2 gap-2 justify-center py-1"
         >
           <div class="i-mdi:user"></div>
-          {{ chat.friends }}
-          {{ chat.hasFriend(chat.currentProfile?.id) }}
           {{ chat.friends.find(u => u.id == chat.currentProfile?.id) ? 'Remove Friend' : 'Add Friend' }}
         </div>
         <div

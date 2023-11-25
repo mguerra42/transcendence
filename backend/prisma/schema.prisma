@@ -47,14 +47,14 @@ model User {
 }
 
 model Friendship {
-  friends   User @relation("friends", fields: [friendsId], references: [id])
-  friendsId Int
-  friendsOf    User @relation("friendsOf", fields: [friendsOfId], references: [id])
-  friendsOfId  Int
+  from   User @relation("friends", fields: [fromId], references: [id])
+  fromId Int
+  to    User @relation("friendsOf", fields: [toId], references: [id])
+  toId  Int
   accepted  Boolean @default(false)
   channelId Int?
 
-  @@id([friendsOfId, friendsId])
+  @@id([fromId, toId])
 }
 
 

@@ -184,32 +184,64 @@ export class SocketsGateway {
     }
 
     @SubscribeMessage('conversations:friend-request')
-    async addFriend(client: Socket & { user: any }, payload: any) {
-        console.log('get blockes users', client.user);
-        const status = await this.channelService.addFriend(
+    async toggleFriend(client: Socket & { user: any }, payload: any) {
+        const status = await this.channelService.toggleFriend(
             client.user.id,
             payload.userId,
         );
         this.notification(client.user.id, status);
+        this.getUserFriends(client, {});
+        this.syncUserConversations(client, {});
+        if (status.added === true) {
+            this.sendToUser(payload.userId, 'conversations:friend-request', {});
+        }
 
         return status;
-        //this.sendToUser(client.user.id, 'conversations:blocked', users);
-        //console.log({ users });
+    }
+    @SubscribeMessage('conversations:friend-accept')
+    async acceptFriend(client: Socket & { user: any }, payload: any) {
+        const status = await this.channelService.acceptFriend(
+            client.user.id,
+            payload.userId,
+        );
+        this.notification(client.user.id, status);
+        this.notification(payload.userId, status);
+        this.sendToUser(payload.userId, 'conversations:friend-accept', {});
+        this.sendToUser(client.user.id, 'conversations:friend-accept', {});
+        //this.getUserFriends(client, {});
+        //this.syncUserConversations(client, {});
+        //if (status.added === true) {
+        //}
+
+        return status;
+    }
+    @SubscribeMessage('conversations:friend-decline')
+    async declineFriend(client: Socket & { user: any }, payload: any) {
+        const status = await this.channelService.declineFriend(
+            client.user.id,
+            payload.userId,
+        );
+        this.notification(client.user.id, status);
+        this.notification(payload.userId, status);
+        this.sendToUser(payload.userId, 'conversations:friend-decline', {});
+        this.sendToUser(client.user.id, 'conversations:friend-decline', {});
+        //this.getUserFriends(client, {});
+        //this.syncUserConversations(client, {});
+        //if (status.added === true) {
+        //}
+
+        return status;
     }
     @SubscribeMessage('conversations:friends')
     async getUserFriends(client: Socket & { user: any }, payload: any) {
-        console.log('get blockes users', client.user);
-
         const friends = await this.friendService.getUserFriends(client.user.id);
-        console.log('search friend', friends);
 
         this.sendToUser(client.user.id, 'conversations:friends', friends);
-        console.log({ friends });
         return friends;
     }
     @SubscribeMessage('conversations:blocked')
     async getBlockedUsers(client: Socket & { user: any }, payload: any) {
-        console.log('get blockes users', client.user);
+        console.log('get blocked users', client.user);
         const users = await this.channelService.getBlockedUsers(client.user.id);
         this.sendToUser(client.user.id, 'conversations:blocked', users);
         console.log({ users });
