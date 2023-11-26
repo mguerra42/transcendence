@@ -14,10 +14,13 @@ import { FriendService } from '../friend/friend.service';
 import { PongGame } from './PongGame';
 
 import * as crypto from 'crypto';
+import { DBService } from 'src/db/db.service';
 
 interface Game {
     id: string;
-    players: number[];
+    players: any[];
+    state: any;
+    date: Date;
 }
 
 @WebSocketGateway({
@@ -32,18 +35,68 @@ export class SocketsGateway {
     lobby: any[];
     queue: any[];
     tmpGames: any[];
-    games: PongGame[];
+    games: Map<string, PongGame>;
     constructor(
         private authService: AuthService,
         private userService: UsersService,
         private channelService: ChannelService,
         private friendService: FriendService,
+        private dbService: DBService,
     ) {
         this.clients = {};
         this.status = {};
         this.queue = [];
-        this.games = [] as PongGame[];
+        this.games = new Map<string, PongGame>();
         this.tmpGames = [] as any[];
+        this.retrieveGames();
+    }
+
+    async retrieveGames() {
+        const activeGames = await this.dbService.game.findMany({
+            where: {
+                state: {
+                    not: null,
+                },
+            },
+            select: {
+                id: true,
+                players: true,
+                state: true,
+                date: true,
+            },
+        });
+        console.log('retrieve games', activeGames);
+
+        for (const game of activeGames) {
+            if (this.games.has(game.id)) {
+                continue;
+            }
+
+            game.players.forEach((p) => {
+                this.subscribeUserToRoom(String(p.id), `game:${game.id}`);
+            });
+            const gameInstance = await this.createPongGame(game);
+            if (gameInstance == false) {
+                continue;
+            }
+            this.games.set(game.id, gameInstance);
+        }
+    }
+
+    async createPongGame(game: Game): Promise<PongGame | false> {
+        const instance = new PongGame(
+            {
+                id: game.id,
+                state: game.state,
+                playersIds: game.players.map((p) => p.id),
+                players: game.players.map((p) => this.getProfile(p)),
+                db: this.dbService,
+            },
+            (type, data) => {
+                this.server.in(`game:${game.id}`).emit(type, data);
+            },
+        );
+        return instance;
     }
 
     @WebSocketServer()
@@ -76,6 +129,15 @@ export class SocketsGateway {
             this.status[client.user.id] = 'online';
             this.server.in('everyone').emit('status', this.status);
         }
+        this.subscribeToGame(client.user.id);
+    }
+
+    async subscribeToGame(userId: number) {
+        Array.from(this.games.values()).forEach((game) => {
+            if (game.playersIds.includes(userId)) {
+                this.subscribeUserToRoom(String(userId), `game:${game.id}`);
+            }
+        });
     }
 
     async handleDisconnect(client) {
@@ -693,7 +755,14 @@ export class SocketsGateway {
         }
 
         // Check if user is already in game
-        if (this.games.find((u) => u.players.includes(destUserId))) {
+        //Array.from(...this.games).find((u) =>
+        //    u.players.includes(destUserId),
+        //)
+        if (
+            Array.from(this.games.values()).find((u) =>
+                u.players.includes(destUserId),
+            )
+        ) {
             this.notification(client.user.id, {
                 message: 'User is already in game',
                 type: 'error',
@@ -747,11 +816,52 @@ export class SocketsGateway {
             this.sendToUser(String(player), 'game:challenge-accepted', tmpGame);
         });
 
-        const game = new PongGame(tmpGame, (type, data) => {
-            this.server.in(`game:${gameId}`).emit(type, data);
+        const playersData = await Promise.all(
+            tmpGame.players.map((id) => this.userService.findOne(id)),
+        );
+
+        tmpGame.db = this.dbService;
+        tmpGame.playersData = playersData.map((user) => this.getProfile(user));
+        const game = await this.dbService.game.create({
+            data: {
+                id: gameId,
+                players: {
+                    connect: tmpGame.players.map((id) => ({ id })),
+                },
+                state: {},
+            },
+            select: {
+                id: true,
+                players: true,
+                state: true,
+                date: true,
+            },
         });
-        this.games.push(game);
+        const gameInstance = await this.createPongGame(game);
+        if (gameInstance == false) {
+            this.notification(client.user.id, {
+                message: 'Cannot create game',
+                type: 'error',
+            });
+            return;
+        }
+        this.games.set(gameId, gameInstance);
         this.tmpGames = this.tmpGames.filter((g) => g.gameId !== gameId);
+    }
+
+    @SubscribeMessage('game:connect')
+    async onGameConnect(client: Socket & { user: any }, { gameId }) {
+        console.log('game:connect', client.user, gameId);
+        const game = this.games.get(gameId);
+        console.log('game', this.games);
+        //if (!game) {
+        //    this.notification(client.user.id, {
+        //        message: 'Game not found',
+        //        type: 'error',
+        //    });
+        //    return;
+        //}
+        //game.connect(client.user.id);
     }
 
     @SubscribeMessage('game:challenge-decline')

@@ -8,6 +8,34 @@ export const useGame = defineStore("game", () => {
     })
 
     const autoClean = ref(null)
+    const state = ref({
+        status: 'waiting',
+        ball: {
+            x: 0,
+            y: 0,
+            h: 0,
+            w: 0,
+            vx: 6,
+            vy: 6,
+        },
+        left: {
+            x: 0,
+            y: 0,
+            w: 0,
+            h: 0,
+            color: '',
+            score: 0,
+        },
+        right: {
+            x: 0,
+            y: 0,
+            w: 0,
+            h: 0,
+            color: '',
+            score: 0,
+        },
+    })
+
 
 
   const init = async () => {
@@ -34,6 +62,9 @@ export const useGame = defineStore("game", () => {
             },
         })
     });
+    socket.on("game:state", async (state) => {
+        state.value = state;
+    });
 }
 const challenge = async (destUserId) => {
     socket.emit("game:challenge", destUserId);
@@ -45,11 +76,16 @@ const acceptChallenge = (gameId) => {
 const declineChallenge = (gameId) => {
     socket.emit("game:challenge-decline", {gameId})
 }
+const connect = async (gameId) => {
+    socket.emit("game:connect", {gameId})
+}
     return {
         init,
+        state,
         challenge,
         tmpGame,
         acceptChallenge,
         declineChallenge,
+        connect
     }
 })

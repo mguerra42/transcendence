@@ -5,9 +5,10 @@ import { UsersModule } from 'src/users/users.module';
 import { SocketController } from './socket.controller';
 import { ChannelModule } from 'src/channel/channel.module';
 import { FriendModule } from 'src/friend/friend.module';
+import { DBModule } from 'src/db/db.module';
 
 @Module({
-    imports: [AuthModule, UsersModule, ChannelModule, FriendModule],
+    imports: [AuthModule, UsersModule, ChannelModule, FriendModule, DBModule],
     providers: [SocketsGateway],
     controllers: [SocketController],
 })
