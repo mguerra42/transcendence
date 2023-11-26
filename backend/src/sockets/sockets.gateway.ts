@@ -887,6 +887,23 @@ export class SocketsGateway {
 
         this.tmpGames = this.tmpGames.filter((g) => g.gameId !== gameId);
     }
+
+
+
+    @SubscribeMessage('game:ready')
+    async onGameReady(client: Socket & { user: any }, { gameId }) {
+        //console.log('game:connect', client.user, gameId);
+        const game = this.games.get(gameId);
+        if (!game) {
+            this.notification(client.user.id, {
+                message: 'Game not found',
+                type: 'error',
+            });
+            return;
+        }
+        game.setReady(client.user.id);
+    }
+
     @SubscribeMessage('profile')
     async onProfile(client: Socket & { user: any }, username: string) {
         const user = await this.userService.findByUsername(username);
@@ -902,7 +919,6 @@ export class SocketsGateway {
         const currentGame = Array.from(this.games.values()).find((g) =>
             g.playersIds.includes(user.id),
         );
-        console.log('currentGame', currentGame.id);
         if (currentGame) {
             profile = {
                 ...profile,

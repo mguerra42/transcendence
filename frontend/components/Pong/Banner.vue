@@ -26,7 +26,7 @@
             </nuxt-link>
             <div class="flex mt-1 justify-around px-10 gap-5 flex-col sm:flex-row">
 
-                <nuxt-link :to="{
+                <nuxt-link v-if="playerLeft?.user" :to="{
                     name: '@user',
                     params: {
                         user: playerLeft?.user?.username
@@ -46,7 +46,7 @@
                         VS
                     </p>
                 </div>
-                <nuxt-link :to="{
+                <nuxt-link v-if="playerRight?.user" :to="{
                     name: '@user',
                     params: {
                         user: playerRight?.user?.username

@@ -16,7 +16,7 @@ export const useSocket = defineStore('socket', () => {
     }
 
     const connect = async () => {
-        const _socket = io('http://localhost:3001', {
+        const _socket = io(useRuntimeConfig().public.backendURL, {
             withCredentials: true,
         })
         _socket.on('connect', () => {

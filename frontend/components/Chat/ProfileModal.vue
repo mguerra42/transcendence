@@ -138,7 +138,7 @@ v-if="chat.manager.active.isAdmin && !chat.manager.active.isRole(chat.currentPro
       
       <div
         class="mt-5 rounded-lg b-1 bg-zinc-700 overflow-hidden flex-row sm:flex-col md:flex-row items-center justify-center w-full"
-        v-if="!chat.manager.active?.isDM && chat.manager.active?.isOwner"
+        v-if="!chat.manager.active?.isDM && chat.manager.active?.isOwner && !chat.manager.active.isRole(chat.currentProfile.id, 'OWNER')"
       >
       <!--{{chat.manager.active.getRole(chat.currentProfile.id)}}-->
         <div

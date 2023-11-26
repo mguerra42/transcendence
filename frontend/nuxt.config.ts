@@ -11,6 +11,7 @@ export default defineNuxtConfig({
         public: {
             GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
             INTRA_CLIENT_ID: process.env.INTRA_CLIENT_ID,
+            backendURL: process.env.BACKEND_URL || 'http://localhost:3001',
             baseURL: process.env.BACKEND_URL + process.env.BACKEND_API_VERSION || 'http://localhost:3001/api/v0',
         },
     },

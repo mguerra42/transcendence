@@ -35,27 +35,27 @@ const onInput = debounce((event: any) => {
 }, 400, false)
 
 const payload = ref({
-    changePassword: false,
+    //changePassword: false,
     username: auth.session.username,
     email: auth.session.email,
-    password: '',
-    newPassword: '',
-    newPasswordConfirmation: '',
+    //password: '',
+    //newPassword: '',
+    //newPasswordConfirmation: '',
     avatar: auth.session.avatar,
     mfaEnabled: auth.session.mfaEnabled,
     mfaCode: '',
 })
 const isValid = computed(() => {
-    return payload.value.email !== '' && payload.value.password !== '' && payload.value.username !== ''
+    return payload.value.email !== '' && payload.value.username !== ''
 })
 
-const onChangePassword = (ev) => {
-    if (ev.target.checked) {
-    } else {
-        payload.value.newPassword = ''
-        payload.value.newPasswordConfirmation = ''
-    }
-}
+//const onChangePassword = (ev) => {
+//    if (ev.target.checked) {
+//    } else {
+//        payload.value.newPassword = ''
+//        payload.value.newPasswordConfirmation = ''
+//    }
+//}
 const onMfaToggle = async (ev) => {
     if (ev.target.checked) {
         qseed.value = await auth.getMFASeed()
@@ -113,18 +113,18 @@ const resetAvatar = () => {
                 <label class="font-bold text-base ">Email</label>
                 <input type="text" v-model="payload.email" name="email" placeholder="New email" class="rounded-lg px-3 py-2 text-black b-1 " />
             </div>
-            <div class="flex flex-col gap-1.5">
+            <!--<div class="flex flex-col gap-1.5">
 
                 <label class="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" :onChange="onChangePassword" v-model="payload.changePassword" class="sr-only peer" checked>
                 <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                 <span class="ms-3 font-bold text-base text-gray-900 dark:text-gray-900">Change password</span>
                 </label>
-            </div>
-            <div class="flex flex-col gap-1.5" v-if="payload.changePassword">
+            </div>-->
+            <!--<div class="flex flex-col gap-1.5" v-if="payload.changePassword">
                 <input type="password" v-model="payload.newPassword" name="newPassword" placeholder="New password" class="rounded-lg px-3 py-2 text-black b-1 " />
                 <input type="password" v-model="payload.newPasswordConfirmation" name="newPasswordConfirmation" placeholder="New password confirmation" class="rounded-lg px-3 py-2 text-black b-1 " />
-            </div>
+            </div>-->
 
             <div class="flex flex-col gap-1.5">
                 <label class="relative inline-flex items-center cursor-pointer">
@@ -136,21 +136,21 @@ const resetAvatar = () => {
                 </label>
                 </div>
                 <div class="flex flex-col gap-1.5" v-if="payload.mfaEnabled">
-<div class="flex flex-col items-center justify-center" v-if="qcode">
+                    <div class="flex flex-col items-center justify-center" v-if="qcode">
 
-    <img :src="qcode" alt="" class="h-32 w-32">
-    <div>
-        {{ qseed  }}
-    </div>
-</div>
+                        <img :src="qcode" alt="" class="h-32 w-32">
+                        <div>
+                            {{ qseed  }}
+                        </div>
+                    </div>
                 <input type="password" v-model="payload.mfaCode" name="newPassword" placeholder="Enter 2FA Code" class="rounded-lg px-3 py-2 text-black b-1 " />
                 
                 </div>
-                <div class="flex flex-col gap-1.5">
+                <!--<div class="flex flex-col gap-1.5">
 
                 <label class="font-bold text-base ">Current password</label>
                 <input type="password" v-model="payload.password" name="password" placeholder="password" class="rounded-lg px-3 py-2 text-black b-1 " />
-            </div>
+            </div>-->
 
 
             <button type="submit" class=" text-white rounded-lg  cursor-pointer hover:scale-105 transition px-4 py-2" :class="{

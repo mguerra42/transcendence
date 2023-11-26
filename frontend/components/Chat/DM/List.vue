@@ -18,17 +18,18 @@ const otherUser = (conversation: WrappedConversation) => {
         :to="{
             name: 'chat-search-friend',
         }"
+        @click="chat.manager.setActive(undefined)"
           class="bg-gray p-1 rounded cursor-pointer transition-all hover:scale-110"
         >
           <div class="i-mdi:search"></div>
         </nuxt-link>
         
-        <div
+        <!--<div
           @click="chat.setView('list_friends')"
           class="bg-gray p-1 rounded cursor-pointer hover:scale-110 transition-all"
         >
           <div class="i-material-symbols:format-list-bulleted"></div>
-        </div>
+        </div>-->
       </div>
     </div>
     <div class="overflow-y-scroll flex-1">

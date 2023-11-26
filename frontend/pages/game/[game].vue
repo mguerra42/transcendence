@@ -97,7 +97,7 @@ let inv = ref()
             </div>
             <div class="bg-zinc-700 shadow-lg hover:bg-zinc-700 w-full  cursor-pointer rounded-lg flex flex-col justify-center">
                 <PongContainer
-                :state="state"/>
+                :state="game.state"/>
             </div>
         </div>
     </div>

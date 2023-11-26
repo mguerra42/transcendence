@@ -8,9 +8,15 @@ export const useGame = defineStore("game", () => {
     })
 
     const autoClean = ref(null)
+    const isReady = ref(false)
+    const isAvailable = ref(false)
     const state = ref({
        
     })
+
+    const beReady = (userId) => {
+        socket.emit("game:ready", {userId})
+    }
 
 
 
@@ -29,6 +35,7 @@ export const useGame = defineStore("game", () => {
     socket.on("game:challenge-accepted", async (data) => {
         tmpGame.value = {};
     });
+
     socket.on("game:start", async (data) => {
         console.log("game:start", data);
         navigateTo({
@@ -41,6 +48,10 @@ export const useGame = defineStore("game", () => {
     socket.on("game:state", async (newState) => {
         console.log("game:state", newState);
         state.value = newState;
+    });
+    socket.on("game:ready", async (newState) => {
+        console.log("game:ready", newState);
+        isReady.value = true;
     });
 }
 const challenge = async (destUserId) => {
@@ -59,10 +70,12 @@ const connect = async (gameId) => {
     return {
         init,
         state,
+        beReady,
         challenge,
         tmpGame,
         acceptChallenge,
         declineChallenge,
-        connect
+        connect,
+        isReady
     }
 })

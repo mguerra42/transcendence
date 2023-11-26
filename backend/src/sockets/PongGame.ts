@@ -50,6 +50,7 @@ export class PongGame {
                 },
                 left: {
                     userId: left,
+                    ready: false,
                     user: this.players.find((p) => p.id === left),
                     x: 0,
                     y: 0,
@@ -60,6 +61,7 @@ export class PongGame {
                 },
                 right: {
                     userId: right,
+                    ready: false,
                     user: this.players.find((p) => p.id === right),
                     x: 0,
                     y: 0,
@@ -72,17 +74,19 @@ export class PongGame {
             await this.save();
         }
 
-        this.state.status = 'idle';
+        if (this.connected.length === this.playersIds.length) {
+            this.getReady();
+        }
 
         // Start the game by sending all players to the game page
         this.send('game:start', this.id);
 
-        setInterval(() => {
-            this.send('game:state', this.state);
-        }, 1000);
-        setInterval(() => {
-            console.log('PongGame IDLE', this.id);
-        }, 1000);
+        //setInterval(() => {
+        //    this.send('game:state', this.state);
+        //}, 1000);
+        //setInterval(() => {
+        //    console.log('PongGame IDLE', this.id);
+        //}, 1000);
         // Check if all users are ready
         console.log('PongGame init done');
     }
@@ -94,6 +98,9 @@ export class PongGame {
         this.state[side].user.status = 'offline';
         this.state[side].user.online = false;
         await this.save();
+        //this.state.status = 'idle';
+
+        this.send('game:state', this.state);
         console.log('PongGame disconnect', userId);
     }
 
@@ -120,8 +127,36 @@ export class PongGame {
     getReady() {
         console.log('PongGame getReady');
         // Send all players to the game page
-        this.send('game:ready', {});
+        this.state.status = 'ready';
+        const interval = setInterval(() => {
+            this.send('game:ready', {});
+        }, 1000);
         // Check if all users are ready
         console.log('PongGame getReady done');
+    }
+
+    setReady(userId) {
+        if (this.playersIds.includes(userId)) {
+            const side = this.state.left.userId === userId ? 'left' : 'right';
+            this.state[side].ready = true;
+            this.send('game:state', this.state);
+        }
+
+        if (
+            this.state.left.ready &&
+            this.state.right.ready &&
+            this.state.status === 'ready'
+        ) {
+            this.start();
+        }
+    }
+
+    start() {
+        console.log('PongGame start');
+        // Send all players to the game page
+        this.state.status = 'started';
+        this.send('game:state', this.state);
+        // Check if all users are ready
+        console.log('PongGame start done');
     }
 }

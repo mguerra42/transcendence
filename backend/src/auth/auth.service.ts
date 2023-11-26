@@ -209,23 +209,23 @@ export class AuthService {
         }
 
         // check password
-        if (!bcrypt.compareSync(data.password, account.password)) {
-            throw new HttpException(
-                'Password is incorrect.',
-                HttpStatus.UNPROCESSABLE_ENTITY,
-            );
-        }
-        let newPassword = undefined;
+        //if (!bcrypt.compareSync(data.password, account.password)) {
+        //    throw new HttpException(
+        //        'Password is incorrect.',
+        //        HttpStatus.UNPROCESSABLE_ENTITY,
+        //    );
+        //}
+        //let newPassword = undefined;
 
-        if (data.changePassword == 'true') {
-            if (data.newPassword !== data.newPasswordConfirmation) {
-                throw new HttpException(
-                    'Passwords do not match.',
-                    HttpStatus.UNPROCESSABLE_ENTITY,
-                );
-            }
-            newPassword = bcrypt.hashSync(data.newPassword, 10);
-        }
+        //if (data.changePassword == 'true') {
+        //    if (data.newPassword !== data.newPasswordConfirmation) {
+        //        throw new HttpException(
+        //            'Passwords do not match.',
+        //            HttpStatus.UNPROCESSABLE_ENTITY,
+        //        );
+        //    }
+        //    newPassword = bcrypt.hashSync(data.newPassword, 10);
+        //}
 
         let mfaSecret = undefined;
         let mfaEnabled = undefined;
@@ -267,7 +267,7 @@ export class AuthService {
         const updatedUser = await this.usersService.update(user.id, {
             email: data.email,
             username: data.username,
-            password: newPassword,
+            //password: newPassword,
             avatar: newAvatar,
             mfaSecret,
             mfaEnabled,

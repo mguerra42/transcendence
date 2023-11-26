@@ -174,11 +174,9 @@ export class AuthController {
         @Res({ passthrough: true }) res: Response,
     ) {
         if (avatar) {
-            console.log({ avatar });
             payload.avatar = avatar as Express.Multer.File;
         }
 
-        console.log('23', { payload });
         await this.authService.update(req.user, payload);
 
         return {
