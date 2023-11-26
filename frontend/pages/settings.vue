@@ -113,12 +113,12 @@ import '/frontend/public/styles/home.css';
             
             <div class="flex flex-col gap-1.5">
                 <label class="font-bold home-font text-base ">Username</label>
-                <input type="newUsername" @input="onInput" v-model="payload.username" name="username" placeholder="New username" class="px-3  py-2 text-black b-1 " />
+                <input type="newUsername" @input="onInput" v-model="payload.username" name="username" placeholder="New username" class="px-3  py-2 text-black b-1 " style="font-family : terminal;"/>
             </div>
             <div class="flex flex-col gap-1.5">
 
                 <label class="font-bold home-font text-base ">Email</label>
-                <input type="newEmail" v-model="payload.email" name="email" placeholder="New email" class="px-3 py-2 text-black b-1 " />
+                <input type="newEmail" v-model="payload.email" name="email" placeholder="New email" class="px-3 py-2 text-black b-1 " style="font-family : terminal;"/>
             </div>
             <div class="flex flex-col gap-1.5">
 
@@ -129,8 +129,8 @@ import '/frontend/public/styles/home.css';
                 </label>
             </div>
             <div class="flex flex-col gap-1.5" v-if="payload.changePassword">
-                <input type="password" v-model="payload.newPassword" name="newPassword" placeholder="New password" class="rounded-lg px-3 py-2 text-black b-1 " />
-                <input type="password" v-model="payload.newPasswordConfirmation" name="newPasswordConfirmation" placeholder="New password confirmation" class="rounded-lg px-3 py-2 text-black b-1 " />
+                <input type="password" v-model="payload.newPassword" name="newPassword" placeholder="New password" class="rounded-lg px-3 py-2 text-black b-1 " style="font-family : terminal;"/>
+                <input type="password" v-model="payload.newPasswordConfirmation" name="newPasswordConfirmation" placeholder="New password confirmation" class="rounded-lg px-3 py-2 text-black b-1 " style="font-family : terminal;"/>
             </div>
 
             <div class="flex flex-col gap-1.5">
@@ -156,7 +156,7 @@ import '/frontend/public/styles/home.css';
                 <div class="flex flex-col gap-1.5">
 
                 <label class="font-bold home-font text-base ">Current password</label>
-                <input type="password" v-model="payload.password" name="password" placeholder="password" class="px-3 py-2 text-black b-1 " />
+                <input type="password" v-model="payload.password" name="password" placeholder="Password" class="px-3 py-2 text-black b-1 " style="font-family : terminal;"/>
             </div>
 
 
