@@ -13,7 +13,7 @@
     })
 </script>
 <template>
-    <div>
+    <div v-if="playerLeft?.userId && playerRight?.userId">
         <div class="bg-zinc-700 p-2.5 py-5 gap-5 shadow-lg  hover:bg-zinc-700 w-full cursor-pointer rounded-lg flex flex-col justify-center">
 
             <nuxt-link :to="{
@@ -61,6 +61,10 @@
                         </div>
                     </div>
                 </nuxt-link>
+            </div>
+
+            <div>
+                {{ state.status }}
             </div>
 </div>
     </div>

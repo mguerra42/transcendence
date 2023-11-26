@@ -888,8 +888,6 @@ export class SocketsGateway {
         this.tmpGames = this.tmpGames.filter((g) => g.gameId !== gameId);
     }
 
-
-
     @SubscribeMessage('game:ready')
     async onGameReady(client: Socket & { user: any }, { gameId }) {
         //console.log('game:connect', client.user, gameId);
