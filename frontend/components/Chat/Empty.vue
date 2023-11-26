@@ -13,7 +13,7 @@ const chat = useChat();
         or <nuxt-link class="home-font home-button layers hero glitch" data-text="Search" :to="{
             name: 'chat-search-channel',
         }">Search</nuxt-link> a channel</div>
-        <div>or</div>
+        <div style="font-family : terminal">or</div>
     <div class="text-xl home-font"><nuxt-link class="home-font home-button layers hero glitch" data-text="Search" :to="{
             name: 'chat-search-friend',
         }">Search</nuxt-link> a friend to chat with him</div>
