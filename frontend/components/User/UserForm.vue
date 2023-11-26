@@ -4,13 +4,40 @@ const auth = useAuth()
 const username = ref('')
 const email = ref('')
 const password = ref('')
-const avatar = auth.session.avatarPath
+const avatar = auth.session.avatar
 const newPassword = ref('')
 const newPasswordConfirmation = ref('')
+const buttonClass = ref('b-1 rounded bg-zinc-500 px-2 py-1 b-zinc-700 cursor-pointer hover:bg-zinc-600');
 const isValid = computed(() => {
     return email.value !== '' && password.value !== ''
 })
 
+
+const toggletwoFastatus = async () => {
+    auth.twoFaStatus = await client.auth.onOff2FA()
+    console.log('2fastatus',auth.twoFaStatus )
+    await updateButtonClass(auth.twoFaStatus)
+}
+
+const updateButtonClass = (twoFaStatus:number) => {
+    console.log("twoFaStatus = ",twoFaStatus)
+
+    if (twoFaStatus == 1) {
+        buttonClass.value = 'b-1 rounded bg-blue-500 px-2 py-1 b-blue-700 cursor-pointer  rounded-lg  hover:bg-blue-600';
+    } else {
+        buttonClass.value = 'b-1 rounded bg-zinc-500 px-2 py-1 b-zinc-700 cursor-pointer rounded-lg   hover:bg-zinc-600';
+    }
+    console.log('button=',buttonClass.value)
+};
+const getQrCode = async () => {
+    auth.showQRCode = !auth.showQRCode;
+    console.log('showqrcode=',auth.showQRCode);
+
+    client.auth.get2FAQr()
+}
+onMounted(async () => {
+    updateButtonClass( await client.auth.get2FA())
+})
 </script>
 
 <style>
@@ -68,5 +95,9 @@ const isValid = computed(() => {
             </button>
             <!-- Add login button and other login form fields here -->
         </form>
+        <div>
+                    <div :class="buttonClass" @click="toggletwoFastatus">2FA</div>
+                    <div class="b-1 rounded bg-blue-500 px-2 py-1 b-blue-700 cursor-pointer  rounded-lg  hover:bg-blue-600" @click="getQrCode">2FAGetQR</div>
+        </div>
     </div>
 </template>
