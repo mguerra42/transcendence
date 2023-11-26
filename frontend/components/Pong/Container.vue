@@ -9,8 +9,8 @@
         const canvas = board.value as HTMLCanvasElement
         if (canvas === undefined) return
         canvas.style.width ='100%';
-        canvas.style.minWidth ='600px';
-        canvas.style.minHeight ='600px';
+        canvas.style.minWidth ='500px';
+        canvas.style.minHeight ='500px';
         canvas.style.height='100%';
         canvas.style.borderColor='white';
         canvas.style.borderWidth='1px';
@@ -93,7 +93,7 @@
     })
 </script>
 <template>
-    <div>
+    <div class="p-12">
         <canvas ref="board" id="pong" ></canvas>
     </div>
 </template>

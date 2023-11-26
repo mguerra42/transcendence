@@ -63,6 +63,7 @@ export const useGame = defineStore("game", () => {
         })
     });
     socket.on("game:state", async (state) => {
+        console.log("game:state", state);
         state.value = state;
     });
 }
