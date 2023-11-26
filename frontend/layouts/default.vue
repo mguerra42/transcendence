@@ -36,6 +36,12 @@ const onInput = debounce((event: any) => {
 onMounted(async () => {
     
 })
+
+useHead({
+  htmlAttrs: {
+    class:'dark'
+  }
+})
 await auth.getSession();
 
 import '/frontend/public/styles/home.css';

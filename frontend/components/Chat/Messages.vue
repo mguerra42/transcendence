@@ -27,7 +27,7 @@ const onRightClick = (e) => {
 </script>
 <template>
   <div
-    class="bg-zinc-600 overflow-y-scroll rounded h-full"
+    class="term-box overflow-y-scroll h-full"
     ref="messagesContainer"
   >
     <div class="flex flex-col gap-2 pb-3 pr-3">

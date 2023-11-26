@@ -72,15 +72,27 @@
     outline: none;
   }
 
-  /* .login-modal {
-    /* position: absolute; */
-    /* top: 50%; */
-    /* left: 100px; */
-    /* transform: translate(-50%, -50%); */
-    /* width: 100%; */
-    /* height: 30%;
-    z-index: 3;
-  } */
+  /* width */
+  ::-webkit-scrollbar {
+    width: 7px;
+  }
+  
+  /* Track */
+  ::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 5px rgb(218, 218, 224); 
+    border-radius: 0px;
+  }
+  
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: rgb(201, 245, 237); 
+    border-radius: 0px;
+  }
+  
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(133, 175, 161); 
+  }
 
   .home-font {
     font-family: 'terminal', sans-serif;
