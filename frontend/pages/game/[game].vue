@@ -73,6 +73,13 @@ let inv = ref()
         //}, 1000/60)
     })
 
+    let playerLeft = computed(() => {
+        return game.state.left || {}
+    })
+    let playerRight = computed(() => {
+        return game.state.right || {}
+    })
+
     onBeforeUnmount(() => {
         document.removeEventListener('keydown', handleKeydown)
         clearInterval(inv.value)
@@ -83,44 +90,12 @@ let inv = ref()
         <div class="flex-1 w-full h-full max-w-5xl flex flex-col gap-5">
             
             <div class="">
-                <div v-if="true" :class="{'bg-zinc-700 shadow-lg hover:bg-zinc-700 w-full h-80 cursor-pointer rounded-lg flex flex-col justify-center' : true ,}">
 
-        <div class="my-10 mt-10 flex justify-center text-lg sm:text-[1.5rem] md:text-3xl lg:text-4xl  font-bold">
-                Game #{{ route.params.game  }}
+            <PongBanner :gameId="$route.params.game" :state="game.state" />
+
+           
             </div>
-        <div class="flex mt-1 justify-center">
-            <div class="flex">
-                <div class="flex justify-center">
-                    <div class="flex-col flex justify-center">
-                        <p class="text-lg text-center text-zinc-200" >{{ auth.session.username }}</p>
-                        <p class="text-xs text-center text-zinc-400" >W/L : 10-3</p>
-                        <p class="text-xs text-center text-zinc-400" >Elo : 1230</p>
-                    </div>
-                </div>
-                <img :src="auth.session.avatar" class="w-30 h-30 m-2 border-8 border-zinc-100 rounded-full" />
-            </div>
-            <div class="flex flex-col justify-center">
-                <p class="text-zinc-200 ml-5 mr-5 text-7xl font-bold text-center">
-                    VS
-                </p>
-            </div>
-            <div class="flex">
-                <img :src="auth.session.avatar" class="w-30 h-30 m-2 border-8 border-zinc-100 rounded-full" />
-                <div class="flex justify-center">
-                    <div class="flex-col flex justify-center">
-                        <p class="text-lg text-center text-zinc-200" >{{ 'username' }}</p>
-                        <p class="text-xs text-center text-zinc-400" >W/L : 10-3</p>
-                        <p class="text-xs text-center text-zinc-400" >Elo : 1230</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-            </div>
-            {{ game.state }}
             <div class="bg-zinc-700 shadow-lg hover:bg-zinc-700 w-full  cursor-pointer rounded-lg flex flex-col justify-center">
-                
-                
                 <PongContainer
                 :state="state"/>
             </div>

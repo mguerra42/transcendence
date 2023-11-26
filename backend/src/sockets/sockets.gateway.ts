@@ -65,16 +65,15 @@ export class SocketsGateway {
                 date: true,
             },
         });
-        console.log('retrieve games', activeGames);
 
         for (const game of activeGames) {
-            if (this.games.has(game.id)) {
-                continue;
-            }
-
             game.players.forEach((p) => {
                 this.subscribeUserToRoom(String(p.id), `game:${game.id}`);
             });
+
+            if (this.games.has(game.id)) {
+                continue;
+            }
             const gameInstance = await this.createPongGame(game);
             if (gameInstance == false) {
                 continue;
@@ -149,6 +148,12 @@ export class SocketsGateway {
         if (this.clients[client.user.id].length === 0) {
             this.status[client.user.id] = 'offline';
             this.server.in('everyone').emit('status', this.status);
+
+            Array.from(this.games.values()).forEach((game) => {
+                if (game.playersIds.includes(client.user.id)) {
+                    game.onDisconnect(client.user.id);
+                }
+            });
         }
     }
 
@@ -168,8 +173,8 @@ export class SocketsGateway {
             type = message.type
                 ? message.type
                 : message.success === false
-                ? 'error'
-                : 'success';
+                  ? 'error'
+                  : 'success';
             message = message.message;
         }
 
@@ -691,7 +696,7 @@ export class SocketsGateway {
             email: user.email,
             avatar: user.avatar,
             status: this.status[user.id] || 'offline',
-            online: this.clients[user.id]?.length > 0,
+            online: this.clients[user.id]?.length > 500,
             points: user.points,
             victories: user.victories,
             defeats: user.defeats,
@@ -760,7 +765,7 @@ export class SocketsGateway {
         //)
         if (
             Array.from(this.games.values()).find((u) =>
-                u.players.includes(destUserId),
+                u.playersIds.includes(destUserId),
             )
         ) {
             this.notification(client.user.id, {
@@ -851,17 +856,16 @@ export class SocketsGateway {
 
     @SubscribeMessage('game:connect')
     async onGameConnect(client: Socket & { user: any }, { gameId }) {
-        console.log('game:connect', client.user, gameId);
+        //console.log('game:connect', client.user, gameId);
         const game = this.games.get(gameId);
-        console.log('game', this.games);
-        //if (!game) {
-        //    this.notification(client.user.id, {
-        //        message: 'Game not found',
-        //        type: 'error',
-        //    });
-        //    return;
-        //}
-        //game.connect(client.user.id);
+        if (!game) {
+            this.notification(client.user.id, {
+                message: 'Game not found',
+                type: 'error',
+            });
+            return;
+        }
+        game.connect(client.user.id);
     }
 
     @SubscribeMessage('game:challenge-decline')
@@ -882,6 +886,779 @@ export class SocketsGateway {
         });
 
         this.tmpGames = this.tmpGames.filter((g) => g.gameId !== gameId);
+    }
+    @SubscribeMessage('profile')
+    async onProfile(client: Socket & { user: any }, username: string) {
+        const user = await this.userService.findByUsername(username);
+        if (!user) {
+            this.notification(client.user.id, {
+                message: 'User not found',
+                type: 'error',
+            });
+            return false;
+        }
+        let profile = this.getProfile(user);
+        console.log('profile', profile);
+        const currentGame = Array.from(this.games.values()).find((g) =>
+            g.playersIds.includes(user.id),
+        );
+        console.log('currentGame', currentGame.id);
+        if (currentGame) {
+            profile = {
+                ...profile,
+                currentGame: {
+                    id: currentGame.id,
+                    state: currentGame.state,
+                    players: currentGame.players.map((p) => this.getProfile(p)),
+                },
+                gameHistory: [
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                    {
+                        id: 'dsdsds',
+                        winnerId: 1,
+                        winner: {
+                            username: 'test',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        winnerScore: 10,
+                        loserId: 2,
+                        loser: {
+                            username: 'test2',
+                            avatar: 'https://picsum.photos/200',
+                        },
+                        loserScore: 5,
+                    },
+                ],
+            } as typeof profile & {
+                currentGame: {
+                    id: string;
+                    state: any;
+                    players: any[];
+                };
+            };
+        }
+
+        //this.sendToUser(client.user.id, 'profile', user);
+        return profile;
     }
 
     //@SubscribeMessage('channels:create')

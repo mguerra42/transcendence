@@ -9,31 +9,7 @@ export const useGame = defineStore("game", () => {
 
     const autoClean = ref(null)
     const state = ref({
-        status: 'waiting',
-        ball: {
-            x: 0,
-            y: 0,
-            h: 0,
-            w: 0,
-            vx: 6,
-            vy: 6,
-        },
-        left: {
-            x: 0,
-            y: 0,
-            w: 0,
-            h: 0,
-            color: '',
-            score: 0,
-        },
-        right: {
-            x: 0,
-            y: 0,
-            w: 0,
-            h: 0,
-            color: '',
-            score: 0,
-        },
+       
     })
 
 
@@ -62,9 +38,9 @@ export const useGame = defineStore("game", () => {
             },
         })
     });
-    socket.on("game:state", async (state) => {
-        console.log("game:state", state);
-        state.value = state;
+    socket.on("game:state", async (newState) => {
+        console.log("game:state", newState);
+        state.value = newState;
     });
 }
 const challenge = async (destUserId) => {

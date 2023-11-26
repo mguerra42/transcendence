@@ -72,7 +72,7 @@ export class PongGame {
             await this.save();
         }
 
-        this.state.status = 'waiting';
+        this.state.status = 'idle';
 
         // Start the game by sending all players to the game page
         this.send('game:start', this.id);
@@ -80,16 +80,33 @@ export class PongGame {
         setInterval(() => {
             this.send('game:state', this.state);
         }, 1000);
+        setInterval(() => {
+            console.log('PongGame IDLE', this.id);
+        }, 1000);
         // Check if all users are ready
         console.log('PongGame init done');
     }
+    async onDisconnect(userId) {
+        if (this.connected.includes(userId)) {
+            this.connected = this.connected.filter((id) => id !== userId);
+        }
+        const side = this.state.left.userId === userId ? 'left' : 'right';
+        this.state[side].user.status = 'offline';
+        this.state[side].user.online = false;
+        await this.save();
+        console.log('PongGame disconnect', userId);
+    }
 
-    connect(userId) {
+    async connect(userId) {
         if (
             !this.connected.includes(userId) &&
             this.playersIds.includes(userId)
         ) {
             this.connected.push(userId);
+            const side = this.state.left.userId === userId ? 'left' : 'right';
+            this.state[side].user.status = 'online';
+            this.state[side].user.online = true;
+            await this.save();
         }
 
         if (this.connected.length === this.playersIds.length) {

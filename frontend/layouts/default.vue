@@ -33,6 +33,9 @@ const onInput = debounce((event: any) => {
         strict: true
     })
 }, 400, false)
+onMounted(async () => {
+    
+})
 await auth.getSession();
 </script>
 <template>
