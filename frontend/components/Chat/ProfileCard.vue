@@ -4,7 +4,7 @@ const auth = useAuth();
 const props = defineProps<{ user: ChatProfile, more: boolean, stats: boolean }>();
 </script>
 <template>
-  <div class="rounded-lg b-1 bg-zinc-700 overflow-hidden min-w-280px">
+  <div class="term-box b-1 overflow-hidden min-w-280px">
     <div
       class="gap-2 flex flex-col"
       :class="[user.id == auth.session.id ? '' : '']"

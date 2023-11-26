@@ -6,14 +6,14 @@ const route = useRoute();
 
 <template>
   <div
-    class="relative w-full min-w-300px flex flex-col bg-zinc-600 justify-center "
+    class="relative w-full min-w-300px flex flex-col term-box justify-center "
     v-if="
       chat.compactMode == false ||
       (chat.compactMode == true && chat.currentMode == 'chat')
     "
     :class="[
       chat.compactMode == true && chat.currentMode == 'chat'
-        ? 'w-full min-w-300px max-w-800px rounded-l-lg b-r-0'
+        ? 'w-full min-w-300px max-w-800px s b-r-0'
         : '',
     ]"
   >

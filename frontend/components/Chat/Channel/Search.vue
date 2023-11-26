@@ -40,14 +40,14 @@ const leaveChannel = (channel: any) => {
     <div class="flex text-white flex-1 h-full w-full">
     <div class="py-5 w-full h-full">
         <div class="p-2.5 flex flex-col gap-5 items-center justify-center w-full">
-            <div class="font-bold text-4xl">Search channel</div>
+            <div class="home-font text-4xl">Search channel</div>
             <div class="w-60%">
                 <input
                     v-model="chat.searchChannelQuery"
                     @input="chat.manager.searchChannel(chat.searchChannelQuery)"
                     type="text"
                     placeholder="Search channel..."
-                    class="w-full px-4 py-2 text-sm rounded-lg b-1 bg-zinc-600 focus:outline-none focus:text-zinc-300"
+                    class="w-full px-4 py-2 text-sm term-box b-1 focus:outline-none focus:text-zinc-300"
                     />
             </div>
             <div class="grid  gap-5 w-full">

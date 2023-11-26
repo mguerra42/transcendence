@@ -11,14 +11,14 @@ const query = ref("");
         <div
           class="p-2.5 flex flex-col gap-5 items-center justify-center w-full"
         >
-          <div class="font-bold text-4xl">Search a friend</div>
+          <div class="font-bold home-font text-4xl" style="letter-spacing : 1px;">Search a friend</div>
           <div class="w-60%">
             <input
               v-model="query"
               @input="chat.searchFriend(query)"
               type="text"
               placeholder="Search a friend..."
-              class="w-full px-4 py-2 text-sm rounded-lg b-1 bg-zinc-600 focus:outline-none focus:text-zinc-300"
+              class="w-full px-4 py-2 text-sm term-box b-1 focus:outline-none focus:text-zinc-300"
             />
           </div>
           <div class="grid sm:grid-cols-2 gap-5 w-full">

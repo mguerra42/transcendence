@@ -93,10 +93,13 @@ import '/frontend/public/styles/home.css';
                 <img :src="avatarPreview" class="mt-4 h-200px w-200px max-w-200px b-2 term-box p-.5" />
             </div>
             <div class="flex items-center pt-8">
-                <input type="file" accept="image/jpeg,image/png" ref="fileInput"  @change="onFileSelected"  />
+                <!-- <input type="file" accept="image/jpeg,image/png" ref="fileInput"  @change="onFileSelected"  /> -->
+                <input type="file" accept="image/jpeg,image/png" name="file" id="file" class="inputfile" ref="fileInput"  @change="onFileSelected" />
+                <label for="file" class="home-font home-button layers hero glitch ml-3" style="letter-spacing : 1px;" data-text="Choose a file">Choose a file</label>
+                <div class="i-material-symbols:file-copy-outline-sharp ml-2 home-font"></div>
             </div>
             <div>
-                <button class="home-button layers hero glitch w-full transition duration-300 px-4 py-2 mt-4" data-text="SETUP" @click="auth.setup({
+                <button class="home-button home-font text-4xl layers hero glitch w-full transition duration-300 px-4 py-2 mt-4" style="letter-spacing : 2px;" data-text="SETUP" @click="auth.setup({
                     username: auth.session.username,
                     avatar: avatarFile
                 })">SETUP</button>
@@ -141,5 +144,21 @@ import '/frontend/public/styles/home.css';
   z-index: 10000;
   z-index: 99999;
   bottom: 15px !important;
+}
+
+.inputfile {
+	width: 0.1px;
+	height: 0.1px;
+	opacity: 0;
+	overflow: hidden;
+	position: absolute;
+	z-index: -1;
+}
+
+.inputfile + label {
+    font-size: 1.25em;
+    font-weight: 700;
+    display: inline-block;
+    text-align : center;
 }
 </style>

@@ -25,7 +25,7 @@ const isAuthUser = computed(() => {
 
       <div
         @keypress.escape="chat.currentProfile = null"
-        class="rounded-lg  bg-zinc-700 overflow-hidden"
+        class="term-box overflow-hidden"
       >
         <div
           class="hover:bg-white/10 cursor-pointer gap-2 flex flex-col"
@@ -37,7 +37,7 @@ const isAuthUser = computed(() => {
         </div>
       </div>
       <div
-        class="grid grid-cols-2 mt-5 rounded-lg b-1 bg-zinc-700 overflow-hidden flex-row sm:flex-col md:flex-row items-center justify-center w-full"
+        class="grid grid-cols-2 mt-5 b-1 overflow-hidden flex-row sm:flex-col md:flex-row items-center justify-center w-full"
         v-if="!isAuthUser"
       >
         <nuxt-link
@@ -47,7 +47,7 @@ const isAuthUser = computed(() => {
                 user: chat.currentProfile?.username,
             },
         }"
-          class="flex-1 hover:bg-white w-full b-b-1 hover:text-gray-700 cursor-pointer flex items-center px-2 gap-2 justify-center py-1 "
+          class="flex-1 hover:bg-white w-full b-b-1 hover:text-gray-600 cursor-pointer flex items-center px-2 gap-2 justify-center py-1 "
         >
         <i class="i-mdi:eye"></i>
         See Profile
@@ -137,7 +137,7 @@ v-if="chat.manager.active.isAdmin && !chat.manager.active.isRole(chat.currentPro
       </div>
       
       <div
-        class="mt-5 rounded-lg b-1 bg-zinc-700 overflow-hidden flex-row sm:flex-col md:flex-row items-center justify-center w-full"
+        class="mt-5 term-box b-1 overflow-hidden flex-row sm:flex-col md:flex-row items-center justify-center w-full"
         v-if="!chat.manager.active?.isDM && chat.manager.active?.isOwner"
       >
       <!--{{chat.manager.active.getRole(chat.currentProfile.id)}}-->

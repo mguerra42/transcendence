@@ -88,6 +88,8 @@
     background: rgb(201, 245, 237); 
     border-radius: 0px;
   }
+
+  
   
   /* Handle on hover */
   ::-webkit-scrollbar-thumb:hover {

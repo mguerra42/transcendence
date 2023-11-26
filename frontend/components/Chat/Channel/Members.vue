@@ -19,7 +19,7 @@ const members = computed(() => {
           v-model="search"
           type="text"
           placeholder="Search member..."
-          class="w-full px-4 py-2 text-sm rounded-lg b-1 bg-zinc-600 focus:outline-none focus:text-zinc-300"
+          class="w-full px-4 py-2 text-sm b-1 term-box focus:outline-none focus:text-zinc-300" style="border-width : 1px;"
         />
       </div>
       <div class="grid sm:grid-cols-2 gap-2">
