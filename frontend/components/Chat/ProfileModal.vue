@@ -37,7 +37,7 @@ const isAuthUser = computed(() => {
         </div>
       </div>
       <div
-        class="grid grid-cols-2 mt-5 b-1 overflow-hidden flex-row sm:flex-col md:flex-row items-center justify-center w-full"
+        class="grid term-box grid-cols-2 mt-5 b-1 overflow-hidden flex-row sm:flex-col md:flex-row items-center justify-center w-full"
         v-if="!isAuthUser"
       >
         <nuxt-link
@@ -78,7 +78,7 @@ const isAuthUser = computed(() => {
       <div v-if="chat.manager.active">
         <div
 
-class="grid grid-cols-3 mt-5 rounded-lg b-1 bg-zinc-700 overflow-hidden flex-row sm:flex-col md:flex-row items-center justify-center w-full"
+class="grid grid-cols-3 mt-5 term-box b-1 overflow-hidden flex-row sm:flex-col md:flex-row items-center justify-center w-full"
 v-if="chat.manager.active.isAdmin && !chat.manager.active.isRole(chat.currentProfile.id, 'OWNER')
   && chat.currentProfile.id != auth.session.id
 "

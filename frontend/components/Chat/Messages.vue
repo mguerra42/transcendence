@@ -24,10 +24,12 @@ const onRightClick = (e) => {
   console.log(e);
 };
 
+import '/frontend/public/styles/home.css';
+
 </script>
 <template>
   <div
-    class="term-box overflow-y-scroll h-full"
+    class="overflow-y-scroll h-full"
     ref="messagesContainer"
   >
     <div class="flex flex-col gap-2 pb-3 pr-3">
@@ -38,8 +40,8 @@ const onRightClick = (e) => {
           message.from === 0
             ? ''
             : message.from == auth.session?.id
-            ? 'bg-green/50 ml-auto shadow-green'
-            : 'bg-blue/50 shadow-blue',
+            ? 'duck-bg ml-auto'
+            : 'bg-gray/60',
           message.from != chat.manager.active?.messages[i - 1]?.from
             ? 'mt-5'
             : '',

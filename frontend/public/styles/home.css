@@ -31,6 +31,10 @@
     background-color: rgba(14, 64, 80, 0.781);
   }
 
+  .duck-bg {
+    background-color: rgb(91, 192, 167);
+  }
+
   .video-container {
     position: absolute;
     top: 0;
