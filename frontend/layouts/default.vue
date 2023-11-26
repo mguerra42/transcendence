@@ -37,41 +37,58 @@ onMounted(async () => {
     
 })
 await auth.getSession();
+
+import '/frontend/public/styles/home.css';
 </script>
+
 <template>
   <main class="h-100vh">
-    <div v-if="auth.showLoginView" class="h-full rounded-lg flex">
-        <div
-            class="min-h-screen w-0/5 lg:w-3/5 md:w-1/2 sm:w-0/5 xs:w-0/5 bg-zinc-300 flex flex-col items-center justify-center">
-            <div>
-                <p class="text-5xl lg:text-7xl text-center font-bold text-zinc-600 m-4">Transcendence</p>
-            </div>
+    <div v-if="auth.showLoginView">
+        <!-- Homepage -->
+        <div class="h-full w-full video-container">
+            <video class="top-0 bottom-0 left-0 right-0" autoplay loop muted preload="auto">
+              <source src="/videos/grid.mp4" type="video/mp4">
+            </video>
         </div>
-        <div class="min-h-screen w-5/5 lg:w-2/5 md:w-1/2 sm:w-5/5 xs:w-5/5 bg-zinc-800 flex flex-col items-center justify-center">{{ auth }}
-            <Auth2FAForm v-if="auth.need2FA" />
-            <AuthLoginForm v-else-if="auth.activeForm === 'login'" />
-            <AuthSignUpForm v-else-if="auth.activeForm === 'signup'" />
+
+        <div class="relative z-100 flex items-center flex-col gap-5 justify-start w-full h-full py-20 px-5">
+            <div class="flex w-full max-w-1900px items-center h-100px">
+              <button class="transition-all w-full big-title layers hero glitch neon-text text-3.5rem md:text-5rem lg:text-7rem" data-text="WELCOME TO PONG">WELCOME TO PONG</button>
+            </div>
+            <div class="grid sm:grid-cols-2 gap-5 max-w-1900px w-full">
+                <div class="term-box flex flex-col">
+                  <div class="home-font px-6 pt-10 text-5xl mb-6 text-center"> READY TO FIGHT ?</div>
+                  <div class="px-5 py-5 flex items-center ">
+                    <img class="h-full" src="/videos/green-pong.gif">
+                  </div>
+                </div>
+                <div class="term-box flex" >
+                  <Auth2FAForm v-if="auth.need2FA" />
+                  <AuthLoginForm v-else-if="auth.activeForm === 'login'" />
+                  <AuthSignUpForm v-else-if="auth.activeForm === 'signup'" />
+                </div>
+            </div>
         </div>
     </div>
-    <div v-else-if="auth.isSetup == false" class="h-full rounded-lg flex items-center justify-center">
-        <div class="bg-slate-700 rounded py-3 px-5">
-            <div class="font-bold text-2xl">Setup your account</div>
-            <div class="font-bold text-base">Choose a username</div>
+    <div v-else-if="auth.isSetup == false" class="h-full flex items-center justify-center">
+        <div class="term-box py-3 px-5">
+            <div class="home-font font-bold text-2xl pb-2">Setup your account</div>
+            <div class="home-font font-bold text-base">Choose a username</div>
             <div class="flex flex-col">
-                <input type="text" @input="onInput" v-model="auth.session.username" class="rounded-lg px-3 py-2 text-black b-1" />
+                <input type="text" @input="onInput" v-model="auth.session.username" class="term-box px-3 py-2 home-font b-1" />
             </div>
-            <div class="font-bold text-base mt-4">Change your profile picture (optional)</div>
+            <div class="home-font font-bold text-base mt-4">Change your profile picture (optional)</div>
             <div class="flex justify-center">
-                <img :src="avatarPreview" class="rounded-lg mt-4 h-100px max-w-100px b-2 b-white p-.5" />
+                <img :src="avatarPreview" class="mt-4 h-100px max-w-100px b-2 term-box p-.5" />
             </div>
             <div class="flex items-center">
                 <input type="file" accept="image/jpeg,image/png" ref="fileInput"  @change="onFileSelected"  />
             </div>
             <div>
-                <button class="bg-blue-500 hover:bg-blue-600 w-full transition duration-300 rounded-lg px-4 py-2 mt-4" @click="auth.setup({
+                <button class="home-button layers hero glitch w-full transition duration-300 rounded-lg px-4 py-2 mt-4" data-text="SETUP" @click="auth.setup({
                     username: auth.session.username,
                     avatar: avatarFile
-                })">Setup</button>
+                })">SETUP</button>
             </div>
         </div>
     </div>
