@@ -57,24 +57,24 @@ import '/frontend/public/styles/home.css';
             >
               <template v-slot="{ user }">
                 
-                <ChatUserAvatar size="h-24 w-24 " :userId="message.from" :avatar="chat.manager.active?.getAvatar(message.from)" ></ChatUserAvatar>
+                <ChatUserAvatar size="h-12 w-12 " :userId="message.from" :avatar="chat.manager.active?.getAvatar(message.from)" ></ChatUserAvatar>
               </template>
             </ChatProfileModalTrigger>
           </div>
           <div class="flex flex-col">
             <div class="flex gap-2 items-center leading-1">
               <ChatProfileModalTrigger
-                class="hover:text-blue-200 cursor-pointer hover:scale-110 transition-all"
+                class="mt-2 cursor-pointer hover:scale-110 transition-all" style="font-family : terminal"
                 v-if="message.from > 0"
                 :userId="message.from"
               >
                 <template v-slot="{ user }">{{ user && user?.username ? '@' + user.username : 'Deleted User' }}</template>
               </ChatProfileModalTrigger>
-              <div class="text-[12px] text-gray-300">
+              <div class="text-[12px] text-gray-300" style="font-family : terminal">
                 {{ new Date(message.timestamp).toLocaleString() }}
               </div>
             </div>
-            <div class="text-sm mt-3 text-white/80 prose  h-full ">
+            <div class="text-sm mt-3 text-white/80 prose  h-full " style="font-family : terminal; letter-spacing : 1px;">
               <div class="max-w-full m-0 p-0 break-all whitespace-pre-wrap leading-tight h-full">{{ message.content }}</div>
             </div>
           </div>

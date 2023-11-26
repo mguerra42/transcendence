@@ -27,12 +27,15 @@
 
   .term-box {
     border: 2px solid rgb(0, 255, 191);
-    z-index:1;
     background-color: rgba(14, 64, 80, 0.781);
   }
 
   .duck-bg {
     background-color: rgb(91, 192, 167);
+  }
+
+  .duck-bg-dark {
+    background-color: rgb(70, 143, 125);
   }
 
   .video-container {

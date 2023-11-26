@@ -13,7 +13,7 @@ import '/frontend/public/styles/home.css';
 
 </script>
 <template>
-    <div class="flex term-box text-white flex-1 h-[calc(100vh-117px)] w-full " v-if="chat.manager.active">
+    <div class="flex text-white flex-1 h-[calc(100vh-117px)] w-full " v-if="chat.manager.active">
 		<div class="flex flex-col gap-2 w-full flex-1">
 			<div class="text-3xl text-white px-5 pt-5 flex items-center gap-2" style="font-family : terminal; letter-spacing : 2px;">
 				<div>#{{ chat.manager.active.channel.name }}</div>

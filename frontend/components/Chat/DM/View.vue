@@ -36,17 +36,17 @@
             </div>
             <div class="flex flex-col items-center">
                 <ChatProfileModalTrigger
-                class="hover:text-blue-200 cursor-pointer hover:scale-110 transition-all"
+                class="hover:text-gray cursor-pointer hover:scale-110 transition-all" style="font-family : terminal;"
                 v-if="chat.manager.active.recipient?.userId"
                 :userId="chat.manager.active.recipient?.userId"
               >
                 <template v-slot="{ user }">@{{ user?.username }}</template>
               </ChatProfileModalTrigger>
-                <div>{{ chat.manager.active.recipient?.user.email  }}</div>
+                <div style="font-family : terminal;">{{ chat.manager.active.recipient?.user.email  }}</div>
             </div>
             <div class="flex flex-col items-center b-t-1 p-2.5  h-full w-full">
                 <div v-if="isBlocked">
-                    <div class="font-bold text-2xl my-5">
+                    <div class="font-bold home-font text-2xl my-5">
                         You have blocked this user
                     </div>
                 </div>
@@ -63,20 +63,20 @@
                 <div v-else>
                     <div v-if="shouldConfirm">
                         
-                        <div class="font-bold text-2xl my-5">
+                        <div class="font-bold home-font text-2xl my-5">
                             @{{ chat.manager.active.recipient?.user.username }} wants to be your friend
                         </div>
-                        <div class="flex gap-2 justify-center mt-5">
+                        <div class="flex gap-2 justify-center mt-5 home-font">
                             <button class="btn btn-primary" @click="chat.acceptFriend(chat.manager.active?.recipient?.userId)">Accept</button>
                             <button class="btn btn-primary" @click="chat.declineFriend(chat.manager.active?.recipient?.userId)">Decline</button>
                         </div>
                     </div>
                     <div v-else-if="waitConfirm">
                         
-                    <div class="font-bold text-2xl my-5">
+                    <div class="font-bold home-font text-2xl my-5">
                         You have sent a friend request to @{{ chat.manager.active.recipient?.user.username }}.
                     </div>
-                    <div class="font-bold text-xl my-5">
+                    <div class="text-white/80 text-xl my-5" style="font-family : terminal;">
                         You'll be able to chat once they accept your request.
                     </div>
                     </div>

@@ -45,6 +45,7 @@ const otherUser = (conversation: WrappedConversation) => {
             },
         }"
         class=" mb-1 px-2.5 py-2 hover:bg-white/10 cursor-pointer flex justify-center flex-col relative"
+        style="font-family : terminal"
         :class="[
           chat.isActiveConversation(conversation)
             ? 'bg-white/20'

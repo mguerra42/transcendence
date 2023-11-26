@@ -70,7 +70,7 @@ const leaveChannel = (channel: any) => {
                         </div>
                     </div>
                     <div v-else>
-                        <div v-if="channel.type == 'PUBLIC'" @click="chat.manager.joinConversation({channelId: channel.id})"  class="bg-green/50 hover:bg-green/75 cursor-pointer rounded px-2 py-1 flex items-center font-bold capitalize justify-center">JOIN</div>
+                        <div v-if="channel.type == 'PUBLIC'" @click="chat.manager.joinConversation({channelId: channel.id})"  class="duck-bg hover:bg-green cursor-pointer rounded px-2 py-1 flex items-center font-bold capitalize justify-center">JOIN</div>
                         <div class="flex " v-if="channel.type == 'PROTECTED'">
                             <div>
                                 <input
