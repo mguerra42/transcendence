@@ -76,6 +76,14 @@
     outline: none;
   }
 
+  input[type="newUsername"]:focus {
+    outline: none;
+  }
+
+  input[type="newEmail"]:focus {
+    outline: none;
+  }
+
   /* width */
   ::-webkit-scrollbar {
     width: 7px;
@@ -107,7 +115,7 @@
 
   .home-button {
     /* font-family: 'terminal', sans-serif; */
-    color: rgb(0, 255, 191);
+    /* color: rgb(0, 255, 191); */
     transition: color 0.3s;
   }
 
@@ -168,7 +176,7 @@ section {
   z-index: 2;
 
   /* Bright things in dark environments usually cast that light, giving off a glow */
-  filter: drop-shadow(0 1px 3px);
+  /* filter: drop-shadow(0 1px 3px); */
 }
 
 .demo {
