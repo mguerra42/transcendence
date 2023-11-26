@@ -6,7 +6,7 @@ const route = useRoute();
 
 <template>
   <div
-    class="relative w-full min-w-300px flex flex-col bg-zinc-700 rounded-r-lg justify-center "
+    class="relative w-full min-w-300px flex flex-col bg-zinc-600 justify-center "
     v-if="
       chat.compactMode == false ||
       (chat.compactMode == true && chat.currentMode == 'chat')

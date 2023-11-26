@@ -17,7 +17,7 @@ onMounted(async () => {
 </script>
 <template>
     <div class="min-h-61px  flex items-center justify-between px-5 relative">
-        <nuxt-link to="/">FT_transcendence</nuxt-link>
+        <nuxt-link to="/">PONG GAME</nuxt-link>
         <div>
             <div @click="toggleUserMenu" class="rounded bg-gray p-.5">
                 <img :src="auth.session?.avatar" alt="" class="h-10 w-10">

@@ -51,7 +51,7 @@ import '/frontend/public/styles/home.css';
             </video>
         </div>
 
-        <div class="relative z-100 flex items-center flex-col gap-5 justify-start w-full h-full py-20 px-5">
+        <div class="relative z-100 flex items-center flex-col gap-5 justify-start w-full h-full py-40 px-5">
             <div class="flex w-full max-w-1900px items-center h-100px">
               <button class="transition-all w-full big-title layers hero glitch neon-text text-3.5rem md:text-5rem lg:text-7rem" data-text="WELCOME TO PONG">WELCOME TO PONG</button>
             </div>
@@ -70,22 +70,27 @@ import '/frontend/public/styles/home.css';
             </div>
         </div>
     </div>
-    <div v-else-if="auth.isSetup == false" class="h-full flex items-center justify-center">
-        <div class="term-box py-3 px-5">
-            <div class="home-font font-bold text-2xl pb-2">Setup your account</div>
-            <div class="home-font font-bold text-base">Choose a username</div>
+    <div v-else-if="auth.isSetup == false" class="flex items-center justify-center h-full w-full video-container">
+        <div class="h-full w-full video-container">
+            <video class="top-0 bottom-0 left-0 right-0" autoplay loop muted preload="auto">
+              <source src="/videos/grid.mp4" type="video/mp4">
+            </video>
+        </div>
+        <div class="term-box h-700px w-800px py-10 px-5">
+            <div class="home-font font-bold text-4xl text-center pb-2" style="letter-spacing: 1px;">Setup your account</div>
+            <div class="home-font font-bold text-2xl pt-8 pb-2" style="letter-spacing: 1px;">Choose a username</div>
             <div class="flex flex-col">
-                <input type="text" @input="onInput" v-model="auth.session.username" class="term-box px-3 py-2 home-font b-1" />
+                <input type="text" @input="onInput" v-model="auth.session.username" class="term-box px-3 py-2 home-font b-1"/>
             </div>
-            <div class="home-font font-bold text-base mt-4">Change your profile picture (optional)</div>
+            <div class="home-font font-bold text-2xl pt-8 mt-4" style="letter-spacing: 1px;">Change your profile picture (optional)</div>
             <div class="flex justify-center">
-                <img :src="avatarPreview" class="mt-4 h-100px max-w-100px b-2 term-box p-.5" />
+                <img :src="avatarPreview" class="mt-4 h-200px w-200px max-w-200px b-2 term-box p-.5" />
             </div>
-            <div class="flex items-center">
+            <div class="flex items-center pt-8">
                 <input type="file" accept="image/jpeg,image/png" ref="fileInput"  @change="onFileSelected"  />
             </div>
             <div>
-                <button class="home-button layers hero glitch w-full transition duration-300 rounded-lg px-4 py-2 mt-4" data-text="SETUP" @click="auth.setup({
+                <button class="home-button layers hero glitch w-full transition duration-300 px-4 py-2 mt-4" data-text="SETUP" @click="auth.setup({
                     username: auth.session.username,
                     avatar: avatarFile
                 })">SETUP</button>

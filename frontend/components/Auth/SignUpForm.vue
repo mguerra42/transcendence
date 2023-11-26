@@ -25,7 +25,7 @@ import '/frontend/public/styles/home.css';
                         class="w-full px-3 text-2xl home-font outline-0" style="background-color: transparent; caret-color:rgb(0, 255, 191);" />
                 </div> -->
                 <!-- Email input -->
-                <div class="flex flex-row w-full px-5 pb-5">
+                <div class="flex flex-row w-full px-5 py-5">
                     <span class="home-font text-2xl">Email:</span>
                     <input type="email" v-model="email" name="email"
                         class="w-full px-3 text-2xl home-font outline-0" style="background-color: transparent; caret-color:rgb(0, 255, 191);" />

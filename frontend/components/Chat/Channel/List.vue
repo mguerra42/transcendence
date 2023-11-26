@@ -6,7 +6,7 @@ const props = defineProps<{
 }>();
 </script>
 <template>
-  <div class="h-50% text-white flex flex-col">
+  <div class="h-50% home-font term-box flex flex-col" style="letter-spacing : 1px;">
     <div class="font-bold capitalize flex justify-between items-center p-2.5">
       <div>Channels</div>
       <div class="flex items-center gap-2 mr-1.5">
@@ -14,7 +14,7 @@ const props = defineProps<{
         :to="{
             name: 'chat-search-channel',
         }"
-          class="bg-gray p-1 rounded cursor-pointer transition-all hover:scale-110"
+          class="bg-gray p-1 term-box cursor-pointer transition-all hover:scale-110"
         >
           <div class="i-mdi:search"></div>
         </nuxt-link>
@@ -23,7 +23,7 @@ const props = defineProps<{
             name: 'chat-create-channel',
         }"
         @click="chat.currentMode = 'chat'"
-          class="bg-gray p-1 w-full rounded cursor-pointer transition-all hover:scale-110"
+          class="bg-gray p-1 w-full term-box cursor-pointer transition-all hover:scale-110"
         >
           <div class="i-mdi:plus"></div>
         </nuxt-link>

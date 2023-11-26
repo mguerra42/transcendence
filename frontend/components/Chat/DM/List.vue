@@ -10,22 +10,22 @@ const otherUser = (conversation: WrappedConversation) => {
 };
 </script>
 <template>
-  <div class="h-50% text-white flex flex-col b-t-1 b-white/15">
-    <div class="font-bold capitalize flex justify-between items-center p-2.5">
+  <div class="h-50% text-white term-box flex flex-col b-t-1 b-white/15" style="border-top: none;" >
+    <div class="font-bold home-font capitalize flex justify-between items-center p-2.5">
       <div>Friends</div>
       <div class="flex items-center gap-2 mr-1.5">
         <nuxt-link
         :to="{
             name: 'chat-search-friend',
         }"
-          class="bg-gray p-1 rounded cursor-pointer transition-all hover:scale-110"
+          class="bg-gray p-1 term-box cursor-pointer transition-all hover:scale-110"
         >
           <div class="i-mdi:search"></div>
         </nuxt-link>
         
         <div
           @click="chat.setView('list_friends')"
-          class="bg-gray p-1 rounded cursor-pointer hover:scale-110 transition-all"
+          class="bg-gray p-1 term-box cursor-pointer hover:scale-110 transition-all"
         >
           <div class="i-material-symbols:format-list-bulleted"></div>
         </div>

@@ -21,7 +21,7 @@
     })
 </script>
 <template>
-    <div class="absolute bottom-0 left-0 rounded-lg text-zinc-200 bg-zinc-700 w-full h-full flex">
+    <div class="absolute bottom-0 left-0 w-full h-full flex">
         <ChatConversations/>
         <ChatView/>
         <!--<div class="i-mdi:chat"></div>
