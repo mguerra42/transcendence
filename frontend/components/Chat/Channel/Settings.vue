@@ -32,7 +32,7 @@
                     maxlength="20"
                     placeholder="Update your channel name"
                     class="w-full px-4 py-2 text-sm term-box focus:outline-none focus:text-zinc-300"
-                    style="border-width : 1px"
+                    style="border-width : 1px; font-family : terminal;"
                     />
             </div>
             <div class="w-60%">
@@ -43,7 +43,7 @@
                     maxlength="160"
                     placeholder="Enter a channel description"
                     class="w-full px-4 py-2 text-sm term-box focus:outline-none focus:text-zinc-300"
-                    style="border-width : 1px"
+                    style="border-width : 1px; font-family : terminal;"
                     />
             </div>
             <div class="w-full flex flex-col gap-2 items-center">
@@ -56,6 +56,7 @@
                     v-model="chat.manager.active.channel.password"
                     type="text"
                     placeholder="Enter channel password"
+                    style="font-family : terminal"
                     class="w-full px-4 py-2 text-sm rounded-lg bg-zinc-600 focus:outline-none focus:text-zinc-300"
                     />
                 </div>

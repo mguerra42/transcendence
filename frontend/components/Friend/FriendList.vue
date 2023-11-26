@@ -83,6 +83,7 @@
       v-model="newFriendName"
       type="text"
       placeholder="Enter a username..."
+      style="font-family : terminal"
       class="w-full px-2 py-2 text-sm rounded-lg bg-zinc-600 focus:outline-none focus:text-zinc-300"
     />
     <button @click="addFriend(newFriendName)" class="ml-2 text-zinc-200 text-sm px-8 px-1 bg-zinc-600 rounded hover:bg-zinc-800">

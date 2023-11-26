@@ -47,6 +47,7 @@ const leaveChannel = (channel: any) => {
                     @input="chat.manager.searchChannel(chat.searchChannelQuery)"
                     type="text"
                     placeholder="Search channel..."
+                    style="font-family : terminal"
                     class="w-full px-4 py-2 text-sm term-box b-1 focus:outline-none focus:text-zinc-300"
                     />
             </div>
@@ -77,6 +78,7 @@ const leaveChannel = (channel: any) => {
                                 v-model="channel.password"
                             type="text"
                             placeholder="Password..."
+                            style="font-family : terminal"
                             class="w-full px-4 py-1.5 text-sm rounded-l-lg  bg-zinc-600 focus:outline-none focus:text-zinc-300"
                             /></div>
                             <div  @click="chat.manager.joinConversation({channelId: channel.id, password: channel.password})"  class="bg-green/50 hover:bg-green/75 cursor-pointer rounded-r px-2 py-1 flex items-center font-bold capitalize justify-center">

@@ -21,6 +21,7 @@ const channel = ref<Omit<Channel, "id" | "messages" | "users" | "unread">>({
               type="text"
               maxlength="20"
               placeholder="Enter a name for your channel"
+              style="font-family : terminal"
               class="w-full px-4 py-2 text-sm term-box focus:outline-none focus:text-zinc-300"
             />
           </div>
@@ -31,6 +32,7 @@ const channel = ref<Omit<Channel, "id" | "messages" | "users" | "unread">>({
               maxlength="160"
               rows="4"
               placeholder="Enter a channel description"
+              style="font-family : terminal"
               class="w-full px-4 py-2 text-sm term-box focus:outline-none focus:text-zinc-300"
             />
           </div>
@@ -42,7 +44,8 @@ const channel = ref<Omit<Channel, "id" | "messages" | "users" | "unread">>({
                 v-model="channel.password"
                 type="text"
                 placeholder="Enter channel password"
-                class="w-full px-4 py-2 text-sm term-box focus:outline-none focus:text-zinc-300" style="border-width : 1px;"
+                style="font-family : terminal; border-width : 1px;"
+                class="w-full px-4 py-2 text-sm term-box focus:outline-none focus:text-zinc-300"
               />
             </div>
           </div>

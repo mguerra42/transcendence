@@ -18,6 +18,7 @@ const query = ref("");
               @input="chat.searchFriend(query)"
               type="text"
               placeholder="Search a friend..."
+              style="font-family : terminal"
               class="w-full px-4 py-2 text-sm term-box b-1 focus:outline-none focus:text-zinc-300"
             />
           </div>

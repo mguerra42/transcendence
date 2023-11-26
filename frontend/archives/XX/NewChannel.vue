@@ -14,6 +14,7 @@ const chat = useChat()
                     type="text"
                     maxlength="20"
                     placeholder="Enter a name for your channel"
+                    style="font-family : terminal"
                     class="w-full px-4 py-2 text-sm rounded-lg bg-zinc-600 focus:outline-none focus:text-zinc-300"
                     />
             </div>
